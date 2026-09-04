@@ -12,6 +12,7 @@
   "dependencies": {
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
+    "@supabase/supabase-js": "^2.115.0",
     "@zxing/browser": "^0.1.5",
     "@zxing/library": "^0.21.3",
     "clsx": "^2.1.1",

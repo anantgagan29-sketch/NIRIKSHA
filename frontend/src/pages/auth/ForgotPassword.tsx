@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/cn";
 
-type Step = "identify" | "choose" | "done";
+type Step = "identify" | "choose" | "sent" | "done";
 
 /**
  * Password reset.
@@ -20,7 +20,7 @@ type Step = "identify" | "choose" | "done";
  * email was sent.
  */
 export function ForgotPassword() {
-  const { accountExists, resetPassword } = useAuth();
+  const { accountExists, resetPassword, sendPasswordReset, usingRealAccounts } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -31,9 +31,33 @@ export function ForgotPassword() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  function identify(event: React.FormEvent) {
+  async function identify(event: React.FormEvent) {
     event.preventDefault();
     setError(null);
+
+    // With real accounts the reset goes out as an email link, and the new
+    // password is chosen after clicking it. Letting the browser set a new
+    // password for any address it names would not be a reset — it would be a
+    // way to take over someone else's account.
+    if (usingRealAccounts) {
+      if (!email.trim()) return setError("Enter your email address.");
+
+      setBusy(true);
+      try {
+        await sendPasswordReset(email);
+        setStep("sent");
+        toast("success", "If that address has an account, a reset link is on its way.");
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Could not send the reset email.");
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+
+    // The local development store has no mail to send, so the password is
+    // set here. Whether an account exists can be revealed because this store
+    // is this browser's own.
     if (!accountExists(email)) {
       setError("No account was found for that email address.");
       return;
@@ -64,13 +88,21 @@ export function ForgotPassword() {
 
   return (
     <AuthLayout
-      title={step === "done" ? "Password updated" : "Reset your password"}
+      title={
+        step === "done"
+          ? "Password updated"
+          : step === "sent"
+            ? "Check your email"
+            : "Reset your password"
+      }
       subtitle={
         step === "identify"
           ? "Confirm the email address on your account to continue."
           : step === "choose"
             ? "Choose a new password for this account."
-            : "You can sign in with your new password."
+            : step === "sent"
+              ? "Open the link we sent to finish resetting your password."
+              : "You can sign in with your new password."
       }
       footer={
         step !== "done" && (
@@ -82,7 +114,7 @@ export function ForgotPassword() {
       }
     >
       {/* Progress across the two steps, so the flow is legible. */}
-      {step !== "done" && (
+      {step !== "done" && step !== "sent" && (
         <ol className="mb-6 flex items-center gap-2" aria-label="Reset progress">
           {["Confirm email", "New password"].map((label, index) => {
             const active = (step === "identify" && index === 0) || (step === "choose" && index === 1);
@@ -177,6 +209,23 @@ export function ForgotPassword() {
             {busy ? "Updating…" : "Update password"}
           </Button>
         </form>
+      )}
+
+      {/* Worded so it says nothing about whether that address has an account. */}
+      {step === "sent" && (
+        <div className="flex flex-col gap-5">
+          <div className="flex items-start gap-3 rounded-lg border border-line bg-canvas px-4 py-3.5">
+            <Check className="mt-0.5 h-5 w-5 shrink-0 text-pass" aria-hidden="true" />
+            <p className="text-[13.5px] leading-relaxed text-ink">
+              If <span className="font-medium">{email}</span> has an account, a reset link is on
+              its way. Open it to choose a new password. It can take a minute, and it is worth
+              checking the spam folder.
+            </p>
+          </div>
+          <Button size="lg" onClick={() => navigate("/login")}>
+            Back to sign in
+          </Button>
+        </div>
       )}
 
       {step === "done" && (

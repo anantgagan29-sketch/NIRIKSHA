@@ -17,7 +17,7 @@ export function Settings() {
   const { textSize, setTextSize, highContrast, toggleContrast, reduceMotion, toggleMotion } =
     useAccessibility();
   const { language, setLanguage, t } = useLanguage();
-  const { user } = useAuth();
+  const { user, usingRealAccounts } = useAuth();
   const { theme, setTheme, followingSystem } = useTheme();
   const health = useAsync(checkHealth, []);
 
@@ -128,9 +128,12 @@ export function Settings() {
                   {user.role === "authority" ? "Authority account" : "Citizen account"}
                 </p>
               </div>
+              {/* The claim has to match reality: with a project configured the
+                  account is real, and without one it is this browser's own. */}
               <p className="text-[12.5px] leading-relaxed text-muted sm:col-span-2">
-                Accounts in this build live in this browser only. Editing these fields does
-                not persist until a backend is connected.
+                {usingRealAccounts
+                  ? "Your account is held by the authentication service, and your session carries across devices. Editing these fields here does not save yet."
+                  : "No authentication service is configured, so accounts in this build live in this browser only. They are for development and are not a security boundary."}
               </p>
             </CardBody>
           ) : (

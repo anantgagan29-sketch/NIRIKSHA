@@ -23,6 +23,7 @@ import { RequireAuth } from "@/components/layout/RequireAuth";
 import { Login } from "@/pages/auth/Login";
 import { Register } from "@/pages/auth/Register";
 import { ForgotPassword } from "@/pages/auth/ForgotPassword";
+import { ResetPassword } from "@/pages/auth/ResetPassword";
 
 export default function App() {
   return (
@@ -41,6 +42,8 @@ export default function App() {
                 <Route path="login" element={<Login />} />
                 <Route path="register" element={<Register />} />
                 <Route path="forgot-password" element={<ForgotPassword />} />
+                {/* Where the reset email's link lands. */}
+                <Route path="reset-password" element={<ResetPassword />} />
 
                 <Route element={<AppShell />}>
                   <Route index element={<Dashboard />} />

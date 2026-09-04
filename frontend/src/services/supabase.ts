@@ -25,19 +25,28 @@ export const HAS_SUPABASE = Boolean(url && anonKey);
  * same way as the anon key, so it is easy to paste in by accident — and it
  * would hand every visitor full access to the database.
  */
+const SECRET_KEY_REFUSED =
+  "VITE_SUPABASE_ANON_KEY holds a secret key. That key bypasses row-level security " +
+  "and must never be shipped to a browser. Use the publishable (anon) key instead.";
+
 if (HAS_SUPABASE) {
-  try {
-    const payload = JSON.parse(atob(anonKey.split(".")[1] ?? ""));
-    if (payload?.role === "service_role") {
-      throw new Error(
-        "VITE_SUPABASE_ANON_KEY holds a service_role key. That key bypasses row-level " +
-          "security and must never be shipped to a browser. Use the anon/publishable key.",
-      );
+  // Newer projects issue `sb_publishable_…` and `sb_secret_…`; older ones issue
+  // JWTs whose payload names the role. Both shapes are checked, because the
+  // pair sit next to each other in the dashboard and the wrong one is one
+  // mis-click away.
+  if (anonKey.startsWith("sb_secret_")) {
+    throw new Error(SECRET_KEY_REFUSED);
+  }
+
+  if (anonKey.split(".").length === 3) {
+    try {
+      const payload = JSON.parse(atob(anonKey.split(".")[1] ?? ""));
+      if (payload?.role === "service_role") throw new Error(SECRET_KEY_REFUSED);
+    } catch (cause) {
+      // A key that will not decode is not proof of anything; only a positively
+      // identified secret key stops the application starting.
+      if (cause instanceof Error && cause.message === SECRET_KEY_REFUSED) throw cause;
     }
-  } catch (cause) {
-    // A key that cannot be decoded is not necessarily wrong — newer publishable
-    // keys are not JWTs. Only a positively identified service_role key stops us.
-    if (cause instanceof Error && cause.message.startsWith("VITE_SUPABASE_ANON_KEY")) throw cause;
   }
 }
 

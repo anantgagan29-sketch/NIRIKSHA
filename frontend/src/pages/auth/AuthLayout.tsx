@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { BrandLockup } from "@/components/layout/Brand";
+import { HAS_SUPABASE } from "@/services/supabase";
 
 /**
  * The shell every account screen sits in.
@@ -70,10 +71,15 @@ export function AuthLayout({
 
           {footer && <div className="mt-6 text-center text-sm text-muted">{footer}</div>}
 
-          <p className="mt-10 rounded-lg border border-line bg-canvas px-3.5 py-2.5 text-[11.5px] leading-relaxed text-muted">
-            Accounts in this build are stored in your browser only. Real authentication
-            belongs on the server — see <span className="font-mono">API_INTEGRATION.md</span>.
-          </p>
+          {/* Shown only when it is true. With a real service behind these
+              forms the warning would be misinformation, and a sign-in page is
+              the worst place to be wrong about what is protected. */}
+          {!HAS_SUPABASE && (
+            <p className="mt-10 rounded-lg border border-line bg-canvas px-3.5 py-2.5 text-[11.5px] leading-relaxed text-muted">
+              No authentication service is configured, so accounts are stored in this browser
+              only. They are for development and are not a security boundary.
+            </p>
+          )}
         </div>
       </main>
     </div>

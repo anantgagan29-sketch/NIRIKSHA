@@ -213,10 +213,14 @@ export function Settings() {
                   ? "local fixtures — nothing is stored."
                   : "stored by the API and shared across everyone using it."}
               </p>
+              {/* Two separate facts, and both have to be stated. Real accounts
+                  do not make the API protected, and saying only the first
+                  would imply they had. */}
               <p>
-                <span className="font-medium text-ink">Accounts:</span> held in this browser only.
-                The API has no authentication yet, so signing in does not protect anything on the
-                server.
+                <span className="font-medium text-ink">Accounts:</span>{" "}
+                {usingRealAccounts
+                  ? "held by the authentication service. The API itself has no authentication yet, so signing in identifies you but does not protect anything on the server."
+                  : "held in this browser only. The API has no authentication yet, so signing in does not protect anything on the server."}
               </p>
             </div>
           </CardBody>

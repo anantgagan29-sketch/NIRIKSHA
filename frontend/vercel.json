@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "//": "A single-page app: every path must return index.html, or a refresh on /inspect gives a 404 from the static host.",
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

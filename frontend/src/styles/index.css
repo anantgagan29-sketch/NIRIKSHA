@@ -1,0 +1,295 @@
+@import "tailwindcss";
+
+/**
+ * NIRIKSHA design tokens.
+ *
+ * One restrained palette: forest green carries the brand and the console
+ * chrome, white carries the work, and the three semantic colours are reserved
+ * strictly for compliance meaning — green passes, red fails, amber needs a
+ * person. Nothing decorative is ever allowed to borrow those three.
+ */
+
+@theme {
+  /* brand — forest green */
+  --color-brand-50: #eef7f1;
+  --color-brand-100: #d6ecdd;
+  --color-brand-200: #aed9bd;
+  --color-brand-300: #7dc094;
+  --color-brand-400: #4aa26d;
+  --color-brand-500: #2b8a52;
+  --color-brand-600: #1f7a45;
+  --color-brand-700: #196139;
+  --color-brand-800: #164e2f;
+  --color-brand-900: #12351f;
+  --color-brand-950: #0b2416;
+
+  /* console chrome */
+  --color-console: #12301f;
+  --color-console-deep: #0c2317;
+  --color-console-line: rgba(255, 255, 255, 0.1);
+
+  /* neutrals, very slightly green-shifted */
+  --color-canvas: #f4f7f4;
+  --color-surface: #ffffff;
+  --color-line: #e3eae5;
+  --color-line-strong: #cfdad3;
+  --color-ink: #0f1a14;
+  --color-ink-2: #33443a;
+  --color-muted: #6b7a72;
+  --color-faint: #94a29a;
+
+  /* compliance semantics — reserved */
+  --color-pass: #17803d;
+  --color-pass-bg: #edf7f0;
+  --color-fail: #c62828;
+  --color-fail-bg: #fdf0ef;
+  --color-review: #b45309;
+  --color-review-bg: #fdf6e9;
+  --color-na: #7b8a82;
+
+  --color-teal: #0e8f84;
+
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --radius-card: 14px;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-line);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+  }
+
+  /* Measurements, prices and identifiers must align in columns. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background: var(--color-brand-100);
+  }
+}
+
+@layer utilities {
+  .card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: 0 1px 2px rgb(15 26 20 / 0.04), 0 8px 24px -18px rgb(15 26 20 / 0.28);
+  }
+
+  .console-texture {
+    background-image:
+      radial-gradient(38rem 22rem at 10% -10%, rgba(122, 200, 150, 0.16), transparent 62%),
+      radial-gradient(30rem 20rem at 90% 108%, rgba(14, 143, 132, 0.14), transparent 62%);
+  }
+
+  .hero-wash {
+    background-image:
+      radial-gradient(46rem 30rem at 78% 12%, rgba(43, 138, 82, 0.1), transparent 62%),
+      radial-gradient(34rem 24rem at 12% 0%, rgba(14, 143, 132, 0.07), transparent 60%);
+  }
+}
+
+/**
+ * Dark theme.
+ *
+ * Only the surface and text tokens invert. The three compliance colours keep
+ * their meaning and are re-tuned for contrast rather than swapped, and the
+ * forest-green console chrome stays as it is in both themes — it is the brand,
+ * not a background.
+ *
+ * The deep brand shades are deliberately NOT lightened: `--color-brand-800` is
+ * the label on the sidebar's white active pill, which exists in both themes.
+ */
+html.dark {
+  --color-canvas: #0b1310;
+  --color-surface: #131d18;
+  --color-line: #24322b;
+  --color-line-strong: #35473d;
+  --color-ink: #e8f0ea;
+  --color-ink-2: #b6c5bc;
+  --color-muted: #8a998f;
+  --color-faint: #6a7a71;
+
+  /* Brand tints become dark washes; the two text shades brighten. */
+  --color-brand-50: #10221a;
+  --color-brand-100: #16301f;
+  --color-brand-200: #1f4029;
+  --color-brand-300: #2b5b3a;
+  --color-brand-600: #2f9c5c;
+  --color-brand-700: #5fd18e;
+
+  /* Compliance semantics: brighter foregrounds, deep tinted grounds. */
+  --color-pass: #4ade80;
+  --color-pass-bg: #102319;
+  --color-fail: #f87171;
+  --color-fail-bg: #271413;
+  --color-review: #fbbf24;
+  --color-review-bg: #261d0c;
+  --color-na: #7e8d84;
+
+  --color-teal: #2dd4bf;
+
+  color-scheme: dark;
+}
+
+html.dark .card {
+  box-shadow: 0 1px 0 0 rgb(255 255 255 / 0.03) inset, 0 12px 32px -24px rgb(0 0 0 / 0.9);
+}
+
+/* The high-contrast preference layers on top of whichever theme is active. */
+html.dark.a11y-contrast {
+  --color-muted: #b9c8bf;
+  --color-faint: #9aa9a0;
+  --color-line: #43554b;
+  --color-line-strong: #5d7267;
+  --color-ink-2: #dae5de;
+}
+
+/**
+ * Opening title-card animation.
+ *
+ * Written as CSS keyframes rather than driven by the animation library: the
+ * splash covers the whole application, and in this build the library's
+ * *delayed* animations do not reliably start — which would leave letters
+ * invisible or the overlay stuck. Native keyframes with `animation-delay` are
+ * deterministic and cost nothing.
+ */
+@keyframes nk-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes nk-pop {
+  from { opacity: 0; transform: scale(0.86) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes nk-sweep {
+  from { width: 0; opacity: 0; }
+  to   { width: 100%; opacity: 1; }
+}
+
+@keyframes nk-caret {
+  0%, 100% { opacity: 0; }
+  10%, 86% { opacity: 1; }
+}
+
+.nk-rise, .nk-pop, .nk-sweep, .nk-caret {
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nk-rise  { animation-name: nk-rise;  animation-duration: 340ms; }
+.nk-pop   { animation-name: nk-pop;   animation-duration: 550ms; }
+.nk-sweep { animation-name: nk-sweep; animation-duration: 600ms; }
+.nk-caret { animation-name: nk-caret; animation-timing-function: linear; }
+
+/**
+ * The barcode scanner's sweeping line.
+ *
+ * A live decoder gives no feedback until it succeeds, so without this the
+ * scanner looks frozen while it is in fact reading every frame. The motion
+ * says the camera is working; it is not a progress measure, because there is
+ * no progress to measure — a barcode is either read or it is not.
+ */
+@keyframes nk-scanline {
+  0%   { top: 6%;  opacity: 0.35; }
+  50%  { top: 90%; opacity: 1; }
+  100% { top: 6%;  opacity: 0.35; }
+}
+
+.nk-scanline {
+  animation: nk-scanline 2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* Someone who has asked for less motion still needs to see that the scanner
+   is live, so the line stays and only stops moving. */
+@media (prefers-reduced-motion: reduce) {
+  .nk-scanline { animation: none; top: 50%; opacity: 0.8; }
+}
+
+/**
+ * Indeterminate progress.
+ *
+ * Used while one long server request is in flight. The backend runs quality
+ * analysis, vision parsing, readability and the rule engine in a single call
+ * and reports no intermediate milestones, so there is no percentage to show —
+ * and inventing a creeping one would be a lie about how far along the work is.
+ */
+@keyframes nk-indeterminate {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+
+.nk-indeterminate {
+  width: 25%;
+  animation: nk-indeterminate 1.4s ease-in-out infinite;
+}
+
+/**
+ * Accessibility controls. These classes are toggled on <html> by the
+ * accessibility menu, so every preference applies globally and survives
+ * navigation.
+ */
+html.a11y-text-lg {
+  font-size: 17.5px;
+}
+
+html.a11y-text-xl {
+  font-size: 19px;
+}
+
+html.a11y-contrast {
+  --color-muted: #43524a;
+  --color-faint: #56655d;
+  --color-line: #b9c6bf;
+  --color-line-strong: #93a49b;
+  --color-ink-2: #16241c;
+}
+
+html.a11y-contrast .card {
+  border-width: 1.5px;
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html.a11y-reduce-motion *, html.a11y-reduce-motion *::before, html.a11y-reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}

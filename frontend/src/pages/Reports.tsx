@@ -1,0 +1,166 @@
+import { useState } from "react";
+import { downloadComplianceReport } from "@/services/reportPdf";
+import { Download, Printer, Share2 } from "lucide-react";
+import { PageHeader, AssessmentNotice } from "@/components/ui/PageHeader";
+import { Card, CardBody } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { StatusPill, checkPill, resultPill, DemoBadge } from "@/components/ui/StatusPill";
+import { ProductSwitcher } from "@/components/inspection/ProductSwitcher";
+import { useScanFromRoute } from "@/hooks/useScanFromRoute";
+import { useToast } from "@/components/ui/Toast";
+import { BrandLockup } from "@/components/layout/Brand";
+import { useLanguage } from "@/hooks/useLanguage";
+
+/**
+ * Report preview.
+ *
+ * The document is composed here and printed by the browser. No PDF is
+ * generated on a server in this build, and the interface does not suggest one
+ * has been: the actions are a real print, a real clipboard copy, and a clearly
+ * labelled placeholder for the eventual download.
+ */
+export function Reports() {
+  const { t } = useLanguage();
+  const { product } = useScanFromRoute();
+  const [building, setBuilding] = useState(false);
+  const toast = useToast();
+
+  const assessed = new Date(product.scannedAt).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
+  return (
+    <div className="mx-auto max-w-[1500px] px-4 py-8 sm:px-6">
+      <PageHeader
+        eyebrow={t("reports.eyebrow")}
+        title={t("reports.title")}
+        description={t("reports.description")}
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              disabled={building}
+              onClick={async () => {
+                setBuilding(true);
+                try {
+                  await downloadComplianceReport(product);
+                  toast("success", "Compliance report downloaded.");
+                } catch (cause) {
+                  toast(
+                    "warning",
+                    cause instanceof Error ? cause.message : "The report could not be generated.",
+                  );
+                } finally {
+                  setBuilding(false);
+                }
+              }}
+            >
+              <Download className="h-4 w-4" aria-hidden="true" />
+              {building ? t("reports.preparing") : t("reports.downloadPdf")}
+            </Button>
+            <Button variant="secondary" onClick={() => window.print()}>
+              <Printer className="h-4 w-4" aria-hidden="true" />
+              {t("common.print")}
+            </Button>
+            <Button
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(
+                    `${window.location.origin}/reports?scan=${product.scanId}`,
+                  );
+                  toast("success", "Report link copied to your clipboard.");
+                } catch {
+                  toast("warning", "Your browser did not allow copying to the clipboard.");
+                }
+              }}
+            >
+              <Share2 className="h-4 w-4" aria-hidden="true" />
+              Share Report
+            </Button>
+          </>
+        }
+      />
+
+      <ProductSwitcher className="mt-5" />
+
+      <Card className="mx-auto mt-6 max-w-4xl">
+        {/* masthead */}
+        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line px-7 py-6">
+          <div className="flex flex-col gap-1.5">
+            <BrandLockup className="max-w-[11rem]" />
+            <p className="text-[11.5px] text-muted">Product Compliance Report</p>
+          </div>
+          <DemoBadge />
+        </div>
+
+        <div className="grid grid-cols-2 gap-x-6 gap-y-4 border-b border-line px-7 py-5 sm:grid-cols-4">
+          <Meta label="Scan ID" value={product.scanId} mono />
+          <Meta label="Product" value={product.name} />
+          <Meta label="Assessment date" value={assessed} />
+          <div>
+            <p className="text-[11px] uppercase tracking-wider text-faint">Overall result</p>
+            <StatusPill {...resultPill(product.result)} size="sm" className="mt-1.5" />
+          </div>
+        </div>
+
+        <CardBody className="px-7 py-6">
+          <h3 className="font-display text-sm font-semibold text-ink">Field checks</h3>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[36rem] border-collapse text-left">
+              <thead>
+                <tr className="border-b border-line text-[11px] uppercase tracking-wider text-faint">
+                  <th className="py-2 pr-3 font-semibold">Requirement</th>
+                  <th className="py-2 pr-3 font-semibold">Detected</th>
+                  <th className="py-2 pr-3 font-semibold">Provision</th>
+                  <th className="py-2 font-semibold">Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {product.checks.map((check) => (
+                  <tr key={check.id} className="border-b border-line last:border-0 align-top">
+                    <td className="py-2.5 pr-3 text-[13px] text-ink">{check.label}</td>
+                    <td className="py-2.5 pr-3 text-[12.5px] text-muted">{check.detected ?? "—"}</td>
+                    <td className="py-2.5 pr-3 font-mono text-[11.5px] text-muted">{check.provision}</td>
+                    <td className="py-2.5">
+                      <StatusPill {...checkPill(check.status)} size="sm" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <h3 className="mt-7 font-display text-sm font-semibold text-ink">Recognised text</h3>
+          <p className="mt-1 text-[11.5px] text-muted">
+            Mean recognition confidence{" "}
+            <span className="tnum font-mono text-ink">{product.ocrConfidence}%</span>. Reproduced
+            exactly as recognised, including its errors.
+          </p>
+          <pre className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap rounded-lg border border-line bg-canvas p-4 font-mono text-[11px] leading-relaxed text-ink-2">
+            {product.rawText}
+          </pre>
+
+          <h3 className="mt-7 font-display text-sm font-semibold text-ink">What this report is</h3>
+          <AssessmentNotice className="mt-2" />
+          <p className="mt-2.5 text-[11.5px] leading-relaxed text-muted">
+            Automated text recognition can misread a label. Where a value was read with low
+            confidence, or where a requirement&rsquo;s scope is conditional, the check is reported as
+            needing review rather than as a failure. A finding here is a prompt for verification by
+            a person, not a conclusion about a product or its manufacturer.
+          </p>
+        </CardBody>
+      </Card>
+    </div>
+  );
+}
+
+function Meta({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div>
+      <p className="text-[11px] uppercase tracking-wider text-faint">{label}</p>
+      <p className={`mt-1 text-[13.5px] font-medium text-ink ${mono ? "font-mono" : ""}`}>{value}</p>
+    </div>
+  );
+}

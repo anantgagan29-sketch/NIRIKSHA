@@ -1,0 +1,24 @@
+# Deployment for the NIRIKSHA backend on Render.
+#
+# Committing this means the service is described in the repository rather than
+# only in a dashboard someone has to remember the settings of.
+services:
+  - type: web
+    name: niriksha-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    # Render assigns the port; binding to a fixed one makes the service
+    # unreachable and the deploy fails its health check.
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      # Set in the Render dashboard, never committed.
+      - key: GEMINI_API_KEY
+        sync: false
+      # The deployed frontend's origin. Filled in once Vercel gives the URL.
+      - key: ALLOWED_ORIGINS
+        sync: false

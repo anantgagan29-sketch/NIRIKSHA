@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pillow
+# Headless build: the server has no display, and plain opencv-python pulls in
+# GUI libraries (libGL and friends) that are absent from a slim container, so
+# it imports fine locally and fails on the host. No GUI function is used here.
+opencv-python-headless
+python-dotenv
+numpy
+
+# Gemini vision: product parsing and readability analysis both import
+# `from google import genai`. This was missing from the original list, so a
+# clean install could not start the app.
+google-genai

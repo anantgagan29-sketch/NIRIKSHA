@@ -22,3 +22,31 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# ---------------------------------------------------------------
+# Added with the full NIRIKSHA application (frontend/ and backend/).
+# ---------------------------------------------------------------
+# Secrets — never committed. The API key lives in the host's environment.
+.env
+.env.local
+*.env
+
+# Installed dependencies, rebuilt from the manifests.
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# Build output
+dist/
+build/
+
+# Runtime data: uploads, the SQLite database and the scan cache are produced
+# by running the app, not part of its source.
+backend/uploads/*
+!backend/uploads/.gitkeep
+*.db
+*.sqlite3
+scan-cache.json
+
+.DS_Store

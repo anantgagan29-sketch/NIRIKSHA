@@ -56,7 +56,13 @@ def init_db() -> None:
                 -- The client's identifier for one scan action. Two requests
                 -- carrying the same one are the same event -- a retry, a
                 -- double submit -- and must not become two rows.
-                scan_event_id TEXT
+                scan_event_id TEXT,
+                -- The photograph this assessment was made from, kept with the
+                -- scan rather than in a directory beside it. Every finding
+                -- below is a claim about this picture, and a report opened
+                -- later has nothing to show without it.
+                image_bytes   BLOB,
+                image_mime    TEXT
             );
 
             CREATE TABLE IF NOT EXISTS complaints (
@@ -105,6 +111,12 @@ def init_db() -> None:
         if "scan_event_id" not in columns:
             db.execute("ALTER TABLE scans ADD COLUMN scan_event_id TEXT")
 
+        if "image_bytes" not in columns:
+            db.execute("ALTER TABLE scans ADD COLUMN image_bytes BLOB")
+
+        if "image_mime" not in columns:
+            db.execute("ALTER TABLE scans ADD COLUMN image_mime TEXT")
+
         # Indexed here, not in the script above: on an older database neither
         # column exists until the lines above add it.
         db.execute(
@@ -137,6 +149,7 @@ def record_scan(
     result: dict[str, Any],
     user_id: Optional[str] = None,
     event_id: Optional[str] = None,
+    image: Optional[tuple[bytes, str]] = None,
 ) -> str:
     """
     Stores one completed scan and returns its reference.
@@ -176,8 +189,8 @@ def record_scan(
                 """
                 INSERT INTO scans (id, created_at, filename, product_name, net_quantity,
                                    scan_status, status, score, result_json,
-                                   user_id, scan_event_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                   user_id, scan_event_id, image_bytes, image_mime)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     scan_id,
@@ -191,6 +204,8 @@ def record_scan(
                     json.dumps(result),
                     user_id,
                     event_id,
+                    image[0] if image else None,
+                    image[1] if image else None,
                 ),
             )
 
@@ -253,6 +268,28 @@ def get_scan(
             (scan_id, user_id),
         ).fetchone()
     return json.loads(row["result_json"]) if row else None
+
+
+def get_scan_image(
+    scan_id: str,
+    user_id: Optional[str] = None,
+) -> Optional[tuple[bytes, str]]:
+    """
+    The photograph belonging to one scan, if it belongs to this user.
+
+    Scoped exactly as the assessment itself is. A picture of somebody's
+    shopping is theirs, and a reference number is short enough to guess.
+    """
+    with _connect() as db:
+        row = db.execute(
+            "SELECT image_bytes, image_mime FROM scans WHERE id = ? AND user_id IS ?",
+            (scan_id, user_id),
+        ).fetchone()
+
+    if row is None or row["image_bytes"] is None:
+        return None
+
+    return bytes(row["image_bytes"]), row["image_mime"] or "image/jpeg"
 
 
 def scan_stats(user_id: Optional[str] = None) -> dict[str, int]:

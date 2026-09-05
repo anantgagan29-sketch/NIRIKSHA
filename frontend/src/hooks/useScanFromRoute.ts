@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import type { DemoProduct } from "@/data/types";
-import { HAS_BACKEND, getScan } from "@/services/nirikshaApi";
+import { HAS_BACKEND, getScan, scanImageUrl } from "@/services/nirikshaApi";
 import { useSelectedProduct } from "./useSelectedProduct";
 
 /**
@@ -37,6 +37,9 @@ export function useScanFromRoute(): {
     }
 
     let cancelled = false;
+    // Revoked when this effect is torn down: an object URL holds the whole
+    // image in memory until it is given back.
+    let objectUrl: string | null = null;
     setLoading(true);
     setError(null);
 
@@ -50,9 +53,6 @@ export function useScanFromRoute(): {
           name: outcome.productName ?? "Recorded scan",
           category: "Recorded scan",
           netQuantity: outcome.netQuantity ?? "—",
-          // A stored scan keeps no image: the upload is not retained beyond
-          // the inspection, so the result screens draw their label panel
-          // instead of showing a photograph that is not there.
           labelLines: [],
           isLive: true,
           result: outcome.result ?? "needs_review",
@@ -63,6 +63,21 @@ export function useScanFromRoute(): {
           rawText: outcome.rawText ?? "",
           ocrConfidence: 0,
           scannedAt: outcome.raw.created_at ?? new Date().toISOString(),
+        });
+
+        // The photograph belongs to this scan and is fetched by its
+        // reference, so opening an older report shows the packet that report
+        // is about — not whichever image happens to be in memory.
+        void scanImageUrl(scanId).then((url) => {
+          if (cancelled) {
+            if (url) URL.revokeObjectURL(url);
+            return;
+          }
+
+          if (!url) return;
+
+          objectUrl = url;
+          setFetched((current) => (current ? { ...current, imageUrl: url } : current));
         });
       })
       .catch((cause: unknown) => {
@@ -75,6 +90,7 @@ export function useScanFromRoute(): {
 
     return () => {
       cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [scanId]);
 

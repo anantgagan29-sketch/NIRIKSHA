@@ -12,7 +12,7 @@ import { listScans, getScanStats } from "@/services/inspectionService";
 import { ButtonLink } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import type { ComplianceResult } from "@/data/types";
-import { getScan } from "@/services/nirikshaApi";
+import { scanImageUrl, getScan } from "@/services/nirikshaApi";
 import { downloadComplianceReport } from "@/services/reportPdf";
 import { buildReportData } from "@/services/report/model";
 import { useToast } from "@/components/ui/Toast";
@@ -41,6 +41,10 @@ export function History() {
     try {
       const outcome = await getScan(scanId);
 
+      // Fetched by reference, so the report carries the packet this row is
+      // about rather than the last image this browser happened to hold.
+      const imageUrl = await scanImageUrl(scanId);
+
       // The row's quick action stays a PDF, which is what its label offers.
       // Every format is available from the report screen itself, and all of
       // them render the same report data as this one.
@@ -51,6 +55,7 @@ export function History() {
         category: "Recorded scan",
         netQuantity: outcome.netQuantity ?? "—",
         labelLines: [],
+        imageUrl: imageUrl ?? undefined,
         result: outcome.result ?? "needs_review",
         score: outcome.score,
         quality: outcome.quality,
@@ -62,6 +67,9 @@ export function History() {
       });
 
       await downloadComplianceReport(data);
+
+      // The bytes are in the document now; the handle is not needed again.
+      if (imageUrl) URL.revokeObjectURL(imageUrl);
 
       toast("success", `Report for ${scanId} downloaded.`);
     } catch (cause) {

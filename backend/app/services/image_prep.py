@@ -7,6 +7,7 @@ downscaled copy per scan, which both Gemini calls then share — the original is
 untouched and remains the record of what was submitted.
 """
 
+import io
 import os
 
 from PIL import Image, ImageOps
@@ -65,3 +66,48 @@ def discard_prepared(prepared_path: str, original_path: str) -> None:
         os.remove(prepared_path)
     except OSError:
         pass
+
+
+# The longest edge kept for the copy stored against the scan. Large enough to
+# read a label from in a report, small enough that a database row holding one
+# stays a reasonable size.
+RECORD_MAX_EDGE = 1024
+RECORD_JPEG_QUALITY = 78
+
+
+def thumbnail_for_record(image_path: str) -> tuple[bytes, str] | None:
+    """
+    A copy of the submitted photograph, small enough to keep with the scan.
+
+    The report has to show the packet it is about, and a report opened a week
+    later has nothing to show unless the picture was kept. The upload
+    directory is not that: on this host it is wiped on every deploy, and
+    nothing recorded which file belonged to which scan anyway.
+
+    Returns the bytes and their media type, or None if the photograph cannot
+    be read — a scan is still worth recording without its picture.
+    """
+    try:
+        with Image.open(image_path) as source:
+            # Orientation lives in EXIF on a phone photograph; without this
+            # the report shows the label on its side.
+            image = ImageOps.exif_transpose(source)
+            image = image.convert("RGB")
+
+            longest = max(image.size)
+
+            if longest > RECORD_MAX_EDGE:
+                scale = RECORD_MAX_EDGE / longest
+                image = image.resize(
+                    (max(1, round(image.width * scale)), max(1, round(image.height * scale))),
+                    Image.LANCZOS,
+                )
+
+            buffer = io.BytesIO()
+            image.save(buffer, format="JPEG", quality=RECORD_JPEG_QUALITY, optimize=True)
+
+            return buffer.getvalue(), "image/jpeg"
+
+    except Exception as error:
+        print("Scan image not kept:", str(error))
+        return None

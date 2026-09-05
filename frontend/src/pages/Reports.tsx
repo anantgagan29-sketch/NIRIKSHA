@@ -83,6 +83,53 @@ export function Reports() {
           </div>
         </div>
 
+        {/* The packet, beside what was concluded about it.
+            Two columns on a wide screen and stacked below it: the photograph
+            is evidence for the summary next to it, and reading one while
+            scrolling to find the other is what made the old report hard to
+            check. The image is capped so it stays illustrative rather than
+            taking the page. */}
+        <div className="grid gap-6 border-b border-line px-7 py-6 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)]">
+          <div>
+            <h3 className="font-display text-sm font-semibold text-ink">Scanned product</h3>
+
+            {product.imageUrl ? (
+              <img
+                src={product.imageUrl}
+                alt={`Label photographed for scan ${product.scanId}`}
+                className="mt-2.5 w-full rounded-lg border border-line object-contain"
+                style={{ maxHeight: 280 }}
+              />
+            ) : (
+              <p className="mt-2.5 rounded-lg border border-dashed border-line bg-canvas px-4 py-8 text-center text-[12.5px] text-muted">
+                Product image unavailable
+              </p>
+            )}
+          </div>
+
+          <div>
+            <h3 className="font-display text-sm font-semibold text-ink">Assessment</h3>
+
+            <div className="mt-2.5 flex flex-wrap items-center gap-3">
+              <StatusPill {...resultPill(product.result)} />
+              <span className="text-[13px] text-muted">
+                Score <span className="tnum font-mono text-ink">{product.score}</span>
+              </span>
+            </div>
+
+            <dl className="mt-4 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+              {product.fields.slice(0, 6).map((field) => (
+                <div key={field.key}>
+                  <dt className="text-[11px] uppercase tracking-wider text-faint">{field.label}</dt>
+                  <dd className="mt-0.5 text-[13px] text-ink">
+                    {field.value ?? <span className="text-muted">Not detected</span>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+
         <CardBody className="px-7 py-6">
           <h3 className="font-display text-sm font-semibold text-ink">Field checks</h3>
           <div className="mt-3 overflow-x-auto">

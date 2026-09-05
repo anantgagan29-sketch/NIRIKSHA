@@ -5,9 +5,6 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import type { DemoProduct } from "@/data/types";
 import { buildReportData } from "@/services/report/model";
-import { downloadComplianceReport } from "@/services/reportPdf";
-import { downloadWordReport } from "@/services/report/docx";
-import { downloadImageReport } from "@/services/report/image";
 
 /**
  * The download control: one assessment, four files.
@@ -78,9 +75,20 @@ export function DownloadReportMenu({
     try {
       const data = await buildReportData(product);
 
-      if (format === "pdf") await downloadComplianceReport(data);
-      else if (format === "docx") await downloadWordReport(data);
-      else await downloadImageReport(data, format);
+      // The document writers are loaded when one is asked for, not when the
+      // page is. Between them pdf-lib and docx are a large part of what the
+      // browser had to download before anything could be shown, and most
+      // visits never generate a report at all.
+      if (format === "pdf") {
+        const { downloadComplianceReport } = await import("@/services/reportPdf");
+        await downloadComplianceReport(data);
+      } else if (format === "docx") {
+        const { downloadWordReport } = await import("@/services/report/docx");
+        await downloadWordReport(data);
+      } else {
+        const { downloadImageReport } = await import("@/services/report/image");
+        await downloadImageReport(data, format);
+      }
 
       setOpen(false);
       toast("success", `Report downloaded as ${format === "docx" ? "a Word document" : format.toUpperCase()}.`);

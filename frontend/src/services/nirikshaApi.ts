@@ -1,4 +1,5 @@
 import { API_BASE_URL, FORCE_CLIENT_PIPELINE, USING_MOCK_DATA, apiUrl } from "./config";
+import { supabase } from "./supabase";
 import type {
   BackendCheck,
   BackendProduct,
@@ -58,11 +59,40 @@ export class AiUnavailableError extends Error {
 
 /* ------------------------------------------------------------- transport */
 
+/**
+ * The current session's access token, or null when nobody is signed in.
+ *
+ * Every call that touches a user's own data carries this. The API verifies the
+ * signature and reads the user id out of the token, which is why the browser
+ * never sends an id of its own: a value the client can type is a value the
+ * client can change, and scan history is exactly the thing that must not be
+ * readable by naming someone else.
+ */
+async function accessToken(): Promise<string | null> {
+  if (!supabase) return null;
+
+  const { data } = await supabase.auth.getSession();
+
+  return data.session?.access_token ?? null;
+}
+
+/** The Authorization header for a signed-in caller, or nothing. */
+async function authHeaders(): Promise<Record<string, string>> {
+  const token = await accessToken();
+
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
 
+  const headers = {
+    ...(await authHeaders()),
+    ...(init?.headers as Record<string, string> | undefined),
+  };
+
   try {
-    response = await fetch(apiUrl(path), init);
+    response = await fetch(apiUrl(path), { ...init, headers });
   } catch (cause) {
     // An aborted request is the caller's own doing, not a failure to report.
     if (cause instanceof DOMException && cause.name === "AbortError") throw cause;
@@ -463,9 +493,19 @@ export interface ScanOutcome {
  * the compliance rules in a single call, so this is one request rather than
  * the staged sequence the mock service exposes.
  */
-export async function scanProduct(file: File, signal?: AbortSignal): Promise<ScanOutcome> {
+export async function scanProduct(
+  file: File,
+  signal?: AbortSignal,
+  /**
+   * Identifies this scan action. Sent again with the same value -- a retry,
+   * or a submit that fired twice -- the server returns the reference it
+   * already issued instead of recording a second scan.
+   */
+  eventId?: string,
+): Promise<ScanOutcome> {
   const form = new FormData();
   form.append("file", file);
+  if (eventId) form.append("scan_event_id", eventId);
 
   const body = await request<BackendScanResponse>("/product/scan", {
     method: "POST",

@@ -82,6 +82,47 @@ AI_MODELS: list[str] = _csv(
 GEMINI_MODELS: list[str] = AI_MODELS
 
 
+# Reading a label is extraction, not composition. At the sampling temperature
+# these models default to, the same photograph comes back with a different
+# address, batch number and licence number on every call: a field that cannot
+# be read is filled with a plausible invention rather than left null, and each
+# call invents something new. Zero makes the read repeatable, which is what a
+# compliance verdict has to be — the same packet cannot pass one minute and
+# fail the next.
+AI_TEMPERATURE: float = float(os.getenv("AI_TEMPERATURE", "0"))
+
+
+# --------------------------------------------------------------------------
+# Supabase
+# --------------------------------------------------------------------------
+# Accounts live in Supabase; scans live here. The link between them is the
+# access token the browser already holds — this API verifies it and takes the
+# user id from the token's claims, rather than letting a request name its own
+# owner.
+#
+# Only the project URL is needed. The signing keys are public and published at
+# the JWKS endpoint below, so there is no secret to hold and nothing to leak.
+
+SUPABASE_URL: str = os.getenv("SUPABASE_URL", "").rstrip("/")
+
+SUPABASE_JWKS_URL: str = os.getenv(
+    "SUPABASE_JWKS_URL",
+    f"{SUPABASE_URL}/auth/v1/.well-known/jwks.json" if SUPABASE_URL else "",
+)
+
+# With a project configured, a request for scan history has to carry a token.
+#
+# The alternative — falling back to "show everything" when authentication is
+# absent — is how one account's inspections ended up in another's history, so
+# it is not offered. Locally, with no project set, this is off and scans are
+# recorded and read under a null owner: a scope that contains only the rows
+# written the same way, never a real user's.
+REQUIRE_AUTH: bool = os.getenv(
+    "REQUIRE_AUTH",
+    "true" if SUPABASE_URL else "false",
+).strip().lower() in ("1", "true", "yes", "on")
+
+
 # How long a model is left alone after refusing.
 #
 # A spent daily allowance will still be spent in a minute, so standing down
@@ -166,7 +207,16 @@ READABILITY_TIMEOUT_SECONDS: float = float(os.getenv("READABILITY_TIMEOUT_SECOND
 # Image preparation
 # --------------------------------------------------------------------------
 
-# Longest edge sent to the vision model. Label text stays legible well below
-# camera resolution, and a smaller upload is a faster upload.
-VISION_MAX_EDGE: int = int(os.getenv("VISION_MAX_EDGE", "1280"))
+# Longest edge sent to the vision model.
+#
+# 1280 was chosen for upload speed, and it is enough for the large print — the
+# product name, the MRP, the dates. It is not enough for the block that
+# carries the address, the licence number and the batch number, which on a
+# real package is a few millimetres tall. Starved of readable characters the
+# model does not return null; it supplies the brand's details from memory, and
+# a different one on each call.
+#
+# 2048 keeps that small print resolvable. The upload is larger, and that is
+# the right trade: a fast wrong reading is worth nothing here.
+VISION_MAX_EDGE: int = int(os.getenv("VISION_MAX_EDGE", "2048"))
 VISION_JPEG_QUALITY: int = int(os.getenv("VISION_JPEG_QUALITY", "85"))

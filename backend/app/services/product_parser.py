@@ -57,6 +57,7 @@ client = genai.Client(
 from app.services.ai_provider import call_with_fallback
 
 from app.core.config import (
+    AI_TEMPERATURE,
     GEMINI_TIMEOUT_SECONDS,
     GEMINI_MAX_RETRIES,
     GEMINI_MODELS as CONFIGURED_MODELS,
@@ -83,6 +84,24 @@ The image can be ANY packaged product sold in India.
 
 Do NOT assume that it is a particular brand, company,
 or product.
+
+READ, DO NOT RECALL.
+
+You may recognise the brand. That tells you nothing about what THIS
+package prints. Every value you return must be one whose characters you
+can actually see in this image.
+
+If a field is too small, blurred, cut off, out of focus, angled away or
+lost to glare, return null for it. Null is a correct answer.
+
+A value supplied from what you know about the company is a WRONG answer
+even when it is a genuine address, licence number or helpline of that
+company. Returning a real Patanjali address that is not the one printed
+here is the same mistake as inventing one.
+
+This matters most in the small print: address, licence number, batch
+number, consumer care number. Read the characters or return null.
+
 
 Read all visible text, including:
 
@@ -134,7 +153,8 @@ Use exactly this structure:
     "country_of_origin": null,
     "unit_sale_price": null,
     "other_dates": [],
-    "other_declarations": []
+    "other_declarations": [],
+    "unreadable_fields": []
 }
 
 
@@ -689,6 +709,25 @@ return null
 
 Do NOT guess.
 
+
+UNREADABLE FIELDS
+
+Alongside the values, list in "unreadable_fields" the name of every
+field whose characters you could not actually read in this image —
+because it was too small, blurred, angled, cut off or lost to glare —
+and return null for that field.
+
+On a photograph taken at a distance, or in poor light, this list is
+expected to be long. That is the correct answer. An empty list claims
+you read every declaration on the pack, so return an empty list only
+when that is true.
+
+Example for a photo where the small print is not resolvable:
+
+"unreadable_fields": ["address", "batch_number", "license_number",
+"consumer_care_phone"]
+
+
 Return ONLY the JSON object.
 """
 
@@ -800,6 +839,34 @@ def normalize_result(
 
                 normalized[field] = str(value)
 
+    # The model is asked to name the fields whose characters it could not
+    # read, and those are cleared here rather than left to the prompt to
+    # honour. Trusted to answer anyway, a model that recognises the brand
+    # returns a real address, licence number and helpline for that company —
+    # plausible, repeatable, and not what this package prints. A field nobody
+    # could read has to arrive as nothing.
+    declared_unreadable = result.get("unreadable_fields")
+
+    unreadable = [
+        str(field).strip()
+        for field in (
+            declared_unreadable
+            if isinstance(declared_unreadable, list)
+            else []
+        )
+        if str(field).strip() in EXPECTED_FIELDS
+    ]
+
+    for field in unreadable:
+
+        normalized[field] = (
+            []
+            if field in ("other_dates", "other_declarations")
+            else None
+        )
+
+    normalized["unreadable_fields"] = unreadable
+
     return normalized
 
 
@@ -822,7 +889,11 @@ def send_to_gemini(
         model=model,
         contents=[image, PRODUCT_PROMPT],
         config={
-            "response_mime_type": "application/json"
+            "response_mime_type": "application/json",
+            # Reading what is printed, not composing something plausible.
+            # Left at the default, this call returned a different address and
+            # batch number for the same photograph every time.
+            "temperature": AI_TEMPERATURE,
         }
     )
 

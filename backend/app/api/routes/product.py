@@ -1,4 +1,8 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from typing import Optional
+
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
+
+from app.core.auth import current_user_id
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
 import os
 import time
@@ -223,7 +227,14 @@ def build_visual_evidence(
 
 @router.post("/product/scan")
 async def scan_product(
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    # One scan action, named by the client. Sent again with the same value --
+    # a retry, a double submit -- this returns the first result rather than
+    # recording the scan twice.
+    scan_event_id: Optional[str] = Form(None),
+    # Taken from the verified token, never from the request body: a caller
+    # cannot record a scan against somebody else's account.
+    user_id: Optional[str] = Depends(current_user_id),
 ):
     """
     Complete product scanning pipeline.
@@ -331,7 +342,7 @@ async def scan_product(
         cached["processing_path"] = "cache"
 
         try:
-            cached["scan_id"] = database.record_scan(cached)
+            cached["scan_id"] = database.record_scan(cached, user_id, scan_event_id)
         except Exception as e:
             print("Scan: could not record cached scan -", str(e))
 
@@ -415,7 +426,7 @@ async def scan_product(
 
         # Rejected photos are recorded too: a run of retakes is worth seeing
         # in the history, and it is what the quality gate is there to prevent.
-        rejected["scan_id"] = database.record_scan(rejected)
+        rejected["scan_id"] = database.record_scan(rejected, user_id, scan_event_id)
 
         return rejected
 
@@ -699,7 +710,7 @@ async def scan_product(
 
     try:
 
-        result["scan_id"] = database.record_scan(result)
+        result["scan_id"] = database.record_scan(result, user_id, scan_event_id)
 
     except Exception as e:
 

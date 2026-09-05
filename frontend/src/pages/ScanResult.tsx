@@ -103,6 +103,23 @@ export function ScanResult() {
         </div>
 
         <div className="flex min-w-0 flex-col gap-5">
+          {product.readOnDevice && (
+            <div
+              role="status"
+              className="rounded-[var(--radius-card)] border border-review/25 bg-review-bg px-4 py-3.5"
+            >
+              <p className="text-[13.5px] font-semibold text-review">
+                This label was read on your device, not by the vision service
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-ink-2">
+                The hosted models were unavailable, so the browser read the label itself. It
+                recognises far less of a photographed pack, so treat the fields below as a partial
+                reading rather than a finding about this package — a declaration missing here may
+                simply not have been read. Scan again once the service is back.
+              </p>
+            </div>
+          )}
+
           {lowConfidence > 0 && (
             <div
               role="status"

@@ -70,6 +70,14 @@ export interface DemoProduct {
   imageUrl?: string;
   /** True for a scan produced from a user's own image rather than a fixture. */
   isLive?: boolean;
+  /**
+   * True when this label was read by the browser rather than by the hosted
+   * vision service — the fallback that keeps an inspection possible when no
+   * API is configured or every model has spent its allowance. It reads far
+   * less well, so a result carrying this flag is qualified wherever it is
+   * shown rather than presented as an ordinary verdict.
+   */
+  readOnDevice?: boolean;
   gtin?: string;
   result: ComplianceResult;
   score: number;

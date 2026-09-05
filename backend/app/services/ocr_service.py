@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 from google import genai
 from PIL import Image
 
+from app.core.config import AI_TEMPERATURE
+from app.services.ai_provider import call_with_fallback
+
 
 # ============================================================
 # LOAD ENVIRONMENT VARIABLES
@@ -79,6 +82,24 @@ on the package.
 
 DO NOT GUESS.
 
+READ, DO NOT RECALL.
+
+You may recognise the brand. That tells you nothing about what THIS
+package prints. Every value you return must be one whose characters you
+can actually see in this image.
+
+If a field is too small, blurred, cut off, out of focus, angled away or
+lost to glare, return null for it. Null is a correct answer.
+
+A value supplied from what you know about the company is a WRONG answer
+even when it is a genuine address, licence number or helpline of that
+company. Returning a real Patanjali address that is not the one printed
+here is the same mistake as inventing one.
+
+This matters most in the small print: address, licence number, batch
+number, consumer care number. Read the characters or return null.
+
+
 Return ONLY valid JSON using exactly this structure:
 
 {
@@ -99,7 +120,8 @@ Return ONLY valid JSON using exactly this structure:
     "country_of_origin": null,
     "unit_sale_price": null,
     "other_dates": [],
-    "other_declarations": []
+    "other_declarations": [],
+    "unreadable_fields": []
 }
 
 IMPORTANT RULES:
@@ -332,6 +354,19 @@ Pay special attention to small text around:
 - address
 - consumer care information
 
+UNREADABLE FIELDS
+
+Alongside the values, list in "unreadable_fields" the name of every
+field above whose characters you could not actually read in this
+image — because it was too small, blurred, angled, cut off or lost to
+glare — and return null for that field.
+
+On a photograph taken at a distance, or in poor light, this list is
+expected to be long. That is the correct answer. An empty list claims
+you read every declaration on the pack, so return an empty list only
+when that is true.
+
+
 Return ONLY the JSON object.
 """
 
@@ -339,17 +374,33 @@ Return ONLY the JSON object.
     # 4. SEND IMAGE TO GEMINI
     # ========================================================
 
-    try:
+    def read_with(model: str):
 
-        response = client.models.generate_content(
-            model="gemini-3.5-flash-lite",
+        return client.models.generate_content(
+            model=model,
             contents=[
                 image,
                 prompt
             ],
             config={
-                "response_mime_type": "application/json"
+                "response_mime_type": "application/json",
+                # Reading what is printed, not composing something plausible.
+                # See AI_TEMPERATURE: at the default the same label came back
+                # with a different address on every call.
+                "temperature": AI_TEMPERATURE,
             }
+        )
+
+    try:
+
+        # Which model to ask, when to retry, and which models have run out of
+        # quota are ai_provider's job. Naming one model here pinned this path
+        # to the slowest model in the list — several minutes on a call the
+        # first model answers in under twenty seconds — and left it with no
+        # second choice once that model's daily allowance was spent.
+        response, _model = call_with_fallback(
+            read_with,
+            label="OCR",
         )
 
     except Exception as e:
@@ -389,6 +440,21 @@ Return ONLY the JSON object.
     # This keeps compatibility with the existing backend.
     # Your product_parser currently expects text.
     # ========================================================
+
+    # Fields the model reports it could not read are cleared before anything
+    # downstream sees them: an unreadable licence number recalled from the
+    # brand is worse than no licence number at all.
+    unreadable = result.get("unreadable_fields")
+
+    if isinstance(unreadable, list):
+
+        for field in unreadable:
+
+            if isinstance(field, str) and field in result:
+
+                result[field] = None
+
+    result.pop("unreadable_fields", None)
 
     extracted_lines = []
 

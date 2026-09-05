@@ -64,6 +64,14 @@ export interface InspectionState {
   assessmentNote?: string;
   /** Product name as read by the server, used to title the scan. */
   productLabel?: string | null;
+  /**
+   * True when the reading came from the in-browser engine instead of the
+   * hosted models. It is a genuine fallback, not an equivalent: Tesseract on
+   * a phone photograph reads a fraction of what the vision service reads, and
+   * a screen that does not say so invites a bad reading to be mistaken for a
+   * finding about the package.
+   */
+  readOnDevice: boolean;
   error: string | null;
 }
 
@@ -86,6 +94,7 @@ const INITIAL: InspectionState = {
   progress: 0,
   serverBusy: false,
   retakeTips: [],
+  readOnDevice: false,
   error: null,
 };
 
@@ -97,6 +106,13 @@ export function useInspection() {
   const previewRef = useRef<string | null>(null);
   /** The original file, needed when the backend does the recognition. */
   const fileRef = useRef<File | null>(null);
+  /**
+   * Identifies the scan action currently in progress. Held across retries of
+   * the same run so the server can recognise a repeat, and cleared whenever a
+   * new image is chosen -- that is a different action and deserves its own
+   * record.
+   */
+  const eventId = useRef<string | null>(null);
 
   const patch = useCallback((next: Partial<InspectionState>) => {
     setState((current) => ({ ...current, ...next }));
@@ -113,6 +129,7 @@ export function useInspection() {
     previewRef.current = null;
     canvasRef.current = null;
     fileRef.current = null;
+    eventId.current = null;
     setState({ ...INITIAL, stages: { ...IDLE_STAGES } });
   }, []);
 
@@ -162,6 +179,7 @@ export function useInspection() {
   const startUpload = useCallback(
     async (file: File) => {
       cancelled.current = false;
+      eventId.current = null;
       if (previewRef.current) URL.revokeObjectURL(previewRef.current);
 
       setState({
@@ -219,6 +237,16 @@ export function useInspection() {
   const runPipeline = useCallback(
     async (languages: string[] = ["eng"]) => {
       cancelled.current = false;
+
+      // One identifier per scan action, minted here and reused if this run is
+      // retried. The server records the first request under it and answers a
+      // repeat with the same reference, so a submit that fires twice leaves
+      // one row rather than two identical ones minutes apart.
+      //
+      // Deliberately scanning the same packet again starts a new run and
+      // mints a new id: the identity is the action, never the product.
+      if (!eventId.current) eventId.current = crypto.randomUUID();
+
       patch({ phase: "running" });
 
       try {
@@ -241,7 +269,7 @@ export function useInspection() {
           let outcome: Awaited<ReturnType<typeof scanProduct>> | null = null;
 
           try {
-            outcome = await scanProduct(file);
+            outcome = await scanProduct(file, undefined, eventId.current ?? undefined);
           } catch (error) {
             if (!(error instanceof AiUnavailableError)) throw error;
             console.info("Hosted vision unavailable; reading the label on this device.", error.models);
@@ -284,6 +312,7 @@ export function useInspection() {
 
           patch({
             serverBusy: false,
+            readOnDevice: false,
             quality: outcome.quality,
             fields: outcome.fields,
             checks: outcome.checks,
@@ -370,16 +399,26 @@ export function useInspection() {
 
         setStage(
           "result",
-          assessment.result === "compliant"
-            ? "complete"
-            : assessment.result === "needs_review"
-              ? "warning"
-              : "failed",
+          state.source === "live"
+            ? "warning"
+            : assessment.result === "compliant"
+              ? "complete"
+              : assessment.result === "needs_review"
+                ? "warning"
+                : "failed",
         );
+        // A reading this thin cannot carry a verdict. The rules ran over
+        // whatever the device managed to recognise, and on a live photograph
+        // that is usually a few fields out of twelve — "non-compliant" would
+        // then be a statement about the photograph, not about the package.
+        // The finding is reported as needing review, which is what it is.
+        const onDevice = state.source === "live";
+
         patch({
           checks: assessment.checks,
-          result: assessment.result,
+          result: onDevice ? "needs_review" : assessment.result,
           score: assessment.score,
+          readOnDevice: onDevice,
           progress: 100,
           phase: "done",
         });

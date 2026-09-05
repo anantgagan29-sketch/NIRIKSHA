@@ -65,6 +65,15 @@ def _integrity_errors() -> tuple:
     return (sqlite3.IntegrityError,)
 
 
+# Comparing a column against a value that may be NULL, where NULL should match
+# NULL. SQLite spells this `IS`; PostgreSQL reserves `IS` for NULL, TRUE and
+# FALSE literals and rejects a parameter after it, which is why every
+# owner-scoped query returned a syntax error the moment the store moved.
+_OWNED_BY = (
+    "user_id IS NOT DISTINCT FROM ?" if USE_POSTGRES else "user_id IS ?"
+)
+
+
 def _translate(sql: str) -> str:
     """
     Rewrites SQLite's `?` placeholders as the `%s` psycopg expects.
@@ -179,6 +188,18 @@ def _verify_postgres() -> None:
     try:
         with _connect() as db:
             db.execute("SELECT 1").fetchone()
+
+            # Not just "can we connect", but "does the SQL this module writes
+            # actually run here". The two stores differ in ways a connection
+            # test cannot see: SQLite accepts `IS ?` for a null-safe
+            # comparison and PostgreSQL rejects it, so every owner-scoped
+            # query failed on the store while passing every test against the
+            # file. A representative one runs here, at startup, where the
+            # failure is loud and nobody is waiting on it.
+            db.execute(
+                f"SELECT 1 FROM (SELECT NULL AS user_id) AS probe WHERE {_OWNED_BY}",
+                (None,),
+            ).fetchone()
 
     except Exception as error:
         POSTGRES_UNAVAILABLE = str(error)
@@ -483,11 +504,11 @@ def list_scans(
     """
     with _connect() as db:
         rows = db.execute(
-            """
+            f"""
             SELECT id, created_at, filename, product_name, net_quantity,
                    scan_status, status, score
             FROM scans
-            WHERE user_id IS ?
+            WHERE {_OWNED_BY}
             ORDER BY created_at DESC LIMIT ?
             """,
             (user_id, limit),
@@ -508,7 +529,7 @@ def get_scan(
     """
     with _connect() as db:
         row = db.execute(
-            "SELECT result_json FROM scans WHERE id = ? AND user_id IS ?",
+            f"SELECT result_json FROM scans WHERE id = ? AND {_OWNED_BY}",
             (scan_id, user_id),
         ).fetchone()
     return json.loads(row["result_json"]) if row else None
@@ -526,7 +547,7 @@ def get_scan_image(
     """
     with _connect() as db:
         row = db.execute(
-            "SELECT image_bytes, image_mime FROM scans WHERE id = ? AND user_id IS ?",
+            f"SELECT image_bytes, image_mime FROM scans WHERE id = ? AND {_OWNED_BY}",
             (scan_id, user_id),
         ).fetchone()
 
@@ -546,7 +567,7 @@ def scan_stats(user_id: Optional[str] = None) -> dict[str, int]:
     with _connect() as db:
         rows = db.execute(
             "SELECT status, scan_status, COUNT(*) AS n FROM scans "
-            "WHERE user_id IS ? GROUP BY status, scan_status",
+            f"WHERE {_OWNED_BY} GROUP BY status, scan_status",
             (user_id,),
         ).fetchall()
         complaints = db.execute("SELECT COUNT(*) AS n FROM complaints").fetchone()["n"]

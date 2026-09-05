@@ -282,8 +282,16 @@ inspection and not a government certification, and every report says so.
   Confirming a net quantity needs a weighing scale, not a camera.
 - **Rule 7 heights** cannot be established from an unscaled photograph. Without
   a measured pack width the finding is REVIEW, never a guess.
-- **Placement** of declarations on the principal display panel is not assessed.
-- **E-commerce listings** are not read; the system works from images.
+- **Placement** is reported, not concluded. Rule 9 requires the declarations on
+  the principal display panel; a photograph is one face of a three-dimensional
+  package and cannot establish which face that is, so the assessment says what
+  the view shows — which declarations were located and whether they are grouped
+  — and never fails a package on that basis.
+- **E-commerce listings** are assessed from their text, pasted rather than
+  fetched. Retrieving a page would mean the service fetching addresses a
+  visitor chooses, and would fail against the platforms that matter, which
+  refuse automated retrieval. Rule 7 is not applied to a listing: it governs
+  printed characters, and a web page has none.
 - A field read at low confidence is reported as needing review, never as a
   failure. "We could not read it" is a different claim from "it is not there",
   and the engine keeps them apart.

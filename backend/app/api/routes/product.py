@@ -16,7 +16,7 @@ from app.services.product_parser import (
     parse_product_image
 )
 
-from app.services import letter_height
+from app.services import letter_height, placement
 from app.api.routes.compliance import small_package_quantity
 from app.services.readability_service import (
     analyze_product_readability
@@ -718,6 +718,11 @@ async def scan_product(
                 (image_quality or {}).get("resolution", {}).get("height"),
             ),
         ),
+
+        # Rule 9 — where the declarations sit. One photograph is one panel of a
+        # package, so this reports what the view supports and never concludes
+        # against a package on that basis.
+        "placement": placement.assess(readability_result),
 
         "visual_evidence": visual_evidence,
 

@@ -17,6 +17,7 @@ from app.api.routes.ocr import router as ocr_router
 from app.api.routes.scans import router as scans_router
 from app.api.routes.complaints import router as complaints_router
 from app.api.routes.barcode import router as barcode_router
+from app.api.routes.listing import router as listing_router
 
 app = FastAPI(
     title="NIRIKSHA Compliance Checker API",
@@ -54,6 +55,7 @@ app.include_router(ocr_router)
 app.include_router(scans_router)
 app.include_router(complaints_router)
 app.include_router(barcode_router)
+app.include_router(listing_router)
 
 
 @app.on_event("startup")

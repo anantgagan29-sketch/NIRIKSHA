@@ -985,7 +985,15 @@ def parse_product_image(
         if not isinstance(result, dict):
             raise ValueError("Model response was not a JSON object.")
 
-        return normalize_result(result)
+        normalized = normalize_result(result)
+
+        # What the model actually returned, kept so the report can show its
+        # working. The hosted path does not produce a page of OCR text — it
+        # returns named declarations — so this is the evidence behind them
+        # rather than a transcript, and the interface labels it as such.
+        normalized["raw_ocr_text"] = raw_response
+
+        return normalized
 
     # The request's own deadline is passed down, so the walk through the model
     # list stops when there is no time left rather than being cut off mid-call.

@@ -27,6 +27,9 @@ export function FieldTable({
   className?: string;
 }) {
   const [rawOpen, setRawOpen] = useState(false);
+  // A confidence figure only exists where characters were scored, which is
+  // the on-device reader. Its absence is how the two paths are told apart.
+  const onDevice = confidence !== undefined && confidence > 0;
   const found = fields.filter((field) => field.status !== "missing").length;
 
   return (
@@ -42,7 +45,7 @@ export function FieldTable({
               {rawText && (
                 <Button variant="ghost" size="sm" onClick={() => setRawOpen(true)}>
                   <FileText className="h-4 w-4" aria-hidden="true" />
-                  View Raw OCR Text
+                  {onDevice ? "View Raw OCR Text" : "View Model Response"}
                 </Button>
               )}
             </div>
@@ -95,15 +98,30 @@ export function FieldTable({
         </CardBody>
       </Card>
 
-      <Modal open={rawOpen} onClose={() => setRawOpen(false)} title="Raw recognised text">
+      <Modal
+        open={rawOpen}
+        onClose={() => setRawOpen(false)}
+        title={onDevice ? "Raw recognised text" : "What the model returned"}
+      >
         <div className="p-5">
-          {confidence !== undefined && (
-            <p className="mb-3 text-xs text-muted">
-              Mean recognition confidence{" "}
-              <span className="tnum font-mono text-ink">{confidence}%</span>. Preserved exactly as
-              recognised, including its errors — nothing here has been silently corrected.
-            </p>
-          )}
+          {/* A mean confidence belongs to the on-device reader, which scores
+              every character it recognises. The hosted models return named
+              declarations and no such figure, and printing 0% for them said
+              something false about a reading that was never scored. */}
+          <p className="mb-3 text-xs text-muted">
+            {onDevice ? (
+              <>
+                Mean recognition confidence{" "}
+                <span className="tnum font-mono text-ink">{confidence}%</span>. Preserved exactly
+                as recognised, including its errors — nothing here has been silently corrected.
+              </>
+            ) : (
+              <>
+                The vision model&rsquo;s own response, unedited. Every declaration above was read
+                from this, so a finding can be checked against the evidence behind it.
+              </>
+            )}
+          </p>
           <pre className="max-h-[24rem] overflow-auto whitespace-pre-wrap rounded-lg border border-line bg-canvas p-4 font-mono text-[11.5px] leading-relaxed text-ink-2">
             {rawText}
           </pre>

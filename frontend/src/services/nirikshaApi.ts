@@ -586,10 +586,16 @@ export async function scanProduct(
    * already issued instead of recording a second scan.
    */
   eventId?: string,
+  /**
+   * The pack's width in centimetres, measured by the person scanning.
+   * The one thing that turns pixels into millimetres for the Rule 7 check.
+   */
+  packageWidthCm?: number | null,
 ): Promise<ScanOutcome> {
   const form = new FormData();
   form.append("file", file);
   if (eventId) form.append("scan_event_id", eventId);
+  if (packageWidthCm) form.append("package_width_cm", String(packageWidthCm));
 
   const body = await request<BackendScanResponse>("/product/scan", {
     method: "POST",

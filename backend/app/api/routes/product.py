@@ -235,6 +235,10 @@ async def scan_product(
     # a retry, a double submit -- this returns the first result rather than
     # recording the scan twice.
     scan_event_id: Optional[str] = Form(None),
+    # Optional, measured by the person scanning: the width of the pack in
+    # centimetres. It is the only thing that turns pixels into millimetres,
+    # and without it every Rule 7 height finding stays under review.
+    package_width_cm: Optional[float] = Form(None),
     # Taken from the verified token, never from the request body: a caller
     # cannot record a scan against somebody else's account.
     user_id: Optional[str] = Depends(current_user_id),
@@ -708,6 +712,11 @@ async def scan_product(
                 (product_info or {}).get("net_quantity")
             ),
             image_height_px=(image_quality or {}).get("resolution", {}).get("height"),
+            mm_per_unit=letter_height.scale_from_package_width(
+                package_width_cm,
+                (image_quality or {}).get("resolution", {}).get("width"),
+                (image_quality or {}).get("resolution", {}).get("height"),
+            ),
         ),
 
         "visual_evidence": visual_evidence,

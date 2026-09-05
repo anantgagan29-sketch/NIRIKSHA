@@ -189,6 +189,38 @@ def _block_height(bounding_box: Any) -> Optional[float]:
     return height if height > 0 else None
 
 
+def scale_from_package_width(
+    package_width_cm: Optional[float],
+    image_width_px: Optional[int],
+    image_height_px: Optional[int],
+) -> Optional[float]:
+    """
+    Millimetres per vertical unit, from a width the person measured.
+
+    A photograph has no scale of its own. This supplies one from the only
+    measurement someone can reasonably take in a shop: the width of the pack,
+    with a ruler, in centimetres.
+
+    It rests on one assumption, and the interface states it where the number
+    is entered — that the pack spans the frame from edge to edge. A photo with
+    the pack filling half the width would halve every height. That is why a
+    height that clears the minimum is still reported as REVIEW: the assumption
+    is good enough to catch print that is clearly too small, and not good
+    enough to certify print that is large enough.
+    """
+    if not package_width_cm or not image_width_px or not image_height_px:
+        return None
+
+    if package_width_cm <= 0:
+        return None
+
+    # Pixels are square, so the width gives the scale for both axes.
+    mm_per_pixel = (package_width_cm * 10) / image_width_px
+
+    # Boxes are reported in thousandths of the image height.
+    return mm_per_pixel * (image_height_px / 1000)
+
+
 def assess(
     readability_result: Optional[dict[str, Any]],
     net_quantity: Optional[tuple[float, str]] = None,

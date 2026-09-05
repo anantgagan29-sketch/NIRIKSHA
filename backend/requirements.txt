@@ -18,3 +18,10 @@ google-genai
 # JWKS endpoint. The API verifies them itself: the browser sends a token, not
 # a user id, so a caller cannot name someone else and read their history.
 pyjwt
+
+# PostgreSQL, where a deployment keeps its scans. The host gives a free
+# instance a disk that is wiped on every deploy, which took the scan history
+# with it; the store moved somewhere that outlives the container. Unset
+# DATABASE_URL and the application falls back to the SQLite file, which is
+# what a local checkout runs on.
+psycopg[binary]

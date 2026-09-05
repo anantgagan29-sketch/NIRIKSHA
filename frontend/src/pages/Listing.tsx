@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Loader2, ShoppingCart } from "lucide-react";
+import { Link } from "react-router-dom";
+import { FileText, Loader2, ShoppingCart } from "lucide-react";
 
 import { PageHeader, AssessmentNotice } from "@/components/ui/PageHeader";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
@@ -156,6 +157,21 @@ export function Listing() {
                   <p className="rounded-lg border border-line bg-canvas px-3.5 py-3 text-[12px] leading-relaxed text-muted">
                     {outcome.note}
                   </p>
+
+                  {/* Recorded like any other inspection, so it can be reopened,
+                      downloaded and produced later. */}
+                  {outcome.scanId && (
+                    <div className="flex flex-wrap items-center gap-3 border-t border-line pt-3">
+                      <span className="font-mono text-[12px] text-muted">{outcome.scanId}</span>
+                      <Link
+                        to={`/reports/${outcome.scanId}`}
+                        className="inline-flex items-center gap-1.5 text-[13px] font-medium text-brand-700 hover:underline"
+                      >
+                        <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+                        Open report
+                      </Link>
+                    </div>
+                  )}
                 </CardBody>
               </Card>
 

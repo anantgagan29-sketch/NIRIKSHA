@@ -233,8 +233,21 @@ function grade(value: number, poor: number, good: number): QualityVerdict {
   return value < poor ? "poor" : value < good ? "marginal" : "good";
 }
 
-function adaptQuality(source: BackendScanResponse["image_quality"]): ImageQuality {
+function adaptQuality(source: BackendScanResponse["image_quality"] | null | undefined): ImageQuality {
   const metrics: QualityMetric[] = [];
+
+  // A listing was assessed from text. There is no photograph to grade, and
+  // reporting a quality verdict for one that does not exist would describe
+  // something that never happened.
+  if (!source) {
+    return {
+      score: 0,
+      verdict: "good",
+      metrics: [],
+      proceed: true,
+      note: "Assessed from listing text. No photograph was taken, so image quality does not apply.",
+    };
+  }
 
   if (typeof source.blur_score === "number") {
     const blur = source.blur_score;
@@ -620,7 +633,7 @@ export async function scanProduct(
     productName: body.product?.product_name?.trim() || null,
     netQuantity: body.product?.net_quantity?.trim() || null,
     rawText: body.product?.raw_ocr_text ?? undefined,
-    retakeTips: body.photo_guidance?.tips ?? body.image_quality.retake_instructions ?? [],
+    retakeTips: body.photo_guidance?.tips ?? body.image_quality?.retake_instructions ?? [],
     note: body.compliance?.note,
     raw: body,
   };
@@ -629,6 +642,8 @@ export async function scanProduct(
 /* ------------------------------------------------------------- history */
 
 interface BackendScanRow {
+  /** "image" for a photographed pack, "listing" for an online listing. */
+  source_kind?: string | null;
   id: string;
   created_at: string;
   filename?: string | null;
@@ -661,7 +676,12 @@ export async function listScans(): Promise<ScanRecord[]> {
     product:
       row.product_name?.trim() ||
       (row.scan_status === "RETAKE_REQUIRED" ? "Photo rejected — retake required" : "Unidentified product"),
-    category: row.net_quantity?.trim() || "—",
+    // What was assessed, so a listing is not mistaken for a photographed
+    // pack in a list that now holds both.
+    category:
+      row.source_kind === "listing"
+        ? "E-commerce listing"
+        : row.net_quantity?.trim() || "—",
     result:
       row.scan_status === "RETAKE_REQUIRED"
         ? "needs_review"
@@ -721,6 +741,8 @@ export interface ListingOutcome {
   netQuantity: string | null;
   mrp: string | null;
   note: string;
+  /** The reference this assessment was recorded under. */
+  scanId: string | null;
 }
 
 /**
@@ -740,6 +762,7 @@ export async function checkListing(
     product: Record<string, unknown>;
     compliance: BackendScanResponse["compliance"];
     note: string;
+    scan_id?: string | null;
   }>("/listing/check", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -747,6 +770,9 @@ export async function checkListing(
       text,
       source_url: sourceUrl || null,
       platform: platform || null,
+      // Named so a retry, or a second click, returns the reference already
+      // issued rather than filing the same assessment twice.
+      scan_event_id: crypto.randomUUID(),
     }),
   });
 
@@ -763,6 +789,7 @@ export async function checkListing(
     netQuantity: text_("net_quantity"),
     mrp: text_("mrp"),
     note: body.note,
+    scanId: body.scan_id ?? null,
   };
 }
 
@@ -804,7 +831,7 @@ export async function getScan(scanId: string): Promise<ScanOutcome> {
     productName: body.product?.product_name?.trim() || null,
     netQuantity: body.product?.net_quantity?.trim() || null,
     rawText: body.product?.raw_ocr_text ?? undefined,
-    retakeTips: body.photo_guidance?.tips ?? body.image_quality.retake_instructions ?? [],
+    retakeTips: body.photo_guidance?.tips ?? body.image_quality?.retake_instructions ?? [],
     note: body.compliance?.note,
     raw: body,
   };

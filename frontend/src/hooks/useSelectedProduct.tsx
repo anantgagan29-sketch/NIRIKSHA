@@ -1,6 +1,7 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { DEMO_PRODUCTS } from "@/data/demoProducts";
 import type { DemoProduct } from "@/data/types";
+import { useAuth } from "@/hooks/useAuth";
 
 /**
  * Which product the result screens are currently showing.
@@ -46,6 +47,25 @@ export function SelectedProductProvider({ children }: { children: React.ReactNod
     setLive(product);
     setId(product.id);
   }, []);
+
+  // A live scan is held in memory, and memory outlives a sign-out: this
+  // provider is not unmounted when someone signs out, so without this the
+  // next person to sign in on the same browser would find the previous
+  // person's scan still on the result screen. Clearing on any change of
+  // identity covers signing out and switching accounts alike.
+  const { user } = useAuth();
+  const seenUser = useRef<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    const current = user?.id ?? null;
+
+    if (seenUser.current !== undefined && seenUser.current !== current) {
+      setLive(null);
+      setId(DEMO_PRODUCTS[1].id);
+    }
+
+    seenUser.current = current;
+  }, [user?.id]);
 
   const value = useMemo<SelectedValue>(() => {
     const options = live ? [live, ...DEMO_PRODUCTS] : DEMO_PRODUCTS;

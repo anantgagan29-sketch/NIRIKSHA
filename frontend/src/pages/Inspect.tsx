@@ -60,6 +60,7 @@ export function Inspect() {
         labelLines: [],
         imageUrl: state.preview ?? undefined,
         isLive: true,
+        readOnDevice: state.readOnDevice,
         result: state.result,
         score: state.score,
         quality: state.quality!,

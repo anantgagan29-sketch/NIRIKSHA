@@ -13,3 +13,8 @@ numpy
 # `from google import genai`. This was missing from the original list, so a
 # clean install could not start the app.
 google-genai
+
+# Supabase issues ES256 access tokens and publishes the public keys at its
+# JWKS endpoint. The API verifies them itself: the browser sends a token, not
+# a user id, so a caller cannot name someone else and read their history.
+pyjwt

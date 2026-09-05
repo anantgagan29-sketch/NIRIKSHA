@@ -22,3 +22,11 @@ services:
       # The deployed frontend's origin. Filled in once Vercel gives the URL.
       - key: ALLOWED_ORIGINS
         sync: false
+      # The Supabase project whose access tokens this API accepts. Not a
+      # secret: it is the same URL the browser bundle already carries, and
+      # the signing keys it points at are public by design. Committed here
+      # rather than set in the dashboard so that the deployment cannot come
+      # up without it — with this unset the API records scans against no
+      # user, which is the state the ownership work exists to prevent.
+      - key: SUPABASE_URL
+        value: https://onjwatncwjkxxmwpwgha.supabase.co

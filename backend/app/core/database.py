@@ -48,7 +48,15 @@ def init_db() -> None:
                 scan_status   TEXT NOT NULL,
                 status        TEXT,
                 score         INTEGER,
-                result_json   TEXT NOT NULL
+                result_json   TEXT NOT NULL,
+                -- The Supabase user whose scan this is, taken from the `sub`
+                -- claim of a verified access token. Null for rows written
+                -- before scans had owners, and for an unconfigured local run.
+                user_id       TEXT,
+                -- The client's identifier for one scan action. Two requests
+                -- carrying the same one are the same event -- a retry, a
+                -- double submit -- and must not become two rows.
+                scan_event_id TEXT
             );
 
             CREATE TABLE IF NOT EXISTS complaints (
@@ -78,6 +86,40 @@ def init_db() -> None:
             """
         )
 
+        # A database created before scans had owners already has the table, so
+        # the CREATE above left it untouched and the new columns have to be
+        # added on their own.
+        #
+        # Existing rows keep a null owner. Nobody can say now whose they were,
+        # and assigning them to whoever asks first would put one person's
+        # inspections in another person's history -- the failure this column
+        # exists to prevent.
+        columns = {
+            row["name"]
+            for row in db.execute("PRAGMA table_info(scans)").fetchall()
+        }
+
+        if "user_id" not in columns:
+            db.execute("ALTER TABLE scans ADD COLUMN user_id TEXT")
+
+        if "scan_event_id" not in columns:
+            db.execute("ALTER TABLE scans ADD COLUMN scan_event_id TEXT")
+
+        # Indexed here, not in the script above: on an older database neither
+        # column exists until the lines above add it.
+        db.execute(
+            "CREATE INDEX IF NOT EXISTS idx_scans_user "
+            "ON scans (user_id, created_at DESC)"
+        )
+
+        # The rule that makes recording a scan idempotent. Partial, because
+        # every row written before this existed has no event id and they must
+        # not all collide with each other.
+        db.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_scans_event "
+            "ON scans (scan_event_id) WHERE scan_event_id IS NOT NULL"
+        )
+
 
 def _next_reference(table: str, prefix: str) -> str:
     """Sequential, human-quotable reference: NIR-2026-00001."""
@@ -91,65 +133,140 @@ def _next_reference(table: str, prefix: str) -> str:
 # SCANS
 # ============================================================
 
-def record_scan(result: dict[str, Any]) -> str:
+def record_scan(
+    result: dict[str, Any],
+    user_id: Optional[str] = None,
+    event_id: Optional[str] = None,
+) -> str:
     """
     Stores one completed scan and returns its reference.
 
     The whole response is kept as JSON so a past scan can be re-opened exactly
     as it was assessed, rather than reconstructed from summary columns.
-    """
-    scan_id = _next_reference("scans", "NIR")
 
+    One scan action produces one row. The client names the action in
+    `event_id`, and a second request carrying an id already on file returns
+    the reference that was issued the first time instead of minting another.
+    That covers a retried request, a double submit, and a repeat of an
+    identical image answered from the cache -- all of which used to leave the
+    same product in the history several times over.
+
+    Scanning the same packet again deliberately is a different action with a
+    different id, and gets a row and a reference of its own. The identity here
+    is the event, never the product.
+    """
     product = result.get("product") or {}
     compliance = result.get("compliance") or {}
 
     with _lock, _connect() as db:
-        db.execute(
-            """
-            INSERT INTO scans (id, created_at, filename, product_name, net_quantity,
-                               scan_status, status, score, result_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                scan_id,
-                _now(),
-                result.get("filename"),
-                product.get("product_name"),
-                product.get("net_quantity"),
-                result.get("scan_status", "UNKNOWN"),
-                compliance.get("status"),
-                compliance.get("score"),
-                json.dumps(result),
-            ),
-        )
+
+        if event_id:
+            existing = db.execute(
+                "SELECT id FROM scans WHERE scan_event_id = ?",
+                (event_id,),
+            ).fetchone()
+
+            if existing is not None:
+                return existing["id"]
+
+        scan_id = _next_reference("scans", "NIR")
+
+        try:
+            db.execute(
+                """
+                INSERT INTO scans (id, created_at, filename, product_name, net_quantity,
+                                   scan_status, status, score, result_json,
+                                   user_id, scan_event_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    scan_id,
+                    _now(),
+                    result.get("filename"),
+                    product.get("product_name"),
+                    product.get("net_quantity"),
+                    result.get("scan_status", "UNKNOWN"),
+                    compliance.get("status"),
+                    compliance.get("score"),
+                    json.dumps(result),
+                    user_id,
+                    event_id,
+                ),
+            )
+
+        except sqlite3.IntegrityError:
+            # Two requests for the same event arrived close enough together
+            # that both passed the check above. The unique index settles it;
+            # the loser reports the reference the winner was given.
+            existing = db.execute(
+                "SELECT id FROM scans WHERE scan_event_id = ?",
+                (event_id,),
+            ).fetchone()
+
+            if existing is None:
+                raise
+
+            return existing["id"]
 
     return scan_id
 
 
-def list_scans(limit: int = 100) -> list[dict[str, Any]]:
+def list_scans(
+    limit: int = 100,
+    user_id: Optional[str] = None,
+) -> list[dict[str, Any]]:
+    """
+    One user's scans, newest first.
+
+    The owner is always part of the query. A null owner is a scope of its own
+    -- the rows recorded without a signed-in user -- and not a wildcard, so
+    there is no argument to this function that returns everybody's history.
+    """
     with _connect() as db:
         rows = db.execute(
             """
             SELECT id, created_at, filename, product_name, net_quantity,
                    scan_status, status, score
-            FROM scans ORDER BY created_at DESC LIMIT ?
+            FROM scans
+            WHERE user_id IS ?
+            ORDER BY created_at DESC LIMIT ?
             """,
-            (limit,),
+            (user_id, limit),
         ).fetchall()
     return [dict(row) for row in rows]
 
 
-def get_scan(scan_id: str) -> Optional[dict[str, Any]]:
+def get_scan(
+    scan_id: str,
+    user_id: Optional[str] = None,
+) -> Optional[dict[str, Any]]:
+    """
+    One stored scan, if it belongs to this user.
+
+    Scoped for the same reason the listing is: a reference is short and
+    guessable, and without the owner in the query anyone could read anyone
+    else's inspection by typing a number.
+    """
     with _connect() as db:
-        row = db.execute("SELECT result_json FROM scans WHERE id = ?", (scan_id,)).fetchone()
+        row = db.execute(
+            "SELECT result_json FROM scans WHERE id = ? AND user_id IS ?",
+            (scan_id, user_id),
+        ).fetchone()
     return json.loads(row["result_json"]) if row else None
 
 
-def scan_stats() -> dict[str, int]:
-    """Counts by outcome, for the dashboard and history headers."""
+def scan_stats(user_id: Optional[str] = None) -> dict[str, int]:
+    """
+    Counts by outcome, for the dashboard and history headers.
+
+    Scoped exactly as the listing is: a total that counts rows the page does
+    not show is a page contradicting itself.
+    """
     with _connect() as db:
         rows = db.execute(
-            "SELECT status, scan_status, COUNT(*) AS n FROM scans GROUP BY status, scan_status"
+            "SELECT status, scan_status, COUNT(*) AS n FROM scans "
+            "WHERE user_id IS ? GROUP BY status, scan_status",
+            (user_id,),
         ).fetchall()
         complaints = db.execute("SELECT COUNT(*) AS n FROM complaints").fetchone()["n"]
 

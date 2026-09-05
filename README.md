@@ -14,7 +14,11 @@ confident enough to be sure — says that instead of guessing.
 ```
 frontend/   React + Vite interface
 backend/    FastAPI service: vision, rules engine, storage
+docs/       Architecture and deployment
 ```
+
+How the system is put together, where the data lives, and what it deliberately
+does not claim: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ---
 

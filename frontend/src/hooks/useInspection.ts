@@ -116,6 +116,11 @@ export function useInspection() {
    * record.
    */
   const eventId = useRef<string | null>(null);
+  /**
+   * The measured pack width, if the person supplied one. Held in a ref rather
+   * than state because it is read when the request is built, not rendered.
+   */
+  const packageWidth = useRef<number | null>(null);
 
   const patch = useCallback((next: Partial<InspectionState>) => {
     setState((current) => ({ ...current, ...next }));
@@ -238,7 +243,7 @@ export function useInspection() {
   /* ------------------------------------------- stages two through six */
 
   const runPipeline = useCallback(
-    async (languages: string[] = ["eng"]) => {
+    async (languages: string[] = ["eng"], widthCm?: number | null) => {
       cancelled.current = false;
 
       // One identifier per scan action, minted here and reused if this run is
@@ -249,6 +254,7 @@ export function useInspection() {
       // Deliberately scanning the same packet again starts a new run and
       // mints a new id: the identity is the action, never the product.
       if (!eventId.current) eventId.current = crypto.randomUUID();
+      packageWidth.current = widthCm ?? null;
 
       patch({ phase: "running" });
 
@@ -272,7 +278,12 @@ export function useInspection() {
           let outcome: Awaited<ReturnType<typeof scanProduct>> | null = null;
 
           try {
-            outcome = await scanProduct(file, undefined, eventId.current ?? undefined);
+            outcome = await scanProduct(
+              file,
+              undefined,
+              eventId.current ?? undefined,
+              packageWidth.current,
+            );
           } catch (error) {
             if (!(error instanceof AiUnavailableError)) throw error;
             console.info("Hosted vision unavailable; reading the label on this device.", error.models);

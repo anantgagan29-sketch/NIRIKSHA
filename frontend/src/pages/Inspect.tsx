@@ -36,6 +36,9 @@ export function Inspect() {
   const { registerLive, select: selectProduct } = useSelectedProduct();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [languages, setLanguages] = useState<string[]>(["eng"]);
+  // Optional, and the only thing that lets the Rule 7 check answer in
+  // millimetres. Left blank, lettering findings stay under review.
+  const [packWidth, setPackWidth] = useState("");
   const [cameraOpen, setCameraOpen] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   // A scanned code identifies the pack; it is carried alongside the
@@ -351,10 +354,42 @@ export function Inspect() {
                     </Card>
                   )}
 
+                  <div className="mb-4 rounded-xl border border-line bg-surface px-4 py-3.5">
+                    <label
+                      htmlFor="pack-width"
+                      className="block text-[13.5px] font-medium text-ink"
+                    >
+                      Pack width in centimetres <span className="text-muted">(optional)</span>
+                    </label>
+
+                    <p className="mt-1 text-[12px] leading-relaxed text-muted">
+                      Measure the pack across the front, edge to edge, and photograph it filling
+                      the frame. This is what lets the lettering check answer Rule 7 in
+                      millimetres. Left blank, it reports the requirement and asks for physical
+                      verification instead of guessing.
+                    </p>
+
+                    <input
+                      id="pack-width"
+                      type="number"
+                      inputMode="decimal"
+                      min="1"
+                      max="200"
+                      step="0.1"
+                      value={packWidth}
+                      onChange={(event) => setPackWidth(event.target.value)}
+                      placeholder="e.g. 12.5"
+                      disabled={busy}
+                      className="mt-2.5 h-10 w-40 rounded-lg border border-line-strong bg-surface px-3 text-sm text-ink outline-none transition-colors focus:border-brand-400"
+                    />
+                  </div>
+
                   <QualityPanel
                     quality={state.quality}
                     busy={busy}
-                    onContinue={() => void runPipeline(languages)}
+                    onContinue={() =>
+                      void runPipeline(languages, Number(packWidth) || null)
+                    }
                     onRetake={() => {
                       reset();
                       setSelectedId(null);

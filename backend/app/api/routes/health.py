@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.core.config import ENABLE_READABILITY
+from app.core.database import store_status
 from app.services.ai_provider import availability
 from app.services.scan_cache import cache
 
@@ -31,6 +32,9 @@ def processing_status():
         "models": models,
         "any_model_available": bool(models["available"]),
         "cache": cache.stats(),
+        # Which store the scans are going to. "sqlite" on a deployment means
+        # they are on a disk that is wiped on the next deploy.
+        "storage": store_status(),
         "readability_enabled": ENABLE_READABILITY,
         "calls_per_inspection": 2 if ENABLE_READABILITY else 1,
     }

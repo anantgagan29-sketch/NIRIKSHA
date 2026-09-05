@@ -164,15 +164,40 @@ export function Reports() {
             </div>
           )}
 
-          <h3 className="mt-7 font-display text-sm font-semibold text-ink">Recognised text</h3>
-          <p className="mt-1 text-[11.5px] text-muted">
-            Mean recognition confidence{" "}
-            <span className="tnum font-mono text-ink">{product.ocrConfidence}%</span>. Reproduced
-            exactly as recognised, including its errors.
-          </p>
-          <pre className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap rounded-lg border border-line bg-canvas p-4 font-mono text-[11px] leading-relaxed text-ink-2">
-            {product.rawText}
-          </pre>
+          {/* The evidence behind the fields above.
+              Two paths produce two different things, and calling both "OCR
+              text" would misdescribe one of them: the hosted models return
+              named declarations, and only the on-device engine produces a
+              page of recognised characters. The panel says which it is
+              showing, and a mean confidence is printed only where one was
+              actually measured — it was reading 0% on every hosted scan,
+              which said something false about a reading that never involved
+              a confidence score. */}
+          {product.rawText ? (
+            <>
+              <h3 className="mt-7 font-display text-sm font-semibold text-ink">
+                {product.ocrConfidence > 0 ? "Recognised text" : "What the model returned"}
+              </h3>
+              <p className="mt-1 text-[11.5px] text-muted">
+                {product.ocrConfidence > 0 ? (
+                  <>
+                    Mean recognition confidence{" "}
+                    <span className="tnum font-mono text-ink">{product.ocrConfidence}%</span>.
+                    Reproduced exactly as recognised, including its errors.
+                  </>
+                ) : (
+                  <>
+                    The vision model&rsquo;s own response, unedited. The declarations above were
+                    read from this, and it is shown so a finding can be checked against the
+                    evidence it came from.
+                  </>
+                )}
+              </p>
+              <pre className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap rounded-lg border border-line bg-canvas p-4 font-mono text-[11px] leading-relaxed text-ink-2">
+                {product.rawText}
+              </pre>
+            </>
+          ) : null}
 
           <h3 className="mt-7 font-display text-sm font-semibold text-ink">What this report is</h3>
           <AssessmentNotice className="mt-2" />

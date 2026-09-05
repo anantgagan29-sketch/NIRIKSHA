@@ -9,7 +9,7 @@ import { Card, CardHeader, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { UploadZone } from "@/components/ui/UploadZone";
 import { LabelSpecimen } from "@/components/ui/LabelSpecimen";
-import { StatusPill, resultPill, DemoBadge } from "@/components/ui/StatusPill";
+import { StatusPill, resultPill } from "@/components/ui/StatusPill";
 import { ProgressBar } from "@/components/ui/Progress";
 import { PipelineRail } from "@/components/inspection/PipelineRail";
 import { QualityPanel } from "@/components/inspection/QualityPanel";
@@ -152,7 +152,6 @@ export function Inspect() {
               <Card>
                 <CardHeader
                   title={t("inspect.sampleProducts")}
-                  action={<DemoBadge />}
                 />
                 <CardBody className="flex flex-col gap-2.5">
                   <p className="mb-1 text-[13px] leading-relaxed text-muted">
@@ -193,7 +192,7 @@ export function Inspect() {
                 title={product ? product.name : "Your image"}
                 action={
                   <div className="flex items-center gap-2">
-                    {product ? <DemoBadge /> : <StatusPill tone="busy" label="Live image" size="sm" />}
+                    {!product && <StatusPill tone="busy" label="Live image" size="sm" />}
                     {product?.gtin && (
                       <span className="hidden items-center gap-1.5 font-mono text-[11px] text-muted sm:flex">
                         <ScanBarcode className="h-3.5 w-3.5" aria-hidden="true" />

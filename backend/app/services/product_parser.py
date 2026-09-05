@@ -874,6 +874,53 @@ def normalize_result(
 # GEMINI REQUEST
 # ============================================================
 
+# What a pack calls each date, where the wording leaves no room for doubt.
+_DATE_LABELS = (
+    ("packing_date", ("pkg. date", "pkg date", "packed on", "packing date", "pkd", "date of packing")),
+    ("manufacturing_date", ("mfg. date", "mfg date", "manufactured on", "date of manufacture", "mfd")),
+    ("expiry_date", ("use by", "use by date", "expiry", "exp. date", "expiry date")),
+    ("best_before", ("best before", "best before date")),
+)
+
+
+def _classify_labelled_dates(product: dict) -> None:
+    """
+    Files a date the model read but did not sort.
+
+    A date it cannot classify goes into `other_dates`, carrying the words
+    printed beside it — "Pkg. Date: 11/07/26". The date was read; only its
+    kind was left open, and leaving it there reported the declaration as
+    absent when the pack plainly makes it.
+
+    Only an unambiguous label counts, and only into a field that is still
+    empty. This reads what the pack says; it does not decide what an
+    unlabelled date probably means.
+    """
+    others = product.get("other_dates")
+
+    if not isinstance(others, list):
+        return
+
+    for entry in others:
+        if not isinstance(entry, str) or ":" not in entry:
+            continue
+
+        label, _, value = entry.partition(":")
+        label = label.strip().lower()
+        value = value.strip()
+
+        if not value:
+            continue
+
+        for field, keywords in _DATE_LABELS:
+            if product.get(field):
+                continue
+
+            if any(label == keyword or label.startswith(keyword) for keyword in keywords):
+                product[field] = value
+                break
+
+
 def send_to_gemini(
     image,
     model: str
@@ -986,6 +1033,7 @@ def parse_product_image(
             raise ValueError("Model response was not a JSON object.")
 
         normalized = normalize_result(result)
+        _classify_labelled_dates(normalized)
 
         # What the model actually returned, kept so the report can show its
         # working. The hosted path does not produce a page of OCR text — it

@@ -71,7 +71,10 @@ export function Reports() {
             <BrandLockup className="max-w-[11rem]" />
             <p className="text-[11.5px] text-muted">Product Compliance Report</p>
           </div>
-          <DemoBadge />
+          {/* Only for the built-in fixtures. It was drawn on every report,
+              so a real inspection of a real packet carried a label saying it
+              was demonstration data. */}
+          {!product.isLive && <DemoBadge />}
         </div>
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 border-b border-line px-7 py-5 sm:grid-cols-4">

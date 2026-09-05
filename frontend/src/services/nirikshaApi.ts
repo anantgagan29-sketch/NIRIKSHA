@@ -567,6 +567,8 @@ export interface ScanOutcome {
   note?: string;
   /** Rule 7 findings. Null for scans recorded before the check existed. */
   letterHeight: LetterHeightAssessment | null;
+  /** The reference the server recorded this scan under. */
+  scanId: string | null;
   raw: BackendScanResponse;
 }
 
@@ -612,6 +614,7 @@ export async function scanProduct(
     fields: adaptFields(body.product, body.readability),
     checks: adaptChecks(body.compliance, body.readability),
     letterHeight: adaptLetterHeight(body),
+    scanId: body.scan_id ?? null,
     result: body.compliance ? (RESULT_MAP[body.compliance.status] ?? "needs_review") : null,
     score: body.compliance?.score ?? 0,
     productName: body.product?.product_name?.trim() || null,
@@ -741,6 +744,7 @@ export async function getScan(scanId: string): Promise<ScanOutcome> {
     fields: adaptFields(body.product, body.readability),
     checks: adaptChecks(body.compliance, body.readability),
     letterHeight: adaptLetterHeight(body),
+    scanId: body.scan_id ?? null,
     result: body.compliance ? (RESULT_MAP[body.compliance.status] ?? "needs_review") : null,
     score: body.compliance?.score ?? 0,
     productName: body.product?.product_name?.trim() || null,

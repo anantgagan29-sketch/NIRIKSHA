@@ -256,7 +256,12 @@ def init_db() -> None:
                 -- below is a claim about this picture, and a report opened
                 -- later has nothing to show without it.
                 image_bytes   {_BLOB},
-                image_mime    TEXT
+                image_mime    TEXT,
+                -- What was assessed: a photographed package, or the text of
+                -- an online listing. They are held together because they are
+                -- the same assessment against the same Rules, and a history
+                -- that showed only one of them would be a partial record.
+                source_kind   TEXT
             );
 
             CREATE TABLE IF NOT EXISTS complaints (
@@ -322,6 +327,9 @@ def init_db() -> None:
         if "image_mime" not in columns:
             db.execute("ALTER TABLE scans ADD COLUMN image_mime TEXT")
 
+        if "source_kind" not in columns:
+            db.execute("ALTER TABLE scans ADD COLUMN source_kind TEXT")
+
         # Indexed here, not in the script above: on an older database neither
         # column exists until the lines above add it.
         db.execute(
@@ -378,6 +386,7 @@ def record_scan(
     user_id: Optional[str] = None,
     event_id: Optional[str] = None,
     image: Optional[tuple[bytes, str]] = None,
+    source_kind: str = "image",
 ) -> str:
     """
     Stores one completed scan and returns its reference.
@@ -417,8 +426,9 @@ def record_scan(
                 """
                 INSERT INTO scans (id, created_at, filename, product_name, net_quantity,
                                    scan_status, status, score, result_json,
-                                   user_id, scan_event_id, image_bytes, image_mime)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                   user_id, scan_event_id, image_bytes, image_mime,
+                                   source_kind)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     scan_id,
@@ -434,6 +444,7 @@ def record_scan(
                     event_id,
                     image[0] if image else None,
                     image[1] if image else None,
+                    source_kind,
                 ),
             )
 
@@ -506,7 +517,7 @@ def list_scans(
         rows = db.execute(
             f"""
             SELECT id, created_at, filename, product_name, net_quantity,
-                   scan_status, status, score
+                   scan_status, status, score, source_kind
             FROM scans
             WHERE {_OWNED_BY}
             ORDER BY created_at DESC LIMIT ?

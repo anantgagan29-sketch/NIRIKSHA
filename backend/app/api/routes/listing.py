@@ -27,6 +27,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.api.routes.compliance import ComplianceRequest, check_compliance
+from app.core import database
 from app.core.auth import current_user_id
 from app.services.ai_provider import AllModelsUnavailable
 from app.services.listing_parser import parse_listing_text
@@ -42,6 +43,9 @@ class ListingRequest(BaseModel):
     # read. Never fetched: what is assessed is what was supplied.
     source_url: Optional[str] = Field(default=None, max_length=2000)
     platform: Optional[str] = Field(default=None, max_length=120)
+    # One assessment, named by the client. A second click on the same one
+    # returns the reference already issued rather than a second record.
+    scan_event_id: Optional[str] = Field(default=None, max_length=64)
 
 
 @router.post("/listing/check")
@@ -89,7 +93,7 @@ def check_listing(
         )
     )
 
-    return {
+    result = {
         "scan_status": "SUCCESS",
         "source": {
             "kind": "listing",
@@ -99,6 +103,11 @@ def check_listing(
         },
         "product": product,
         "compliance": assessment,
+        # No photograph was taken, so there is no image quality to report.
+        # An empty object rather than an invented verdict: the report screens
+        # read this and must not be told the picture was good.
+        "image_quality": None,
+        "readability": None,
         # Rule 7 governs printed characters on a package. A listing has none,
         # so no lettering assessment is offered rather than one being
         # manufactured for it.
@@ -111,3 +120,20 @@ def check_listing(
             "package and are not assessed here."
         ),
     }
+
+    # Recorded alongside photographed scans. A listing assessed and then lost
+    # is an inspection nobody can produce afterwards, and the history is meant
+    # to be the record of what was inspected — not of one kind of inspection.
+    try:
+        result["scan_id"] = database.record_scan(
+            result,
+            user_id,
+            data.scan_event_id,
+            image=None,
+            source_kind="listing",
+        )
+    except Exception as error:
+        # The assessment stands even if it could not be filed.
+        print("Listing assessment not recorded -", str(error))
+
+    return result

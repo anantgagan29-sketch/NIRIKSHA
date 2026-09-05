@@ -69,6 +69,9 @@ export default function App() {
                       current selection — this is what History links to. */}
                   <Route path="compliance/:scanId" element={<Compliance />} />
                   <Route path="reports" element={<Reports />} />
+                  {/* With a reference, the stored assessment is loaded — which
+                      is how a listing check and a history row open theirs. */}
+                  <Route path="reports/:scanId" element={<Reports />} />
                   <Route path="listing" element={<Listing />} />
                   <Route path="complaints" element={<Complaints />} />
                   <Route path="history" element={<History />} />

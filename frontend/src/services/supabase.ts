@@ -61,3 +61,32 @@ export const supabase: SupabaseClient | null = HAS_SUPABASE
       },
     })
   : null;
+
+
+/**
+ * Whether Google sign-in is switched on for this project.
+ *
+ * Supabase publishes which providers a project accepts, so the application can
+ * ask before it sends anyone anywhere. Without this, pressing the button
+ * handed the browser to Supabase, which answered a raw JSON error — a person
+ * looking for a Google login instead got `{"code":400,...}` on a blank page,
+ * with no way back and nothing explaining what went wrong.
+ *
+ * Enabling the provider is a change to the project, not to this code. When it
+ * is made, this starts returning true and the button works — nothing here
+ * needs redeploying.
+ */
+let googleAvailable: Promise<boolean> | null = null;
+
+export function googleSignInAvailable(): Promise<boolean> {
+  if (!HAS_SUPABASE) return Promise.resolve(false);
+
+  // Asked once per page load; the answer does not change while someone is
+  // looking at a sign-in form.
+  googleAvailable ??= fetch(`${url}/auth/v1/settings`, { headers: { apikey: anonKey } })
+    .then((response) => (response.ok ? response.json() : null))
+    .then((settings) => Boolean(settings?.external?.google))
+    .catch(() => false);
+
+  return googleAvailable;
+}

@@ -13,7 +13,6 @@ import { ButtonLink } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import type { ComplianceResult } from "@/data/types";
 import { scanImageUrl, getScan } from "@/services/nirikshaApi";
-import { downloadComplianceReport } from "@/services/reportPdf";
 import { buildReportData } from "@/services/report/model";
 import { useToast } from "@/components/ui/Toast";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -66,6 +65,7 @@ export function History() {
         scannedAt: new Date().toISOString(),
       });
 
+      const { downloadComplianceReport } = await import("@/services/reportPdf");
       await downloadComplianceReport(data);
 
       // The bytes are in the document now; the handle is not needed again.

@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
+import { googleSignInAvailable } from "@/services/supabase";
 
 /** Google's mark, drawn rather than fetched so it needs no network. */
 function GoogleMark() {
@@ -32,16 +34,46 @@ export function GoogleButton({
   disabled?: boolean;
   label?: string;
 }) {
+  // Null while the project is still being asked. The button is shown in a
+  // waiting state rather than hidden, so it does not appear and then vanish
+  // under the pointer.
+  const [available, setAvailable] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void googleSignInAvailable().then((value) => {
+      if (!cancelled) setAvailable(value);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const offered = available !== false;
+
   return (
-    <Button
-      type="button"
-      variant="secondary"
-      className="w-full"
-      onClick={onClick}
-      disabled={busy || disabled}
-    >
-      {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <GoogleMark />}
-      {busy ? "Taking you to Google…" : label}
-    </Button>
+    <div>
+      <Button
+        type="button"
+        variant="secondary"
+        className="w-full"
+        onClick={onClick}
+        disabled={busy || disabled || !offered || available === null}
+        aria-describedby={offered ? undefined : "google-unavailable"}
+      >
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <GoogleMark />}
+        {busy ? "Taking you to Google…" : label}
+      </Button>
+
+      {/* Said here rather than by sending someone to a JSON error page. */}
+      {!offered && (
+        <p id="google-unavailable" className="mt-2 text-center text-[12px] leading-relaxed text-muted">
+          Google sign-in is not switched on for this project yet. Use your email and password
+          below.
+        </p>
+      )}
+    </div>
   );
 }

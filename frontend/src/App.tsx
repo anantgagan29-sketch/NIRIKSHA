@@ -15,6 +15,7 @@ import { Inspect } from "@/pages/Inspect";
 import { ScanResult } from "@/pages/ScanResult";
 import { Compliance } from "@/pages/Compliance";
 import { Reports } from "@/pages/Reports";
+import { Listing } from "@/pages/Listing";
 import { Complaints } from "@/pages/Complaints";
 import { History } from "@/pages/History";
 import { HowItWorks } from "@/pages/HowItWorks";
@@ -68,6 +69,7 @@ export default function App() {
                       current selection — this is what History links to. */}
                   <Route path="compliance/:scanId" element={<Compliance />} />
                   <Route path="reports" element={<Reports />} />
+                  <Route path="listing" element={<Listing />} />
                   <Route path="complaints" element={<Complaints />} />
                   <Route path="history" element={<History />} />
                   <Route path="how-it-works" element={<HowItWorks />} />

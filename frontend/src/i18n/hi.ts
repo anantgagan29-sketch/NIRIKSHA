@@ -19,6 +19,7 @@ export const HI: Partial<Record<keyof typeof EN, string>> = {
   "nav.dashboard": "डैशबोर्ड",
   "nav.inspect": "उत्पाद जाँच",
   "nav.history": "स्कैन इतिहास",
+  "nav.listing": "लिस्टिंग जाँच",
   "nav.complaints": "शिकायतें",
   "nav.reports": "रिपोर्ट",
   "nav.howItWorks": "यह कैसे काम करता है",

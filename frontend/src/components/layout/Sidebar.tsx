@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
+  ShoppingCart,
   ScanLine,
   History,
   AlertCircle,
@@ -19,6 +20,7 @@ import { cn } from "@/lib/cn";
 const NAV = [
   { to: "/", key: "nav.dashboard", icon: LayoutDashboard, end: true },
   { to: "/inspect", key: "nav.inspect", icon: ScanLine },
+  { to: "/listing", key: "nav.listing", icon: ShoppingCart },
   { to: "/history", key: "nav.history", icon: History },
   { to: "/complaints", key: "nav.complaints", icon: AlertCircle },
   { to: "/reports", key: "nav.reports", icon: FileText },

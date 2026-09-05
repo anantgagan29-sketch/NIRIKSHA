@@ -12,6 +12,7 @@ export const EN = {
   "nav.dashboard": "Dashboard",
   "nav.inspect": "Inspect Product",
   "nav.history": "Scan History",
+  "nav.listing": "Listing Check",
   "nav.complaints": "Complaints",
   "nav.reports": "Reports",
   "nav.howItWorks": "How It Works",

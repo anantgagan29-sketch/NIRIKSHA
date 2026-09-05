@@ -713,6 +713,60 @@ export function wakeBackend(): void {
 }
 
 
+export interface ListingOutcome {
+  checks: ComplianceCheck[];
+  result: ComplianceResult | null;
+  score: number;
+  productName: string | null;
+  netQuantity: string | null;
+  mrp: string | null;
+  note: string;
+}
+
+/**
+ * Assesses an e-commerce listing's own text.
+ *
+ * A packaged commodity offered online has to show the same declarations to
+ * the purchaser that the pack does; a buyer cannot turn the box over. The
+ * text goes through the same rules engine a photographed label does, so a
+ * finding here means what a finding there means and cites the same provision.
+ */
+export async function checkListing(
+  text: string,
+  sourceUrl?: string,
+  platform?: string,
+): Promise<ListingOutcome> {
+  const body = await request<{
+    product: Record<string, unknown>;
+    compliance: BackendScanResponse["compliance"];
+    note: string;
+  }>("/listing/check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      text,
+      source_url: sourceUrl || null,
+      platform: platform || null,
+    }),
+  });
+
+  const text_ = (key: string) => {
+    const value = body.product?.[key];
+    return typeof value === "string" && value.trim() ? value.trim() : null;
+  };
+
+  return {
+    checks: adaptChecks(body.compliance, null),
+    result: body.compliance ? (RESULT_MAP[body.compliance.status] ?? "needs_review") : null,
+    score: body.compliance?.score ?? 0,
+    productName: text_("product_name"),
+    netQuantity: text_("net_quantity"),
+    mrp: text_("mrp"),
+    note: body.note,
+  };
+}
+
+
 export async function scanImageUrl(scanId: string): Promise<string | null> {
   try {
     const response = await fetch(apiUrl(`/scans/${encodeURIComponent(scanId)}/image`), {

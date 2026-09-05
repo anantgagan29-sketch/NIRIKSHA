@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { downloadComplianceReport } from "@/services/reportPdf";
-import { Download, Printer, Share2 } from "lucide-react";
+import { DownloadReportMenu } from "@/components/report/DownloadReportMenu";
+import { Printer, Share2 } from "lucide-react";
 import { PageHeader, AssessmentNotice } from "@/components/ui/PageHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -22,7 +21,6 @@ import { useLanguage } from "@/hooks/useLanguage";
 export function Reports() {
   const { t } = useLanguage();
   const { product } = useScanFromRoute();
-  const [building, setBuilding] = useState(false);
   const toast = useToast();
 
   const assessed = new Date(product.scannedAt).toLocaleDateString("en-IN", {
@@ -39,27 +37,7 @@ export function Reports() {
         description={t("reports.description")}
         actions={
           <>
-            <Button
-              variant="secondary"
-              disabled={building}
-              onClick={async () => {
-                setBuilding(true);
-                try {
-                  await downloadComplianceReport(product);
-                  toast("success", "Compliance report downloaded.");
-                } catch (cause) {
-                  toast(
-                    "warning",
-                    cause instanceof Error ? cause.message : "The report could not be generated.",
-                  );
-                } finally {
-                  setBuilding(false);
-                }
-              }}
-            >
-              <Download className="h-4 w-4" aria-hidden="true" />
-              {building ? t("reports.preparing") : t("reports.downloadPdf")}
-            </Button>
+            <DownloadReportMenu product={product} />
             <Button variant="secondary" onClick={() => window.print()}>
               <Printer className="h-4 w-4" aria-hidden="true" />
               {t("common.print")}

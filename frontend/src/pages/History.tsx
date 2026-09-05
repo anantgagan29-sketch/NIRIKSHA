@@ -14,6 +14,7 @@ import { cn } from "@/lib/cn";
 import type { ComplianceResult } from "@/data/types";
 import { getScan } from "@/services/nirikshaApi";
 import { downloadComplianceReport } from "@/services/reportPdf";
+import { buildReportData } from "@/services/report/model";
 import { useToast } from "@/components/ui/Toast";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -40,7 +41,10 @@ export function History() {
     try {
       const outcome = await getScan(scanId);
 
-      await downloadComplianceReport({
+      // The row's quick action stays a PDF, which is what its label offers.
+      // Every format is available from the report screen itself, and all of
+      // them render the same report data as this one.
+      const data = await buildReportData({
         id: `scan-${scanId}`,
         scanId,
         name: outcome.productName ?? "Recorded scan",
@@ -56,6 +60,8 @@ export function History() {
         ocrConfidence: 0,
         scannedAt: new Date().toISOString(),
       });
+
+      await downloadComplianceReport(data);
 
       toast("success", `Report for ${scanId} downloaded.`);
     } catch (cause) {

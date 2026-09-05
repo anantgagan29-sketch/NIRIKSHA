@@ -1,4 +1,9 @@
-import type { ComplianceCheck, DemoProduct, ExtractedField } from "@/data/types";
+import type {
+  ComplianceCheck,
+  DemoProduct,
+  ExtractedField,
+  LetterHeightAssessment,
+} from "@/data/types";
 
 /**
  * One assessment, in the shape every export reads from.
@@ -56,6 +61,8 @@ export interface ReportData {
   scope: string;
   /** Present only for a reading the browser produced rather than the service. */
   qualification: string | null;
+  /** Rule 7 findings, where the assessment produced them. */
+  letterHeight: LetterHeightAssessment | null;
 }
 
 const RESULT_LABEL: Record<string, string> = {
@@ -189,6 +196,7 @@ export async function buildReportData(product: DemoProduct): Promise<ReportData>
     requirements: product.checks.map(requirementOf),
     scope: SCOPE,
     qualification: product.readOnDevice ? ON_DEVICE : null,
+    letterHeight: product.letterHeight ?? null,
   };
 }
 

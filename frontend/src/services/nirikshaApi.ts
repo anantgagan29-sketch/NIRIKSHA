@@ -14,6 +14,8 @@ import type {
   ExtractedField,
   FieldStatus,
   ImageQuality,
+  LetterHeightAssessment,
+  LetterHeightStatus,
   QualityMetric,
   QualityVerdict,
   ScanRecord,
@@ -468,6 +470,53 @@ const RESULT_MAP: Record<string, ComplianceResult> = {
 
 /* ------------------------------------------------------------ the scan */
 
+const LETTER_HEIGHT_STATUS: Record<string, LetterHeightStatus> = {
+  PASS: "pass",
+  FAIL: "fail",
+  REVIEW: "review",
+  NOT_APPLICABLE: "not_applicable",
+};
+
+/**
+ * The Rule 7 assessment, in the shape the interface reads.
+ *
+ * Returns null rather than an empty assessment when the backend did not send
+ * one: a scan recorded before this check existed has nothing to say about
+ * lettering, and an empty section implies it was assessed and found nothing.
+ */
+function adaptLetterHeight(
+  body: BackendScanResponse,
+): LetterHeightAssessment | null {
+  const source = body.letter_height;
+
+  if (!source || !Array.isArray(source.findings)) return null;
+
+  return {
+    provision: source.provision,
+    requirement: {
+      determined: source.requirement.determined,
+      minimumHeightMm: source.requirement.minimum_height_mm,
+      basis: source.requirement.basis,
+      table: source.requirement.table,
+    },
+    scale: source.scale,
+    widthRule: source.width_rule,
+    overall: LETTER_HEIGHT_STATUS[source.summary?.overall ?? "REVIEW"] ?? "review",
+    findings: source.findings.map((finding) => ({
+      field: finding.field,
+      label: finding.label,
+      status: LETTER_HEIGHT_STATUS[finding.status] ?? "review",
+      requirement: finding.requirement,
+      observed: finding.observed ?? "",
+      finding: finding.finding,
+      characterHeightMm: finding.character_height_mm,
+      evidenceConfidence: finding.evidence_confidence,
+      ocrConfidence: finding.ocr_confidence,
+      provision: finding.provision,
+    })),
+  };
+}
+
 export interface ScanOutcome {
   /** False when the backend stopped at the quality gate. */
   proceeded: boolean;
@@ -483,6 +532,8 @@ export interface ScanOutcome {
   retakeTips: string[];
   /** The backend's own qualification of what this assessment is. */
   note?: string;
+  /** Rule 7 findings. Null for scans recorded before the check existed. */
+  letterHeight: LetterHeightAssessment | null;
   raw: BackendScanResponse;
 }
 
@@ -521,6 +572,7 @@ export async function scanProduct(
     quality,
     fields: adaptFields(body.product, body.readability),
     checks: adaptChecks(body.compliance, body.readability),
+    letterHeight: adaptLetterHeight(body),
     result: body.compliance ? (RESULT_MAP[body.compliance.status] ?? "needs_review") : null,
     score: body.compliance?.score ?? 0,
     productName: body.product?.product_name?.trim() || null,
@@ -627,6 +679,7 @@ export async function getScan(scanId: string): Promise<ScanOutcome> {
     quality,
     fields: adaptFields(body.product, body.readability),
     checks: adaptChecks(body.compliance, body.readability),
+    letterHeight: adaptLetterHeight(body),
     result: body.compliance ? (RESULT_MAP[body.compliance.status] ?? "needs_review") : null,
     score: body.compliance?.score ?? 0,
     productName: body.product?.product_name?.trim() || null,

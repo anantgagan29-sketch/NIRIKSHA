@@ -62,6 +62,7 @@ export function useScanFromRoute(): {
           checks: outcome.checks,
           rawText: outcome.rawText ?? "",
           ocrConfidence: 0,
+          letterHeight: outcome.letterHeight,
           scannedAt: outcome.raw.created_at ?? new Date().toISOString(),
         });
 

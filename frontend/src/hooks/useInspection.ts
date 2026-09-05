@@ -9,6 +9,7 @@ import type {
   DemoProduct,
   ExtractedField,
   ImageQuality,
+  LetterHeightAssessment,
   StageState,
 } from "@/data/types";
 
@@ -64,6 +65,8 @@ export interface InspectionState {
   assessmentNote?: string;
   /** Product name as read by the server, used to title the scan. */
   productLabel?: string | null;
+  /** Rule 7 findings from the server pass, where there are any. */
+  letterHeight?: LetterHeightAssessment | null;
   /**
    * True when the reading came from the in-browser engine instead of the
    * hosted models. It is a genuine fallback, not an equivalent: Tesseract on
@@ -321,6 +324,7 @@ export function useInspection() {
             rawText: outcome.rawText ?? "",
             ocrConfidence: 0,
             assessmentNote: outcome.note,
+            letterHeight: outcome.letterHeight,
             productLabel: outcome.productName,
             progress: 100,
             phase: "done",

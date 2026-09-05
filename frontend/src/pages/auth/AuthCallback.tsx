@@ -46,8 +46,10 @@ export function AuthCallback() {
     const pending = takePendingRole();
 
     // The role is recorded against the account, so it survives this tab, this
-    // browser and every later visit. An account that already carries a role
-    // keeps it: signing in again is not a request to change what you are.
+    // browser and every later visit. The choice made on the sign-in screen
+    // wins, matching the password path: someone who signs in as an inspector
+    // is one, whatever they chose last time. It is a routing preference, not
+    // a permission, so honouring the latest answer is the predictable thing.
     const finish = async () => {
       let role = user.role;
 

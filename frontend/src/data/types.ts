@@ -87,6 +87,8 @@ export interface DemoProduct {
   rawText: string;
   ocrConfidence: number;
   scannedAt: string;
+  /** Rule 7 findings, where the backend produced them. */
+  letterHeight?: LetterHeightAssessment | null;
 }
 
 export interface ScanRecord {
@@ -128,4 +130,44 @@ export interface PipelineStage {
   index: string;
   title: string;
   description: string;
+}
+
+
+/**
+ * Rule 7 — the size of letters and numerals.
+ *
+ * Kept apart from the ordinary compliance checks because it answers a
+ * different question. Those ask whether a declaration is on the package; this
+ * asks whether it is printed large enough to be lawful, which is a fact about
+ * millimetres on cardboard and not about anything a photograph carries on its
+ * own. Most findings are therefore REVIEW, and say why.
+ */
+export type LetterHeightStatus = "pass" | "fail" | "review" | "not_applicable";
+
+export interface LetterHeightFinding {
+  field: string;
+  label: string;
+  status: LetterHeightStatus;
+  /** What the Rules require of this declaration on this package. */
+  requirement: string;
+  /** What the photograph showed, in the image's own terms. */
+  observed: string;
+  finding: string;
+  /** Only ever set when a physical scale was available. */
+  characterHeightMm: number | null;
+  /** How good the visual evidence is — not how well the text was read. */
+  evidenceConfidence: "HIGH" | "MEDIUM" | "LOW";
+  /** How confidently the value was read. A separate measure entirely. */
+  ocrConfidence: number | null;
+  provision: string;
+}
+
+export interface LetterHeightAssessment {
+  provision: string;
+  /** The applicable minimum, and how it was arrived at. */
+  requirement: { determined: boolean; minimumHeightMm: number | null; basis: string; table: string | null };
+  scale: { available: boolean; note: string };
+  widthRule: string;
+  findings: LetterHeightFinding[];
+  overall: LetterHeightStatus;
 }

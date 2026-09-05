@@ -367,6 +367,70 @@ export async function buildComplianceReport(data: ReportData): Promise<Blob> {
     w.move(4);
   }
 
+  /* Rule 7 — the size of letters and numerals.
+     Its own section, because it is a different question from whether a
+     declaration is present, and because most of its findings are a stated
+     requirement plus a reason the photograph could not settle it. */
+  if (data.letterHeight) {
+    const rule7 = data.letterHeight;
+
+    w.move(6);
+    w.rule();
+    w.text("Font / lettering compliance", { size: 13, bold: true });
+    w.text(rule7.provision, { size: 8, colour: MUTED });
+    w.move(4);
+
+    w.text(
+      rule7.requirement.determined && rule7.requirement.minimumHeightMm !== null
+        ? `Applicable minimum: ${rule7.requirement.minimumHeightMm} mm`
+        : "Applicable minimum: not determined",
+      { size: 10, bold: true },
+    );
+    w.text(rule7.requirement.basis, { size: 8.5, colour: MUTED });
+
+    if (!rule7.scale.available) {
+      w.move(3);
+      w.text(rule7.scale.note, { size: 8.5, colour: STATUS_COLOUR.review });
+    }
+
+    w.move(6);
+
+    for (const finding of rule7.findings) {
+      w.text(finding.label, { size: 10, bold: true });
+      w.text(`${finding.status.toUpperCase().replace("_", " ")}  ·  evidence ${finding.evidenceConfidence}`, {
+        size: 8.5,
+        colour: STATUS_COLOUR[finding.status] ?? MUTED,
+        indent: 10,
+      });
+
+      w.text(`Required: ${finding.requirement}`, { size: 9, indent: 10 });
+      if (finding.observed) w.text(`Observed: ${finding.observed}`, { size: 9, indent: 10 });
+      w.text(
+        `Character height: ${
+          finding.characterHeightMm !== null
+            ? `approximately ${finding.characterHeightMm} mm`
+            : "could not be verified from the photograph"
+        }`,
+        { size: 9, indent: 10 },
+      );
+      w.text(`Finding: ${finding.finding}`, { size: 9, indent: 10 });
+
+      // Named in full so it cannot be mistaken for a compliance percentage.
+      if (finding.ocrConfidence !== null) {
+        w.text(
+          `Text recognition confidence: ${Math.round(finding.ocrConfidence * 100)}% ` +
+            `(reading confidence, not a measure of lettering compliance)`,
+          { size: 8, colour: MUTED, indent: 10 },
+        );
+      }
+
+      w.text(finding.provision, { size: 8, colour: MUTED, indent: 10 });
+      w.move(4);
+    }
+
+    w.text(rule7.widthRule, { size: 8.5, colour: MUTED });
+  }
+
   /* what this is not */
   w.move(6);
   w.rule();

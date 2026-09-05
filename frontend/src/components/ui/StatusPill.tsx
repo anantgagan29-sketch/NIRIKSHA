@@ -86,17 +86,3 @@ export const qualityPill = (verdict: QualityVerdict): { tone: Tone; label: strin
     marginal: { tone: "review" as const, label: "Marginal" },
     poor: { tone: "fail" as const, label: "Poor" },
   })[verdict];
-
-export function DemoBadge({ className }: { className?: string }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border border-review/25 bg-review-bg px-2.5 py-1 text-[11px] font-medium text-review",
-        className,
-      )}
-    >
-      <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-review" />
-      Demo data
-    </span>
-  );
-}

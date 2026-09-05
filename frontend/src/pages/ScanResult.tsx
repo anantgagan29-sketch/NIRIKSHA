@@ -3,7 +3,7 @@ import { PageHeader, AssessmentNotice } from "@/components/ui/PageHeader";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
 import { ButtonLink } from "@/components/ui/Button";
 import { LabelSpecimen } from "@/components/ui/LabelSpecimen";
-import { StatusPill, resultPill, DemoBadge } from "@/components/ui/StatusPill";
+import { StatusPill, resultPill } from "@/components/ui/StatusPill";
 import { FieldTable } from "@/components/inspection/FieldTable";
 import { LetterHeightPanel } from "@/components/compliance/LetterHeightPanel";
 import { PipelineRail } from "@/components/inspection/PipelineRail";
@@ -65,11 +65,7 @@ export function ScanResult() {
               title={product.name}
               action={
                 <div className="flex items-center gap-2">
-                  {product.isLive ? (
-                    <StatusPill tone="busy" label="Live scan" size="sm" />
-                  ) : (
-                    <DemoBadge />
-                  )}
+                  {product.isLive && <StatusPill tone="busy" label="Live scan" size="sm" />}
                   <StatusPill {...resultPill(product.result)} size="sm" />
                 </div>
               }

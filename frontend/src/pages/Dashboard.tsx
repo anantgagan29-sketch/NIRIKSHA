@@ -4,7 +4,7 @@ import { ArrowRight, PlayCircle, Download, MapPin, FileText, ScanLine } from "lu
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
 import { ButtonLink } from "@/components/ui/Button";
 import { UploadZone } from "@/components/ui/UploadZone";
-import { StatusPill, qualityPill, resultPill, DemoBadge } from "@/components/ui/StatusPill";
+import { StatusPill, qualityPill, resultPill } from "@/components/ui/StatusPill";
 import { ScoreRing, ProgressBar } from "@/components/ui/Progress";
 import { LabelSpecimen } from "@/components/ui/LabelSpecimen";
 import { AssessmentNotice } from "@/components/ui/PageHeader";
@@ -151,7 +151,7 @@ export function Dashboard() {
 
         {/* 3 — processing */}
         <Card>
-          <CardHeader title={t("dashboard.processing")} action={<DemoBadge />} />
+          <CardHeader title={t("dashboard.processing")} />
           <CardBody className="flex flex-col gap-4">
             <ul className="flex flex-col gap-2.5">
               {PIPELINE_STAGES.map((stage, index) => {

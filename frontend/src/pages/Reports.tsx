@@ -4,7 +4,7 @@ import { PageHeader, AssessmentNotice } from "@/components/ui/PageHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { LetterHeightPanel } from "@/components/compliance/LetterHeightPanel";
 import { Button } from "@/components/ui/Button";
-import { StatusPill, checkPill, resultPill, DemoBadge } from "@/components/ui/StatusPill";
+import { StatusPill, checkPill, resultPill } from "@/components/ui/StatusPill";
 import { ProductSwitcher } from "@/components/inspection/ProductSwitcher";
 import { useScanFromRoute } from "@/hooks/useScanFromRoute";
 import { useToast } from "@/components/ui/Toast";
@@ -71,10 +71,6 @@ export function Reports() {
             <BrandLockup className="max-w-[11rem]" />
             <p className="text-[11.5px] text-muted">Product Compliance Report</p>
           </div>
-          {/* Only for the built-in fixtures. It was drawn on every report,
-              so a real inspection of a real packet carried a label saying it
-              was demonstration data. */}
-          {!product.isLive && <DemoBadge />}
         </div>
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 border-b border-line px-7 py-5 sm:grid-cols-4">

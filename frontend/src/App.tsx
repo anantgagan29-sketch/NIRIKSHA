@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
 import { AccessibilityProvider } from "@/hooks/useAccessibility";
 import { AuthProvider } from "@/hooks/useAuth";
+import { wakeBackend } from "@/services/nirikshaApi";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { SelectedProductProvider } from "@/hooks/useSelectedProduct";
@@ -27,6 +29,13 @@ import { ResetPassword } from "@/pages/auth/ResetPassword";
 import { AuthCallback } from "@/pages/auth/AuthCallback";
 
 export default function App() {
+  // Sent once, on load: the API is stopped after a period without traffic,
+  // and this moves the wait for it to start away from the first screen that
+  // actually needs data.
+  useEffect(() => {
+    wakeBackend();
+  }, []);
+
   return (
     <ThemeProvider>
       <AccessibilityProvider>

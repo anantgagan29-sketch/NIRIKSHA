@@ -86,21 +86,54 @@ async function authHeaders(): Promise<Record<string, string>> {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  let response: Response;
+  let response: Response | undefined;
 
   const headers = {
     ...(await authHeaders()),
     ...(init?.headers as Record<string, string> | undefined),
   };
 
-  try {
-    response = await fetch(apiUrl(path), { ...init, headers });
-  } catch (cause) {
-    // An aborted request is the caller's own doing, not a failure to report.
-    if (cause instanceof DOMException && cause.name === "AbortError") throw cause;
+  // The API is hosted on an instance that is stopped after a quarter of an
+  // hour without traffic and started again on the next request. Waking it
+  // takes the better part of a minute, and the first request through is
+  // usually dropped while that happens — which the browser reports as an
+  // unreachable server, and which looked to anyone using this like the
+  // backend was down.
+  //
+  // So a connection failure is retried rather than reported. The delay is
+  // there because retrying immediately hits the same closed door; two
+  // attempts spaced this way cover an ordinary cold start, and anything that
+  // survives both is a real failure worth telling someone about.
+  const attempts = [0, 3000, 8000];
+  let lastFailure: unknown = null;
+
+  for (const wait of attempts) {
+    if (wait) await new Promise((resolve) => setTimeout(resolve, wait));
+
+    try {
+      response = await fetch(apiUrl(path), { ...init, headers });
+      lastFailure = null;
+      break;
+    } catch (cause) {
+      // An aborted request is the caller's own doing, not a failure to report,
+      // and must not be retried — the caller has moved on.
+      if (cause instanceof DOMException && cause.name === "AbortError") throw cause;
+      lastFailure = cause;
+    }
+  }
+
+  if (lastFailure) {
     throw new ApiError(
-      `Could not reach the NIRIKSHA server at ${API_BASE_URL}. Check that the backend is running.`,
+      `Could not reach the NIRIKSHA server at ${API_BASE_URL}. ` +
+        `It may still be starting up — this can take up to a minute after a period of ` +
+        `inactivity. Try again in a moment.`,
     );
+  }
+
+  // Assigned in the loop above; the guard is for the compiler, which cannot
+  // see that a cleared failure means a response was set.
+  if (!response!) {
+    throw new ApiError(`Could not reach the NIRIKSHA server at ${API_BASE_URL}.`);
   }
 
   if (!response.ok) {
@@ -649,6 +682,28 @@ export interface ScanStats {
  * Null when the scan has no photograph, or it belongs to someone else — both
  * answered as "no image", which is all a report needs to know.
  */
+/**
+ * Nudges the API awake as soon as the application loads.
+ *
+ * The instance is stopped after a quarter of an hour idle. Left alone, the
+ * first real request pays for starting it — which lands on whoever opens the
+ * history or runs a scan, at exactly the moment they expect an answer.
+ * Sending this on load moves that wait to a point where nobody is waiting for
+ * anything, and by the time a screen needs data the service is usually up.
+ *
+ * Deliberately without retries, and its failure is ignored: nothing depends
+ * on it, and every real request already handles a service that is still
+ * starting.
+ */
+export function wakeBackend(): void {
+  if (!HAS_BACKEND) return;
+
+  void fetch(apiUrl("/health"), { method: "GET" }).catch(() => {
+    // Nothing to do. The next real request will wait for the service itself.
+  });
+}
+
+
 export async function scanImageUrl(scanId: string): Promise<string | null> {
   try {
     const response = await fetch(apiUrl(`/scans/${encodeURIComponent(scanId)}/image`), {

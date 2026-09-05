@@ -68,6 +68,7 @@ export function Inspect() {
         checks: state.checks,
         rawText: state.rawText,
         ocrConfidence: state.ocrConfidence,
+        letterHeight: state.letterHeight,
         scannedAt: new Date().toISOString(),
       });
     } else if (product) {

@@ -42,8 +42,16 @@ export function Login() {
       if (role) {
         try {
           await applyRole(role);
-        } catch {
-          // Not worth blocking a successful sign-in over.
+        } catch (cause) {
+          // Signed in, but not as what they chose. Saying so is the only way
+          // the next screen makes sense: without the role the inspector
+          // console is closed to them and they land on the user dashboard.
+          setError(
+            (cause instanceof Error ? cause.message : "The role could not be saved.") +
+              " You are signed in, but not yet as an inspector.",
+          );
+          setBusy(false);
+          return;
         }
       }
 

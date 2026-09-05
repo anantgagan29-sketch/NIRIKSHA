@@ -295,12 +295,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const applyRole = useCallback(async (role: Role) => {
-    if (!supabase) return;
+    if (supabase) {
+      const { data, error } = await supabase.auth.updateUser({ data: { role } });
 
-    const { data, error } = await supabase.auth.updateUser({ data: { role } });
+      if (error) throw new Error(describe(error.message));
+      if (data.user) setUser(accountOf(data.user));
+      return;
+    }
 
-    if (error) throw new Error(describe(error.message));
-    if (data.user) setUser(accountOf(data.user));
+    // The browser-local store keeps accounts too, and a role that is only
+    // written on one of the two paths is a role that silently does nothing
+    // wherever the other one is in force.
+    const id = window.localStorage.getItem(SESSION_KEY);
+    const users = readUsers();
+    const account = id ? users.find((u) => u.id === id) : undefined;
+
+    if (!account) throw new Error("You are not signed in, so the role could not be saved.");
+
+    account.role = role;
+    writeUsers(users);
+    setUser(publicOf(account));
   }, []);
 
   const signUp = useCallback(async (name: string, email: string, password: string) => {

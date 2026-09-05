@@ -2,6 +2,7 @@ import { DownloadReportMenu } from "@/components/report/DownloadReportMenu";
 import { Printer, Share2 } from "lucide-react";
 import { PageHeader, AssessmentNotice } from "@/components/ui/PageHeader";
 import { Card, CardBody } from "@/components/ui/Card";
+import { LetterHeightPanel } from "@/components/compliance/LetterHeightPanel";
 import { Button } from "@/components/ui/Button";
 import { StatusPill, checkPill, resultPill, DemoBadge } from "@/components/ui/StatusPill";
 import { ProductSwitcher } from "@/components/inspection/ProductSwitcher";
@@ -156,6 +157,12 @@ export function Reports() {
               </tbody>
             </table>
           </div>
+
+          {product.letterHeight && (
+            <div className="mt-7 border-t border-line pt-6">
+              <LetterHeightPanel assessment={product.letterHeight} />
+            </div>
+          )}
 
           <h3 className="mt-7 font-display text-sm font-semibold text-ink">Recognised text</h3>
           <p className="mt-1 text-[11.5px] text-muted">

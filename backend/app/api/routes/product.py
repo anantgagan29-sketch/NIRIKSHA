@@ -16,6 +16,8 @@ from app.services.product_parser import (
     parse_product_image
 )
 
+from app.services import letter_height
+from app.api.routes.compliance import small_package_quantity
 from app.services.readability_service import (
     analyze_product_readability
 )
@@ -689,6 +691,24 @@ async def scan_product(
         "compliance": compliance_result,
 
         "readability": readability_result,
+
+        # Rule 7 — the size of letters and numerals. Assessed separately from
+        # whether a declaration is present at all, and separately again from
+        # how confidently it was read: a declaration can be present, read
+        # perfectly, and still be printed too small to be lawful.
+        #
+        # No scale reaches this call, so the heights it reports are in the
+        # image's own terms and its height findings are REVIEW. The argument
+        # for computing it anyway is that it states the applicable minimum for
+        # this package, which is the part an inspector cannot look up in the
+        # aisle.
+        "letter_height": letter_height.assess(
+            readability_result,
+            net_quantity=small_package_quantity(
+                (product_info or {}).get("net_quantity")
+            ),
+            image_height_px=(image_quality or {}).get("resolution", {}).get("height"),
+        ),
 
         "visual_evidence": visual_evidence,
 

@@ -152,6 +152,8 @@ export interface BackendScanResponse {
   product: BackendProduct | null;
   compliance: BackendCompliance | null;
   readability: BackendReadability | null;
+  /** Rule 7 assessment. Absent on scans recorded before it existed. */
+  letter_height?: BackendLetterHeight | null;
   visual_evidence?: BackendVisualEvidence[];
   /** Present only when the scan stopped at the quality gate. */
   message?: string;
@@ -168,4 +170,33 @@ export interface NormalisedDate {
   /** How precisely the date was stated: "day", "month" or "year". A pack
    *  stating only month and year is doing what Rule 6(1)(d) asks. */
   precision: "day" | "month" | "year" | null;
+}
+
+
+/** Rule 7 — size of letters and numerals, as the API reports it. */
+export interface BackendLetterHeightFinding {
+  field: string;
+  label: string;
+  status: "PASS" | "FAIL" | "REVIEW" | "NOT_APPLICABLE";
+  requirement: string;
+  observed: string | null;
+  finding: string;
+  character_height_mm: number | null;
+  evidence_confidence: "HIGH" | "MEDIUM" | "LOW";
+  ocr_confidence: number | null;
+  provision: string;
+}
+
+export interface BackendLetterHeight {
+  provision: string;
+  requirement: {
+    determined: boolean;
+    minimum_height_mm: number | null;
+    basis: string;
+    table: string | null;
+  };
+  scale: { available: boolean; note: string };
+  width_rule: string;
+  findings: BackendLetterHeightFinding[];
+  summary: { overall: string; counts: Record<string, number> };
 }

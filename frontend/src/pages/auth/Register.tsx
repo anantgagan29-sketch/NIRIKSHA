@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Check, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Check, Eye, EyeOff } from "lucide-react";
 import { AuthLayout, AuthError } from "./AuthLayout";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Form";
-import { useAuth } from "@/hooks/useAuth";
+import { homeFor, useAuth, type Role } from "@/hooks/useAuth";
+import { GoogleButton } from "@/components/auth/GoogleButton";
+import { RoleChoice } from "@/components/auth/RoleChoice";
+import { InspectorVerification } from "@/components/auth/InspectorVerification";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/cn";
 
@@ -15,7 +18,7 @@ const RULES = [
 ];
 
 export function Register() {
-  const { signUp } = useAuth();
+  const { signUp, signInWithGoogle, applyRole } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -26,6 +29,11 @@ export function Register() {
   const [visible, setVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [google, setGoogle] = useState(false);
+
+  // Asked before the form, for the same reason the sign-in screen asks: the
+  // two roles are different work, and one of them carries a further step.
+  const [role, setRole] = useState<Role | null>(null);
 
   const met = RULES.map((rule) => rule.test(password));
   const strong = met.every(Boolean);
@@ -41,17 +49,65 @@ export function Register() {
     setBusy(true);
     try {
       await signUp(name, email, password);
+
+      // signUp writes the default role; an inspector's choice is recorded
+      // over it now that there is an account to record it against.
+      if (role && role !== "citizen") {
+        try {
+          await applyRole(role);
+        } catch {
+          // The account exists and is signed in; the role can be set later.
+        }
+      }
+
       toast("success", "Account created. You are signed in.");
-      navigate("/", { replace: true });
+      navigate(homeFor(role ?? "citizen"), { replace: true });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not create the account.");
       setBusy(false);
     }
   }
 
+  async function withGoogle() {
+    if (!role) return;
+
+    setError(null);
+    setGoogle(true);
+
+    try {
+      // Google is a sign-up and a sign-in in one: an account it has seen
+      // before is signed in rather than duplicated.
+      await signInWithGoogle(role);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Google sign-in could not be started.");
+      setGoogle(false);
+    }
+  }
+
+  if (!role) {
+    return (
+      <AuthLayout
+        title="Create an account"
+        subtitle="Choose how you will be using NIRIKSHA."
+        footer={
+          <>
+            Already registered?{" "}
+            <Link to="/login" className="font-medium text-brand-700 hover:underline">
+              Sign in
+            </Link>
+          </>
+        }
+      >
+        <RoleChoice onChoose={setRole} />
+      </AuthLayout>
+    );
+  }
+
+  const inspector = role === "authority";
+
   return (
     <AuthLayout
-      title="Create an account"
+      title={inspector ? "Create an inspector account" : "Create an account"}
       subtitle="Takes a moment. Inspecting a product does not require one."
       footer={
         <>
@@ -62,7 +118,29 @@ export function Register() {
         </>
       }
     >
-      <form onSubmit={submit} className="flex flex-col gap-5">
+      <div className="flex flex-col gap-5">
+        <button
+          type="button"
+          onClick={() => {
+            setRole(null);
+            setError(null);
+          }}
+          className="-mt-1 inline-flex w-fit items-center gap-1.5 text-[13px] font-medium text-muted transition-colors hover:text-ink"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          Choose a different role
+        </button>
+
+        <GoogleButton onClick={() => void withGoogle()} busy={google} label="Sign up with Google" />
+
+        <div className="flex items-center gap-3">
+          <span className="h-px flex-1 bg-line" />
+          <span className="text-[12px] font-medium uppercase tracking-wide text-muted">or</span>
+          <span className="h-px flex-1 bg-line" />
+        </div>
+      </div>
+
+      <form onSubmit={submit} className="mt-5 flex flex-col gap-5">
         <Field label="Full name" required htmlFor="name">
           <Input
             id="name"
@@ -146,6 +224,12 @@ export function Register() {
           {busy ? "Creating account…" : "Create account"}
         </Button>
       </form>
+
+      {inspector && (
+        <div className="mt-6">
+          <InspectorVerification />
+        </div>
+      )}
     </AuthLayout>
   );
 }

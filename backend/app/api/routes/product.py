@@ -45,7 +45,8 @@ from app.services.scan_cache import (
 
 from app.services.image_prep import (
     prepare_for_vision,
-    discard_prepared
+    discard_prepared,
+    thumbnail_for_record
 )
 
 
@@ -342,7 +343,7 @@ async def scan_product(
         cached["processing_path"] = "cache"
 
         try:
-            cached["scan_id"] = database.record_scan(cached, user_id, scan_event_id)
+            cached["scan_id"] = database.record_scan(cached, user_id, scan_event_id, thumbnail_for_record(file_path))
         except Exception as e:
             print("Scan: could not record cached scan -", str(e))
 
@@ -426,7 +427,7 @@ async def scan_product(
 
         # Rejected photos are recorded too: a run of retakes is worth seeing
         # in the history, and it is what the quality gate is there to prevent.
-        rejected["scan_id"] = database.record_scan(rejected, user_id, scan_event_id)
+        rejected["scan_id"] = database.record_scan(rejected, user_id, scan_event_id, thumbnail_for_record(file_path))
 
         return rejected
 
@@ -710,7 +711,7 @@ async def scan_product(
 
     try:
 
-        result["scan_id"] = database.record_scan(result, user_id, scan_event_id)
+        result["scan_id"] = database.record_scan(result, user_id, scan_event_id, thumbnail_for_record(file_path))
 
     except Exception as e:
 

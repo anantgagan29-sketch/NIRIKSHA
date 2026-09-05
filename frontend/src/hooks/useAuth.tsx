@@ -49,6 +49,15 @@ interface AuthValue {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<void>;
   signOut: () => void;
+  /**
+   * Starts Google sign-in for the chosen role.
+   *
+   * Returns only to hand the browser to Google; the session is established
+   * when the redirect comes back to /auth/callback.
+   */
+  signInWithGoogle: (role: Role) => Promise<void>;
+  /** Records the role against the authenticated account. */
+  applyRole: (role: Role) => Promise<void>;
   resetPassword: (email: string, password: string) => Promise<void>;
   /** True when an account exists for this address. Used by the reset flow. */
   accountExists: (email: string) => boolean;
@@ -66,6 +75,46 @@ interface AuthValue {
 
 const USERS_KEY = "niriksha.users";
 const SESSION_KEY = "niriksha.session";
+
+/**
+ * Where the chosen role waits while the browser is at Google.
+ *
+ * An OAuth round trip leaves the page entirely, so nothing in React state
+ * survives it. This is a carrier, not the record: the role is written against
+ * the authenticated account when the redirect returns, and it is that stored
+ * value every later visit reads. Session storage rather than local, so it
+ * expires with the tab and cannot outlive the sign-in it belongs to.
+ */
+const PENDING_ROLE_KEY = "niriksha.pending-role";
+
+/**
+ * Where a role lands once it is signed in.
+ *
+ * An inspector's work is the review queue, not the scanning screen, so the
+ * two roles open on different pages. Kept here rather than in each form
+ * because both the password sign-in and the OAuth return have to agree.
+ */
+export function homeFor(role: Role): string {
+  return role === "authority" ? "/admin" : "/";
+}
+
+export function rememberPendingRole(role: Role): void {
+  try {
+    window.sessionStorage.setItem(PENDING_ROLE_KEY, role);
+  } catch {
+    // Without it the account simply keeps the role it already has.
+  }
+}
+
+export function takePendingRole(): Role | null {
+  try {
+    const value = window.sessionStorage.getItem(PENDING_ROLE_KEY);
+    window.sessionStorage.removeItem(PENDING_ROLE_KEY);
+    return value === "authority" || value === "citizen" ? value : null;
+  } catch {
+    return null;
+  }
+}
 
 const AuthContext = createContext<AuthValue | null>(null);
 
@@ -220,6 +269,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(publicOf(account));
   }, []);
 
+  const signInWithGoogle = useCallback(async (role: Role) => {
+    if (!supabase) {
+      throw new Error(
+        "Google sign-in needs a Supabase project. This build is running on browser-local accounts.",
+      );
+    }
+
+    // Held across the redirect, and written to the account on the way back.
+    rememberPendingRole(role);
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        // Where Google returns to. This exact address must also be listed in
+        // the project's redirect allow-list, or Supabase refuses the return.
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      takePendingRole();
+      throw new Error(describe(error.message));
+    }
+  }, []);
+
+  const applyRole = useCallback(async (role: Role) => {
+    if (!supabase) return;
+
+    const { data, error } = await supabase.auth.updateUser({ data: { role } });
+
+    if (error) throw new Error(describe(error.message));
+    if (data.user) setUser(accountOf(data.user));
+  }, []);
+
   const signUp = useCallback(async (name: string, email: string, password: string) => {
     if (supabase) {
       const { data, error } = await supabase.auth.signUp({
@@ -323,12 +406,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       signUp,
       signOut,
+      signInWithGoogle,
+      applyRole,
       resetPassword,
       accountExists,
       usingRealAccounts: HAS_SUPABASE,
       sendPasswordReset,
     }),
-    [user, ready, signIn, signUp, signOut, resetPassword, accountExists, sendPasswordReset],
+    [
+      user,
+      ready,
+      signIn,
+      signUp,
+      signOut,
+      signInWithGoogle,
+      applyRole,
+      resetPassword,
+      accountExists,
+      sendPasswordReset,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

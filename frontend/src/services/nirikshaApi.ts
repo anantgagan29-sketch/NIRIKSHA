@@ -587,6 +587,32 @@ export interface ScanStats {
   complaints: number;
 }
 
+/**
+ * The photograph a stored scan was made from.
+ *
+ * Fetched rather than pointed at with an `<img src>`, because the endpoint is
+ * scoped to the signed-in owner and a plain image request carries no token.
+ * The caller owns the object URL that comes back and must revoke it.
+ *
+ * Null when the scan has no photograph, or it belongs to someone else — both
+ * answered as "no image", which is all a report needs to know.
+ */
+export async function scanImageUrl(scanId: string): Promise<string | null> {
+  try {
+    const response = await fetch(apiUrl(`/scans/${encodeURIComponent(scanId)}/image`), {
+      headers: await authHeaders(),
+    });
+
+    if (!response.ok) return null;
+
+    return URL.createObjectURL(await response.blob());
+  } catch {
+    // A report without its photograph is still a report worth reading.
+    return null;
+  }
+}
+
+
 export async function scanStats(): Promise<ScanStats> {
   return request<ScanStats>("/scans/stats");
 }

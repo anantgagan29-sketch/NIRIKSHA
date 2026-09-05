@@ -24,6 +24,7 @@ import { Login } from "@/pages/auth/Login";
 import { Register } from "@/pages/auth/Register";
 import { ForgotPassword } from "@/pages/auth/ForgotPassword";
 import { ResetPassword } from "@/pages/auth/ResetPassword";
+import { AuthCallback } from "@/pages/auth/AuthCallback";
 
 export default function App() {
   return (
@@ -44,6 +45,9 @@ export default function App() {
                 <Route path="forgot-password" element={<ForgotPassword />} />
                 {/* Where the reset email's link lands. */}
                 <Route path="reset-password" element={<ResetPassword />} />
+                {/* Where Google returns after an OAuth sign-in. This exact
+                    path must be listed in the project's redirect allow-list. */}
+                <Route path="auth/callback" element={<AuthCallback />} />
 
                 <Route element={<AppShell />}>
                   <Route index element={<Dashboard />} />

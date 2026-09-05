@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
 
-import type { DemoProduct } from "@/data/types";
+import { reportFilename, saveBlob, type ReportData } from "@/services/report/model";
 // The dark lockup: these pages are white, and the light variant exists for
 // the console's dark surface.
 // `?inline` gives a data: URI rather than a path. A plain asset import hands
@@ -35,6 +35,7 @@ const STATUS_COLOUR: Record<string, ReturnType<typeof rgb>> = {
   pass: rgb(0.13, 0.6, 0.29),
   fail: rgb(0.79, 0.16, 0.16),
   review: rgb(0.72, 0.47, 0.05),
+  not_applicable: rgb(0.42, 0.47, 0.53),
 };
 
 const NOTICE =
@@ -181,13 +182,23 @@ class Writer {
    * The height follows from the artwork's own proportions — a logo squashed
    * to fit a box is worse than no logo.
    */
-  image(png: PDFImage, width: number) {
-    const height = (png.height / png.width) * width;
+  image(png: PDFImage, width: number, maxHeight?: number) {
+    let drawWidth = width;
+    let height = (png.height / png.width) * drawWidth;
+
+    // A portrait photograph constrained only by width runs the length of the
+    // page. Both edges are bounded, and the smaller scale wins, so the
+    // proportions are never touched.
+    if (maxHeight && height > maxHeight) {
+      drawWidth = (png.width / png.height) * maxHeight;
+      height = maxHeight;
+    }
+
     this.space(height + 6);
     this.page.drawImage(png, {
       x: MARGIN,
       y: this.y - height,
-      width,
+      width: drawWidth,
       height,
     });
     this.y -= height + 6;
@@ -238,15 +249,9 @@ async function loadLogo(doc: PDFDocument): Promise<PDFImage | null> {
 }
 
 
-const RESULT_LABEL: Record<string, string> = {
-  compliant: "Compliant",
-  needs_review: "Needs review",
-  non_compliant: "Non-compliant",
-};
-
-export async function buildComplianceReport(product: DemoProduct): Promise<Blob> {
+export async function buildComplianceReport(data: ReportData): Promise<Blob> {
   const doc = await PDFDocument.create();
-  doc.setTitle(`NIRIKSHA compliance assessment ${product.scanId}`);
+  doc.setTitle(`NIRIKSHA compliance assessment ${data.scanReference}`);
   doc.setProducer("NIRIKSHA");
   doc.setCreationDate(new Date());
 
@@ -272,26 +277,51 @@ export async function buildComplianceReport(product: DemoProduct): Promise<Blob>
   w.move(6);
   w.rule();
 
-  w.text(`Scan reference: ${product.scanId}`, { size: 9 });
-  w.text(
-    `Assessed: ${new Date(product.scannedAt).toLocaleString("en-IN", {
-      dateStyle: "full",
-      timeStyle: "short",
-    })}`,
-    { size: 9, colour: MUTED },
-  );
+  w.text(`Scan reference: ${data.scanReference}`, { size: 9 });
+  w.text(`Assessed: ${data.assessedLabel}`, { size: 9, colour: MUTED });
   w.move(10);
 
   /* outcome */
   w.text("Assessment", { size: 13, bold: true });
   w.move(2);
-  w.text(`${RESULT_LABEL[product.result] ?? product.result} — score ${product.score}`, {
+  w.text(`${data.resultLabel} — score ${data.score}`, {
     size: 11,
     bold: true,
-    colour: STATUS_COLOUR[product.result === "compliant" ? "pass" : product.result === "non_compliant" ? "fail" : "review"],
+    colour:
+      STATUS_COLOUR[
+        data.result === "compliant" ? "pass" : data.result === "non_compliant" ? "fail" : "review"
+      ],
   });
-  w.text(`Product: ${product.name}`, { size: 10 });
-  w.text(`Net quantity: ${product.netQuantity}`, { size: 10 });
+  w.text(`Product: ${data.productName}`, { size: 10 });
+  w.text(`Net quantity: ${data.netQuantity}`, { size: 10 });
+
+  if (data.qualification) {
+    w.move(4);
+    w.text(data.qualification, { size: 8.5, colour: STATUS_COLOUR.review });
+  }
+
+  w.move(10);
+
+  /* the photograph this assessment was made from */
+  // Placed before the readings, because everything below is a claim about
+  // this picture and a reader should see it first. Bounded on both edges so
+  // it illustrates the report rather than filling its opening page.
+  w.text("Product image", { size: 10, bold: true });
+  w.move(4);
+
+  if (data.image) {
+    try {
+      w.image(await doc.embedPng(data.image.bytes), 200, 200);
+    } catch {
+      w.text("Product image unavailable — it could not be embedded.", {
+        size: 9,
+        colour: MUTED,
+      });
+    }
+  } else {
+    w.text(data.imageNote ?? "Product image unavailable.", { size: 9, colour: MUTED });
+  }
+
   w.move(10);
 
   /* declarations read */
@@ -299,12 +329,11 @@ export async function buildComplianceReport(product: DemoProduct): Promise<Blob>
   w.text("Declarations read from the label", { size: 13, bold: true });
   w.move(4);
 
-  for (const field of product.fields) {
-    const value = field.value ?? "Not detected";
-    w.text(`${field.label}: ${value}`, { size: 9.5 });
+  for (const field of data.fields) {
+    w.text(`${field.label}: ${field.value}`, { size: 9.5 });
 
     // Confidence is only meaningful where something was read.
-    if (field.value && field.confidence !== null && field.confidence !== undefined) {
+    if (field.confidence !== null) {
       w.text(`read at ${field.confidence}% confidence`, { size: 8, colour: MUTED, indent: 10 });
     }
   }
@@ -316,22 +345,24 @@ export async function buildComplianceReport(product: DemoProduct): Promise<Blob>
   w.text("Requirements assessed", { size: 13, bold: true });
   w.move(4);
 
-  for (const check of product.checks) {
-    w.text(`${check.label}`, { size: 10, bold: true });
-    w.text(check.status.toUpperCase(), {
+  for (const requirement of data.requirements) {
+    w.text(requirement.label, { size: 10, bold: true });
+    w.text(requirement.statusLabel, {
       size: 8.5,
-      colour: STATUS_COLOUR[check.status] ?? MUTED,
+      colour: STATUS_COLOUR[requirement.status] ?? MUTED,
       indent: 10,
     });
 
     // What the rule asks, then why this outcome followed. A reader who was
     // not present for the inspection needs both to judge the finding.
-    if (check.requirement) w.text(`Requirement: ${check.requirement}`, { size: 9, indent: 10 });
-    if (check.reason) w.text(`Finding: ${check.reason}`, { size: 9, indent: 10 });
-    if (check.detected) w.text(`Detected: ${check.detected}`, { size: 9, indent: 10 });
-
-    const citation = [check.instrument, check.provision].filter(Boolean).join(" — ");
-    if (citation) w.text(citation, { size: 8, colour: MUTED, indent: 10 });
+    if (requirement.requirement) {
+      w.text(`Requirement: ${requirement.requirement}`, { size: 9, indent: 10 });
+    }
+    if (requirement.finding) w.text(`Finding: ${requirement.finding}`, { size: 9, indent: 10 });
+    if (requirement.detected) w.text(`Detected: ${requirement.detected}`, { size: 9, indent: 10 });
+    if (requirement.legalReference) {
+      w.text(requirement.legalReference, { size: 8, colour: MUTED, indent: 10 });
+    }
 
     w.move(4);
   }
@@ -341,7 +372,7 @@ export async function buildComplianceReport(product: DemoProduct): Promise<Blob>
   w.rule();
   w.text("Scope of this assessment", { size: 13, bold: true });
   w.move(2);
-  w.text(NOTICE, { size: 9, colour: MUTED });
+  w.text(data.scope, { size: 9, colour: MUTED });
 
   if (w.droppedCharacters > 0) {
     w.move(4);
@@ -356,18 +387,7 @@ export async function buildComplianceReport(product: DemoProduct): Promise<Blob>
   return new Blob([bytes as BufferSource], { type: "application/pdf" });
 }
 
-/** Builds the report and hands it to the browser as a download. */
-export async function downloadComplianceReport(product: DemoProduct): Promise<void> {
-  const blob = await buildComplianceReport(product);
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `NIRIKSHA-${product.scanId}.pdf`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  // Given back once the browser has taken the data.
-  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+/** Builds the PDF and hands it to the browser as a download. */
+export async function downloadComplianceReport(data: ReportData): Promise<void> {
+  saveBlob(await buildComplianceReport(data), reportFilename(data, "pdf"));
 }

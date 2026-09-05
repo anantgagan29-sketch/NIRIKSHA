@@ -151,6 +151,8 @@ export interface BackendScanResponse {
   scan_status: BackendScanStatus;
   product: BackendProduct | null;
   compliance: BackendCompliance | null;
+  /** The reference this scan was recorded under. */
+  scan_id?: string | null;
   readability: BackendReadability | null;
   /** Rule 7 assessment. Absent on scans recorded before it existed. */
   letter_height?: BackendLetterHeight | null;

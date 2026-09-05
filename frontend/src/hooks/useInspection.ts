@@ -68,6 +68,11 @@ export interface InspectionState {
   /** Rule 7 findings from the server pass, where there are any. */
   letterHeight?: LetterHeightAssessment | null;
   /**
+   * The reference the server recorded this scan under. Null on the in-browser
+   * path, which records nothing and therefore has no reference to quote.
+   */
+  scanId?: string | null;
+  /**
    * True when the reading came from the in-browser engine instead of the
    * hosted models. It is a genuine fallback, not an equivalent: Tesseract on
    * a phone photograph reads a fraction of what the vision service reads, and
@@ -336,6 +341,7 @@ export function useInspection() {
             ocrConfidence: 0,
             assessmentNote: outcome.note,
             letterHeight: outcome.letterHeight,
+            scanId: outcome.scanId,
             productLabel: outcome.productName,
             progress: 100,
             phase: "done",

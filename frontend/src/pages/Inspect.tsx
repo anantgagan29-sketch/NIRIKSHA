@@ -56,7 +56,11 @@ export function Inspect() {
     if (state.source === "live" && state.result) {
       registerLive({
         id: "live-scan",
-        scanId: `NIR-2026-${String(Date.now()).slice(-5)}`,
+        // The reference the server recorded this scan under. Minting one here
+        // printed a number on the report that exists in no database — an
+        // inspector quoting it would find nothing. The local fallback is only
+        // for the in-browser path, which records nothing to look up.
+        scanId: state.scanId ?? `LOCAL-${String(Date.now()).slice(-5)}`,
         name: state.fields.find((f) => f.key === "product_name")?.value ?? "Uploaded product",
         category: "Live scan",
         netQuantity: state.fields.find((f) => f.key === "net_quantity")?.value ?? "—",

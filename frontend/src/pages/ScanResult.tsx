@@ -5,6 +5,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { LabelSpecimen } from "@/components/ui/LabelSpecimen";
 import { StatusPill, resultPill, DemoBadge } from "@/components/ui/StatusPill";
 import { FieldTable } from "@/components/inspection/FieldTable";
+import { LetterHeightPanel } from "@/components/compliance/LetterHeightPanel";
 import { PipelineRail } from "@/components/inspection/PipelineRail";
 import { ProductSwitcher } from "@/components/inspection/ProductSwitcher";
 import { useScanFromRoute } from "@/hooks/useScanFromRoute";
@@ -141,6 +142,18 @@ export function ScanResult() {
             rawText={product.rawText}
             confidence={product.ocrConfidence}
           />
+
+          {/* Rule 7 sits with the rest of the assessment, not a page away.
+              It was only on the report screen, which meant the one finding
+              that needs the pack still in someone's hand — measure the
+              printed characters — was read after they had put it down. */}
+          {product.letterHeight && (
+            <Card>
+              <CardBody>
+                <LetterHeightPanel assessment={product.letterHeight} />
+              </CardBody>
+            </Card>
+          )}
 
           <AssessmentNotice />
         </div>

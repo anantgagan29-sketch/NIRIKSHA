@@ -153,8 +153,12 @@ measurement is needed, so it is stated even when nothing else can be.
 cardboard. A photograph carries pixels. Supply a measured pack width and the
 conversion exists; leave it blank and every height finding is REVIEW with the
 requirement stated and physical verification recommended. Print that is
-already too short is a FAIL — the characters inside a block can be no taller
-than the block. Print that is tall enough stays under review, because a block
+*clearly* too short is a FAIL — the characters inside a block can be no taller
+than the block. Clearly, not marginally: the conversion assumes the pack fills
+the frame, and a looser crop reads short, so a reading within a quarter of the
+minimum is reported with its numbers and left under review. The error points
+one way, towards finding print too small, which is the direction that accuses
+someone. Print that is tall enough stays under review too, because a block
 tall enough proves nothing about the characters in it.
 
 ---

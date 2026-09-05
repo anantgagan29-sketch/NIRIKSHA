@@ -147,6 +147,21 @@ def numeral_requirement(
     }
 
 
+# How far below the minimum a reading must fall before it is called a failure.
+#
+# The scale comes from a width someone measured and a photograph they framed,
+# and the second half is the weak one: a pack occupying three quarters of the
+# frame instead of all of it makes every height read a quarter short. That
+# error points one way — towards finding print too small — which is the
+# direction that accuses a manufacturer of something.
+#
+# So a reading has to be clearly short, not marginally short, before it is a
+# FAIL. Between this threshold and the minimum the numbers are reported and
+# the finding is REVIEW, which is what a measurement that disagrees with the
+# rule by less than its own uncertainty actually means.
+FAIL_MARGIN = 0.75
+
+
 # --------------------------------------------------------------------------
 # What the photograph can support
 # --------------------------------------------------------------------------
@@ -304,14 +319,26 @@ def assess(
             # the characters in it. A block that is already too short proves
             # the characters are too short; a block that is tall enough proves
             # nothing on its own, and stays under review.
-            if observed_mm < minimum:
+            if observed_mm < minimum * FAIL_MARGIN:
                 finding.update(
                     status="FAIL",
                     finding=(
                         f"The detected text measures about {observed_mm:.1f} mm, "
-                        f"below the {minimum:g} mm minimum that applies. Because this "
-                        f"is the height of the whole block, the characters within it "
-                        f"are no taller."
+                        f"clearly below the {minimum:g} mm minimum that applies — far "
+                        f"enough below that framing error does not account for it. "
+                        f"Because this is the height of the whole block, the "
+                        f"characters within it are no taller."
+                    ),
+                )
+            elif observed_mm < minimum:
+                finding.update(
+                    status="REVIEW",
+                    finding=(
+                        f"The detected text measures about {observed_mm:.1f} mm against a "
+                        f"{minimum:g} mm minimum — short, but by less than the scale's own "
+                        f"uncertainty. The conversion assumes the pack fills the frame, and "
+                        f"a looser crop reads short. Measure the printed characters on the "
+                        f"package before treating this as a shortfall."
                     ),
                 )
             else:

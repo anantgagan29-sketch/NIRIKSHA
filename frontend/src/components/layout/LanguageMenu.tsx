@@ -75,7 +75,10 @@ export function LanguageMenu() {
         )}
       >
         <Globe className="h-4 w-4" aria-hidden="true" />
-        <span className="max-w-[7rem] truncate">{current?.native ?? language}</span>
+        {/* The name is hidden on a phone, where the row of controls does not
+            fit beside the brand. The globe still says what the button is, and
+            the accessible name carries the current language either way. */}
+        <span className="hidden max-w-[7rem] truncate sm:inline">{current?.native ?? language}</span>
       </button>
 
       {/* On a phone the panel is pinned to the viewport rather than to the

@@ -15,18 +15,18 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-surface/85 backdrop-blur-xl">
-      <div className="flex h-16 items-center gap-3 px-4 sm:gap-4 sm:px-6">
+      <div className="flex h-16 items-center gap-1.5 px-2 min-[360px]:gap-2 min-[360px]:px-3 sm:gap-4 sm:px-6">
         <button
           type="button"
           onClick={onMenu}
           aria-label="Open navigation"
-          className="rounded-lg p-2 text-muted transition-colors hover:bg-canvas hover:text-ink lg:hidden"
+          className="flex h-10 w-10 items-center justify-center rounded-lg text-muted transition-colors hover:bg-canvas hover:text-ink lg:hidden"
         >
           <Menu className="h-5 w-5" />
         </button>
 
         <Link to="/" className="shrink-0 lg:hidden">
-          <BrandLockup className="max-w-[8.5rem]" />
+          <BrandLockup className="max-w-[5.5rem] min-[360px]:max-w-[6.5rem] sm:max-w-[8.5rem]" />
         </Link>
 
         <p className="hidden shrink-0 font-display text-sm font-medium text-ink-2 lg:block">
@@ -46,14 +46,17 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           />
         </div>
 
-        <div className="ml-auto flex items-center gap-1 sm:gap-1.5">
+        <div className="ml-auto flex min-w-0 items-center gap-0.5 sm:gap-1.5">
           <LanguageMenu />
 
           <ThemeToggle />
 
           <AccessibilityMenu />
 
-          <div className="relative">
+          {/* Hidden on a phone. Five controls, a brand and a menu button do not
+              fit across 320 px, and of the five this is the one carrying
+              demonstration content rather than a setting someone needs. */}
+          <div className="relative hidden sm:block">
             <button
               type="button"
               onClick={() => setNotificationsOpen((value) => !value)}

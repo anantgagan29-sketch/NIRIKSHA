@@ -38,7 +38,7 @@ export function UserMenu() {
     return (
       <Link
         to="/login"
-        className="rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-canvas hover:text-ink"
+        className="shrink-0 rounded-lg px-2 py-2 text-sm font-medium text-muted transition-colors hover:bg-canvas hover:text-ink sm:px-3"
       >
         Sign in
       </Link>

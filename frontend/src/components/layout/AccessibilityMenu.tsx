@@ -38,7 +38,7 @@ export function AccessibilityMenu() {
         aria-expanded={open}
         aria-haspopup="true"
         aria-label="Accessibility options"
-        className="rounded-lg p-2 text-muted transition-colors hover:bg-canvas hover:text-ink"
+        className="flex h-10 w-10 items-center justify-center rounded-lg text-muted transition-colors hover:bg-canvas hover:text-ink"
       >
         <Accessibility className="h-[18px] w-[18px]" />
       </button>

@@ -16,7 +16,7 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
       title={dark ? "Light theme" : "Dark theme"}
-      className="rounded-lg p-2 text-muted transition-colors hover:bg-canvas hover:text-ink"
+      className="rounded-lg flex h-10 w-10 items-center justify-center text-muted transition-colors hover:bg-canvas hover:text-ink"
     >
       <motion.span
         key={theme}

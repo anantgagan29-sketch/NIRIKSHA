@@ -10,6 +10,7 @@ import { useScanFromRoute } from "@/hooks/useScanFromRoute";
 import { useToast } from "@/components/ui/Toast";
 import { BrandLockup } from "@/components/layout/Brand";
 import { useLanguage } from "@/hooks/useLanguage";
+import { fieldsForSelection } from "@/services/fieldSelection";
 
 /**
  * Report preview.
@@ -22,6 +23,12 @@ import { useLanguage } from "@/hooks/useLanguage";
 export function Reports() {
   const { t } = useLanguage();
   const { product } = useScanFromRoute();
+
+  // The document covers what the inspection asked about. A requirement or a
+  // declaration outside the request was still assessed and is still in the
+  // scan; printing it here would answer a question nobody asked.
+  const requirements = product.checks.filter((check) => check.selected !== false);
+  const declarations = fieldsForSelection(product.fields, product.selectedFields);
   const toast = useToast();
 
   const assessed = new Date(product.scannedAt).toLocaleDateString("en-IN", {
@@ -110,6 +117,15 @@ export function Reports() {
           <div>
             <h3 className="font-display text-sm font-semibold text-ink">Assessment</h3>
 
+            {/* Named before the findings, so a narrowed document is not read
+                as a full one. */}
+            {(product.selectedFieldLabels?.length ?? 0) > 0 && (
+              <p className="mt-2 text-[12.5px] text-muted">
+                <span className="font-medium text-ink">Selected checks:</span>{" "}
+                {product.selectedFieldLabels!.join(", ")}
+              </p>
+            )}
+
             <div className="mt-2.5 flex flex-wrap items-center gap-3">
               <StatusPill {...resultPill(product.result)} />
               <span className="text-[13px] text-muted">
@@ -118,7 +134,7 @@ export function Reports() {
             </div>
 
             <dl className="mt-4 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-              {product.fields.slice(0, 6).map((field) => (
+              {declarations.slice(0, 6).map((field) => (
                 <div key={field.key}>
                   <dt className="text-[11px] uppercase tracking-wider text-faint">{field.label}</dt>
                   <dd className="mt-0.5 text-[13px] text-ink">
@@ -143,7 +159,7 @@ export function Reports() {
                 </tr>
               </thead>
               <tbody>
-                {product.checks.map((check) => (
+                {requirements.map((check) => (
                   <tr key={check.id} className="border-b border-line last:border-0 align-top">
                     <td className="py-2.5 pr-3 text-[13px] text-ink">{check.label}</td>
                     <td className="py-2.5 pr-3 text-[12.5px] text-muted">{check.detected ?? "—"}</td>
@@ -157,7 +173,11 @@ export function Reports() {
             </table>
           </div>
 
-          {product.letterHeight && (
+          {/* Rule 7 governs the height of the lettering, which is a property of the
+   declarations themselves rather than one of them. It is not something a
+   person selects, so a narrowed assessment leaves it out: a report headed
+   with one declaration should not carry findings about the whole label. */}
+          {product.letterHeight && !product.selectedFieldLabels?.length && (
             <div className="mt-7 border-t border-line pt-6">
               <LetterHeightPanel assessment={product.letterHeight} />
             </div>

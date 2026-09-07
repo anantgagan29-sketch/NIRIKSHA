@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, RefreshCw, ScanBarcode, Sparkles } from "lucide-react";
 import { CameraCapture } from "@/components/ui/CameraCapture";
 import { FieldSelector } from "@/components/inspection/FieldSelector";
-import { ALL_FIELD_IDS, selectionForRequest } from "@/services/fieldSelection";
+import { ALL_FIELD_IDS, fieldsForSelection, selectionForRequest } from "@/services/fieldSelection";
 import { BarcodeScanner } from "@/components/ui/BarcodeScanner";
 import { PageHeader, AssessmentNotice } from "@/components/ui/PageHeader";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
@@ -82,6 +82,7 @@ export function Inspect() {
         ocrConfidence: state.ocrConfidence,
         letterHeight: state.letterHeight,
         selectedFieldLabels: state.selectedFieldLabels,
+        selectedFields: state.selectedFields,
         findingsOutsideSelection: state.findingsOutsideSelection,
         scannedAt: new Date().toISOString(),
       });
@@ -452,8 +453,15 @@ export function Inspect() {
                 />
                 <CardBody className="flex flex-col gap-3.5">
                   <p className="text-[13px] leading-relaxed text-muted">
-                    {state.fields.filter((f) => f.status !== "missing").length} declarations were
-                    extracted and {state.checks.length} applicable requirements were evaluated.
+                    {fieldsForSelection(state.fields, state.selectedFields).filter(
+                      (f) => f.status !== "missing",
+                    ).length}{" "}
+                    declarations were extracted and{" "}
+                    {state.checks.filter((c) => c.selected !== false).length} applicable
+                    requirements were evaluated
+                    {state.selectedFieldLabels.length
+                      ? ` for ${state.selectedFieldLabels.join(", ")}.`
+                      : "."}
                   </p>
                   <div className="flex flex-wrap gap-2.5">
                     <Button onClick={() => openResults("/scan-result")} className="flex-1 sm:flex-none">

@@ -63,6 +63,11 @@ export function useScanFromRoute(): {
           rawText: outcome.rawText ?? "",
           ocrConfidence: 0,
           letterHeight: outcome.letterHeight,
+          // A scan reopened later shows what it was assessed for, so a
+          // narrowed report reads the same on the day and a week after.
+          selectedFieldLabels: outcome.selectedFieldLabels,
+          selectedFields: outcome.selectedFields,
+          findingsOutsideSelection: outcome.findingsOutsideSelection,
           scannedAt: outcome.raw.created_at ?? new Date().toISOString(),
         });
 

@@ -222,7 +222,11 @@ export async function buildReportData(product: DemoProduct): Promise<ReportData>
     findingsOutsideSelection: product.findingsOutsideSelection ?? [],
     scope: SCOPE,
     qualification: product.readOnDevice ? ON_DEVICE : null,
-    letterHeight: product.letterHeight ?? null,
+    // Rule 7 governs the height of the lettering, which is a property of the
+    // declarations themselves rather than one of them. It is not something a
+    // person selects, so a narrowed assessment leaves it out: a report headed
+    // with one declaration should not carry findings about the whole label.
+    letterHeight: product.selectedFieldLabels?.length ? null : (product.letterHeight ?? null),
   };
 }
 

@@ -42,6 +42,7 @@ export type Source = "demo" | "live";
 export interface InspectionState {
   /** What the server said it assessed. Empty means the whole label. */
   selectedFieldLabels: string[];
+  selectedFields: string[] | null;
   /** Findings the reading produced outside what was asked about. */
   findingsOutsideSelection: string[];
   phase: Phase;
@@ -91,6 +92,7 @@ const IDLE_STAGES = Object.fromEntries(PIPELINE_STAGES.map((s) => [s.id, "pendin
 
 const INITIAL: InspectionState = {
   selectedFieldLabels: [],
+  selectedFields: null,
   findingsOutsideSelection: [],
   phase: "idle",
   source: "demo",
@@ -360,6 +362,7 @@ export function useInspection() {
             assessmentNote: outcome.note,
             letterHeight: outcome.letterHeight,
             selectedFieldLabels: outcome.selectedFieldLabels,
+            selectedFields: outcome.selectedFields,
             findingsOutsideSelection: outcome.findingsOutsideSelection,
             scanId: outcome.scanId,
             productLabel: outcome.productName,

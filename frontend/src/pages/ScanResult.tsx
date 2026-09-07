@@ -13,6 +13,7 @@ import { cn } from "@/lib/cn";
 import { PIPELINE_STAGES } from "@/data/pipeline";
 import type { StageState } from "@/data/types";
 import { useLanguage } from "@/hooks/useLanguage";
+import { fieldsForSelection } from "@/services/fieldSelection";
 
 /** Every stage complete — this screen is only reached after a full run. */
 const COMPLETED: Record<string, StageState> = Object.fromEntries(
@@ -133,8 +134,10 @@ export function ScanResult() {
             </div>
           )}
 
+          {/* The declarations this inspection asked about. The label was
+              read in full either way; what narrows is what is reported. */}
           <FieldTable
-            fields={product.fields}
+            fields={fieldsForSelection(product.fields, product.selectedFields)}
             rawText={product.rawText}
             confidence={product.ocrConfidence}
           />

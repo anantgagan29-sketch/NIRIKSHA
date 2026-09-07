@@ -95,6 +95,8 @@ export interface DemoProduct {
    * the choice alone.
    */
   selectedFieldLabels?: string[];
+  /** The same selection as identifiers, for filtering what is displayed. */
+  selectedFields?: string[] | null;
   /** Findings the reading produced outside what was asked about. */
   findingsOutsideSelection?: string[];
   result: ComplianceResult;

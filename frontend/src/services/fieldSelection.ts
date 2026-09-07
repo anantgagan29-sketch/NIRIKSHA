@@ -52,3 +52,53 @@ export function selectionForRequest(selection: string[]): string[] | undefined {
 export function labelFor(id: string): string {
   return SELECTABLE_FIELDS.find((field) => field.id === id)?.label ?? id;
 }
+
+
+/**
+ * The extracted declarations each selection covers.
+ *
+ * Mirrors the backend's own table. A report showing every value it read,
+ * under a heading naming one declaration, is the same failure as showing
+ * every requirement: it answers questions nobody asked.
+ */
+const FIELD_VALUE_KEYS: Record<string, string[]> = {
+  product_name: ["product_name", "brand"],
+  manufacturer: ["manufacturer", "packer", "address"],
+  mrp: ["mrp", "unit_sale_price"],
+  manufacturing_date: ["manufacturing_date", "packing_date"],
+  expiry_date: ["expiry_date", "best_before", "shelf_life"],
+  batch_number: ["batch_number"],
+  net_quantity: ["net_quantity"],
+};
+
+/**
+ * Which extracted values belong to a selection. Null means all of them.
+ *
+ * Null is what an assessment that covered everything returns, and what every
+ * scan recorded before selections existed returns — so a caller that filters
+ * on this shows the whole reading for those, unchanged.
+ */
+export function valueKeysFor(selection: string[] | null | undefined): Set<string> | null {
+  if (!selection || selection.length === 0) return null;
+
+  const keys = new Set<string>();
+  for (const field of selection) {
+    for (const key of FIELD_VALUE_KEYS[field] ?? []) keys.add(key);
+  }
+  return keys.size ? keys : null;
+}
+
+/** The declarations a report should show, given what it was asked about. */
+export function fieldsForSelection<T extends { key: string }>(
+  fields: T[],
+  selection: string[] | null | undefined,
+): T[] {
+  const keys = valueKeysFor(selection);
+  if (!keys) return fields;
+
+  const kept = fields.filter((field) => keys.has(field.key));
+  // A selection whose declarations were all absent from the reading would
+  // otherwise render an empty block; showing the reading is better than
+  // showing nothing.
+  return kept.length ? kept : fields;
+}

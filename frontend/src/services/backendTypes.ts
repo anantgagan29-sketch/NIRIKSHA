@@ -77,6 +77,13 @@ export interface BackendReadability {
 }
 
 export interface BackendCheck {
+  /**
+   * False when this check was outside what the scan asked about.
+   *
+   * Absent on a scan recorded before selections existed — that scan covered
+   * everything, so absence reads as selected.
+   */
+  selected?: boolean;
   status: BackendCheckStatus;
   /** String, object or array depending on the check. Stringified for display. */
   value?: unknown;
@@ -92,6 +99,12 @@ export interface BackendCompliance {
   checks?: Record<string, BackendCheck>;
   required_checks?: string[];
   missing_declarations?: string[];
+  /** Declarations this assessment covered. Null means all of them. */
+  selected_fields?: string[] | null;
+  selected_field_labels?: string[];
+  selection_applied?: boolean;
+  /** Findings from checks outside the request, kept so none are lost. */
+  findings_outside_selection?: string[];
   violations?: string[];
   warnings?: string[];
   /** Date declarations sorted into what each one is, keeping the text printed

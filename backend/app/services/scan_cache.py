@@ -39,10 +39,21 @@ from app.core.config import (
 )
 
 
-def image_fingerprint(data: bytes) -> str:
-    """The cache key: the exact bytes that were uploaded."""
+def image_fingerprint(data: bytes, variant: str = "all") -> str:
+    """
+    The cache key: the exact bytes that were uploaded, and what was asked of
+    them.
 
-    return hashlib.sha256(data).hexdigest()
+    `variant` names the set of declarations the scan was about. Two requests
+    over the same photograph asking different questions are different
+    assessments, and answering the second from the first would hand somebody a
+    report that does not match what they selected.
+    """
+
+    digest = hashlib.sha256(data)
+    digest.update(b"\x00")
+    digest.update(variant.encode("utf-8"))
+    return digest.hexdigest()
 
 
 class ScanCache:

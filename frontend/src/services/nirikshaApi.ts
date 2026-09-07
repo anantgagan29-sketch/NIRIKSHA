@@ -501,6 +501,9 @@ function adaptChecks(
       requirement: check.rule ?? "—",
       reason: check.message ?? "No explanation was returned for this check.",
       evidence: score?.reason ?? undefined,
+      // Absent on a scan recorded before selections existed, which covered
+      // everything — so absence reads as selected.
+      selected: check.selected !== false,
       provision: provisionOf(check.rule),
       instrument,
       severity: adaptSeverity(check.severity),
@@ -578,6 +581,12 @@ export interface ScanOutcome {
   retakeTips: string[];
   /** The backend's own qualification of what this assessment is. */
   note?: string;
+  /** Declarations this assessment covered. Null means all of them. */
+  selectedFields: string[] | null;
+  /** Those declarations, named for a person. */
+  selectedFieldLabels: string[];
+  /** Findings the reading produced outside what was asked about. */
+  findingsOutsideSelection: string[];
   /** Rule 7 findings. Null for scans recorded before the check existed. */
   letterHeight: LetterHeightAssessment | null;
   /** The reference the server recorded this scan under. */
@@ -606,11 +615,17 @@ export async function scanProduct(
    * The one thing that turns pixels into millimetres for the Rule 7 check.
    */
   packageWidthCm?: number | null,
+  /**
+   * Which declarations to assess. Omitted -- as every call before this
+   * existed omitted it -- the whole label is assessed, unchanged.
+   */
+  selectedFields?: string[],
 ): Promise<ScanOutcome> {
   const form = new FormData();
   form.append("file", file);
   if (eventId) form.append("scan_event_id", eventId);
   if (packageWidthCm) form.append("package_width_cm", String(packageWidthCm));
+  if (selectedFields?.length) form.append("selected_fields", JSON.stringify(selectedFields));
 
   const body = await request<BackendScanResponse>("/product/scan", {
     method: "POST",
@@ -635,6 +650,11 @@ export async function scanProduct(
     rawText: body.product?.raw_ocr_text ?? undefined,
     retakeTips: body.photo_guidance?.tips ?? body.image_quality?.retake_instructions ?? [],
     note: body.compliance?.note,
+    // What the server actually assessed, which is the authority on it -- the
+    // request is a proposal, and an unrecognised field is dropped there.
+    selectedFields: body.compliance?.selected_fields ?? null,
+    selectedFieldLabels: body.compliance?.selected_field_labels ?? [],
+    findingsOutsideSelection: body.compliance?.findings_outside_selection ?? [],
     raw: body,
   };
 }
@@ -833,6 +853,11 @@ export async function getScan(scanId: string): Promise<ScanOutcome> {
     rawText: body.product?.raw_ocr_text ?? undefined,
     retakeTips: body.photo_guidance?.tips ?? body.image_quality?.retake_instructions ?? [],
     note: body.compliance?.note,
+    // A scan recorded before selections existed has none, and reads as the
+    // full assessment it was.
+    selectedFields: body.compliance?.selected_fields ?? null,
+    selectedFieldLabels: body.compliance?.selected_field_labels ?? [],
+    findingsOutsideSelection: body.compliance?.findings_outside_selection ?? [],
     raw: body,
   };
 }

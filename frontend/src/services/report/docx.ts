@@ -210,6 +210,30 @@ export async function buildWordReport(data: ReportData): Promise<Blob> {
           }),
           line(`Product: ${data.productName}`),
           line(`Net quantity: ${data.netQuantity}`),
+
+          // Same scope statement as the PDF, so the two documents cannot
+          // disagree about what was assessed.
+          ...(data.selectedFieldLabels.length
+            ? [
+                line(`Selected checks: ${data.selectedFieldLabels.join(", ")}`, { bold: true }),
+                line(
+                  "This assessment covers the declarations listed above. Requirements outside " +
+                    "them were not assessed here and no conclusion about them should be drawn " +
+                    "from this document.",
+                  { size: 17, color: MUTED },
+                ),
+              ]
+            : []),
+          ...(data.findingsOutsideSelection.length
+            ? [
+                line(
+                  `Outside the selected checks, the reading also found ${data.findingsOutsideSelection.length} ` +
+                    `issue${data.findingsOutsideSelection.length === 1 ? "" : "s"}. ` +
+                    "They are recorded in the full assessment for this scan.",
+                  { size: 17, color: STATUS_COLOUR.review },
+                ),
+              ]
+            : []),
           ...(data.qualification
             ? [line(data.qualification, { size: 18, color: STATUS_COLOUR.review })]
             : []),

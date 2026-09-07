@@ -4,6 +4,11 @@ from typing import Optional
 import re
 
 from app.services.date_normalizer import normalise_product_dates
+from app.core.field_selection import (
+    checks_for,
+    labels_for,
+    normalise_selection,
+)
 
 
 router = APIRouter()
@@ -61,6 +66,10 @@ class ComplianceRequest(BaseModel):
     extracted_text: str = ""
     product_info: Optional[dict] = None
     readability_result: Optional[dict] = None
+    # Which declarations this assessment was asked about. None — the default,
+    # and what every request made before this existed sends — means all of
+    # them, and produces exactly the assessment it always did.
+    selected_fields: Optional[list[str]] = None
 
 
 # ============================================================
@@ -1821,9 +1830,42 @@ def check_compliance(
     ]
 
 
+    # --------------------------------------------------------
+    # THE SELECTION
+    # --------------------------------------------------------
+    #
+    # Every rule above has already run, on one reading of the label. The
+    # selection does not change what was assessed; it changes what the
+    # outcome is drawn from.
+    #
+    # Unselected checks keep their real status and stay in the response,
+    # marked as outside the request. Dropping them would turn "nobody asked"
+    # into "nothing found", and a check that quietly disappears from a report
+    # reads as one that passed.
+
+    selection = normalise_selection(data.selected_fields)
+    selected_check_names = checks_for(selection)
+
+    for name, check in checks.items():
+        check["selected"] = (
+            True if selected_check_names is None else name in selected_check_names
+        )
+
+    if selected_check_names is None:
+        scored_names = list(required_check_names)
+    else:
+        # The selection *is* the requirement list for this assessment, so the
+        # score comes from the selected checks themselves rather than from
+        # their overlap with the default set. Intersecting the two would score
+        # "expiry only" against an empty list, because the expiry requirement
+        # is commodity-dependent and is not one of the defaults — and an empty
+        # list scores zero, which would report a pack whose expiry date was
+        # found as failing.
+        scored_names = [name for name in selected_check_names if name in checks]
+
     required_checks = {
         name: checks[name]
-        for name in required_check_names
+        for name in scored_names
     }
 
 
@@ -1831,11 +1873,19 @@ def check_compliance(
     # SCORE
     # ========================================================
 
+    # A commodity-dependent declaration reports DETECTED rather than PASS,
+    # because whether it was required is not something a photograph settles.
+    # Asked for directly, though, finding it is the answer to the question,
+    # so it counts here — while it stays out of the default scoring, where
+    # the same status would assert a requirement that may not apply.
+    scoreable_statuses = (
+        ["PASS", "FAIL"] if selected_check_names is None else ["PASS", "FAIL", "DETECTED"]
+    )
+
     scoreable_checks = [
         check
         for check in required_checks.values()
-        if check["status"]
-        in ["PASS", "FAIL"]
+        if check["status"] in scoreable_statuses
     ]
 
 
@@ -1847,7 +1897,7 @@ def check_compliance(
     passed_scoreable = sum(
         1
         for check in scoreable_checks
-        if check["status"] == "PASS"
+        if check["status"] in ("PASS", "DETECTED")
     )
 
 
@@ -1866,6 +1916,63 @@ def check_compliance(
 
 
     # ========================================================
+    # FINDINGS WITHIN THE SELECTION
+    # ========================================================
+    #
+    # A violation raised by a check nobody asked about is real, but it is not
+    # a finding of *this* assessment. It is set aside rather than deleted: it
+    # is reported separately so the fact is not lost.
+    #
+    # Which finding belongs to which check is stated here rather than guessed
+    # by matching text. Findings and check messages are worded differently on
+    # purpose — one is a headline, the other an explanation — so comparing
+    # them silently drops findings that should have been kept.
+
+    FINDING_OWNER = {
+        "Manufacturer/packer/importer declaration not detected.": "manufacturer_or_packer",
+        "Common/generic product name not detected.": "generic_product_name",
+        "Net quantity declaration not detected.": "net_quantity",
+        "MRP declaration not detected.": "mrp",
+        "MRP detected but numeric validation could not be completed.": "mrp",
+        "Consumer complaint/contact details not detected.": "consumer_care_details",
+        "Date of manufacture/pre-packing not detected.": "manufacturing_date",
+        "A date declaration was detected but could not be read; verify manually.": "manufacturing_date",
+        "Best-before/use-by information could not be detected; verify commodity-specific applicability.": "best_before_or_use_by",
+        "Country of origin was not detected; verify whether the product is imported.": "country_of_origin",
+        "Unit sale price appears inconsistent with MRP and the applicable paid quantity.": "unit_price_consistency",
+        "Unit sale price detected but could not be numerically validated.": "unit_sale_price",
+    }
+
+    def _owner(entry: str) -> Optional[str]:
+        """Which check raised this finding, where that is known."""
+
+        if entry in FINDING_OWNER:
+            return FINDING_OWNER[entry]
+
+        # A few findings are assembled with a value in them, so they are
+        # matched by their fixed opening rather than in full.
+        for text, name in FINDING_OWNER.items():
+            if entry.startswith(text[:40]):
+                return name
+
+        return None
+
+    if selected_check_names is not None:
+
+        def _within(entry: str) -> bool:
+            owner = _owner(entry)
+            # A finding this table does not know about is kept. Losing a real
+            # finding is the worse error of the two.
+            return owner is None or owner in selected_check_names
+
+        outside_selection = [entry for entry in violations if not _within(entry)]
+        violations = [entry for entry in violations if _within(entry)]
+        warnings = [entry for entry in warnings if _within(entry)]
+    else:
+        outside_selection = []
+
+
+    # ========================================================
     # MISSING DECLARATIONS
     # ========================================================
 
@@ -1880,7 +1987,14 @@ def check_compliance(
     # OVERALL STATUS
     # ========================================================
 
-    if score == 100 and not violations:
+    if selected_check_names is not None and total_scoreable == 0:
+
+        # Everything asked about came back undetermined. Nothing failed, so
+        # calling this non-compliant would be an accusation the assessment
+        # cannot support.
+        overall_status = "PARTIALLY_COMPLIANT"
+
+    elif score == 100 and not violations:
 
         overall_status = "COMPLIANT"
 
@@ -1925,6 +2039,20 @@ def check_compliance(
         "normalized_dates": dates.as_dict(),
 
         "exemptions": exemptions,
+
+        # What this assessment was asked to look at. Null means everything,
+        # which is what a request that names nothing has always meant.
+        "selected_fields": selection,
+
+        "selected_field_labels": labels_for(selection),
+
+        # True when the outcome above was drawn from part of the assessment
+        # rather than all of it.
+        "selection_applied": selection is not None,
+
+        # Findings from checks outside the request. Kept so a narrowed report
+        # does not hide something the reading actually found.
+        "findings_outside_selection": outside_selection,
 
         "inspection_summary": {
             "total_required_checks": len(

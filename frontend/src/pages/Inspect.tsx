@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, RefreshCw, ScanBarcode, Sparkles } from "lucide-react";
 import { CameraCapture } from "@/components/ui/CameraCapture";
+import { FieldSelector } from "@/components/inspection/FieldSelector";
+import { ALL_FIELD_IDS, selectionForRequest } from "@/services/fieldSelection";
 import { BarcodeScanner } from "@/components/ui/BarcodeScanner";
 import { PageHeader, AssessmentNotice } from "@/components/ui/PageHeader";
 import { Card, CardHeader, CardBody } from "@/components/ui/Card";
@@ -39,6 +41,9 @@ export function Inspect() {
   // Optional, and the only thing that lets the Rule 7 check answer in
   // millimetres. Left blank, lettering findings stay under review.
   const [packWidth, setPackWidth] = useState("");
+  // Everything, to begin with: the assessment this system has always made,
+  // which is what someone who does not touch this control should get.
+  const [selectedFields, setSelectedFields] = useState<string[]>(ALL_FIELD_IDS);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   // A scanned code identifies the pack; it is carried alongside the
@@ -76,6 +81,8 @@ export function Inspect() {
         rawText: state.rawText,
         ocrConfidence: state.ocrConfidence,
         letterHeight: state.letterHeight,
+        selectedFieldLabels: state.selectedFieldLabels,
+        findingsOutsideSelection: state.findingsOutsideSelection,
         scannedAt: new Date().toISOString(),
       });
     } else if (product) {
@@ -387,11 +394,24 @@ export function Inspect() {
                     />
                   </div>
 
+                  <div className="mb-4 rounded-xl border border-line bg-surface px-4 py-3.5">
+                    <FieldSelector selected={selectedFields} onChange={setSelectedFields} />
+                  </div>
+
                   <QualityPanel
                     quality={state.quality}
                     busy={busy}
+                    // Nothing selected is not a request. The control is
+                    // disabled and says why, rather than starting a scan that
+                    // could not report on anything.
+                    continueDisabled={selectedFields.length === 0}
+                    continueDisabledReason="Choose at least one declaration to assess."
                     onContinue={() =>
-                      void runPipeline(languages, Number(packWidth) || null)
+                      void runPipeline(
+                        languages,
+                        Number(packWidth) || null,
+                        selectionForRequest(selectedFields),
+                      )
                     }
                     onRetake={() => {
                       reset();

@@ -17,6 +17,7 @@ from app.services.product_parser import (
 )
 
 from app.services import letter_height, placement
+from app.core.field_selection import parse_selection
 from app.api.routes.compliance import small_package_quantity
 from app.services.readability_service import (
     analyze_product_readability
@@ -239,6 +240,10 @@ async def scan_product(
     # centimetres. It is the only thing that turns pixels into millimetres,
     # and without it every Rule 7 height finding stays under review.
     package_width_cm: Optional[float] = Form(None),
+    # Which declarations this scan is about, as a JSON array or a
+    # comma-separated list. Omitted -- as every client before this feature
+    # omitted it -- the whole label is assessed, exactly as before.
+    selected_fields: Optional[str] = Form(None),
     # Taken from the verified token, never from the request body: a caller
     # cannot record a scan against somebody else's account.
     user_id: Optional[str] = Depends(current_user_id),
@@ -327,7 +332,18 @@ async def scan_product(
         # An identical image has an identical answer. During a demonstration
         # the same packet is inspected several times, and each repeat used to
         # cost another pair of API requests for a result already computed.
-        fingerprint = image_fingerprint(file_content)
+        # Read here, before the cache is consulted: the selection is part of
+        # what makes a result, so it has to be part of what identifies one.
+        selection = parse_selection(selected_fields)
+
+        # The same photograph assessed against a different set of declarations
+        # is a different assessment. Keying on the image alone would answer a
+        # request for "expiry only" with a full assessment somebody else ran,
+        # which is the one kind of wrong answer a cache must never give.
+        fingerprint = image_fingerprint(
+            file_content,
+            variant=",".join(selection) if selection else "all",
+        )
 
     except HTTPException:
         raise
@@ -643,7 +659,10 @@ async def scan_product(
             ComplianceRequest(
                 extracted_text="",
                 product_info=product_info,
-                readability_result=readability_result
+                readability_result=readability_result,
+                # Validated against the allowlist before it reaches the
+                # engine: a caller names declarations, never rules.
+                selected_fields=selection
             )
         )
 

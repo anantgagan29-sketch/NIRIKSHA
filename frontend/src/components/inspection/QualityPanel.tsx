@@ -19,11 +19,17 @@ export function QualityPanel({
   onContinue,
   onRetake,
   busy,
+  continueDisabled,
+  continueDisabledReason,
 }: {
   quality: ImageQuality;
   onContinue?: () => void;
   onRetake?: () => void;
   busy?: boolean;
+  /** Blocks the run for a reason outside image quality. */
+  continueDisabled?: boolean;
+  /** Why it is blocked. Shown beside the control, not instead of it. */
+  continueDisabledReason?: string;
 }) {
   const tone = quality.verdict === "good" ? "pass" : quality.verdict === "marginal" ? "review" : "fail";
 
@@ -82,13 +88,22 @@ export function QualityPanel({
       <div className="flex flex-wrap items-center gap-2.5 border-t border-line px-5 py-3.5">
         {quality.proceed ? (
           <>
-            <Button onClick={onContinue} disabled={busy} className="flex-1 sm:flex-none">
+            <Button
+              onClick={onContinue}
+              disabled={busy || continueDisabled}
+              className="flex-1 sm:flex-none"
+            >
               {busy ? "Processing…" : "Continue to OCR"}
               {!busy && <ArrowRight className="h-4 w-4" aria-hidden="true" />}
             </Button>
             <Button variant="ghost" size="md" onClick={onRetake} disabled={busy}>
               Use a different image
             </Button>
+            {continueDisabled && continueDisabledReason && (
+              <p role="status" className="basis-full text-[12.5px] text-amber-700">
+                {continueDisabledReason}
+              </p>
+            )}
           </>
         ) : (
           <Button variant="secondary" onClick={onRetake} className="flex-1 sm:flex-none">

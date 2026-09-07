@@ -40,6 +40,10 @@ export type Phase = "idle" | "quality" | "blocked" | "running" | "done" | "error
 export type Source = "demo" | "live";
 
 export interface InspectionState {
+  /** What the server said it assessed. Empty means the whole label. */
+  selectedFieldLabels: string[];
+  /** Findings the reading produced outside what was asked about. */
+  findingsOutsideSelection: string[];
   phase: Phase;
   source: Source;
   product: DemoProduct | null;
@@ -86,6 +90,8 @@ export interface InspectionState {
 const IDLE_STAGES = Object.fromEntries(PIPELINE_STAGES.map((s) => [s.id, "pending" as StageState]));
 
 const INITIAL: InspectionState = {
+  selectedFieldLabels: [],
+  findingsOutsideSelection: [],
   phase: "idle",
   source: "demo",
   product: null,
@@ -126,6 +132,8 @@ export function useInspection() {
    * than state because it is read when the request is built, not rendered.
    */
   const packageWidth = useRef<number | null>(null);
+  // Held across the run so a retry re-sends the same request.
+  const selection = useRef<string[] | undefined>(undefined);
 
   const patch = useCallback((next: Partial<InspectionState>) => {
     setState((current) => ({ ...current, ...next }));
@@ -248,7 +256,15 @@ export function useInspection() {
   /* ------------------------------------------- stages two through six */
 
   const runPipeline = useCallback(
-    async (languages: string[] = ["eng"], widthCm?: number | null) => {
+    async (
+      languages: string[] = ["eng"],
+      widthCm?: number | null,
+      /**
+       * Which declarations to assess. Undefined means all of them, which is
+       * what every caller before this feature passed.
+       */
+      selectedFields?: string[],
+    ) => {
       cancelled.current = false;
 
       // One identifier per scan action, minted here and reused if this run is
@@ -260,6 +276,7 @@ export function useInspection() {
       // mints a new id: the identity is the action, never the product.
       if (!eventId.current) eventId.current = crypto.randomUUID();
       packageWidth.current = widthCm ?? null;
+      selection.current = selectedFields;
 
       patch({ phase: "running" });
 
@@ -288,6 +305,7 @@ export function useInspection() {
               undefined,
               eventId.current ?? undefined,
               packageWidth.current,
+              selection.current,
             );
           } catch (error) {
             if (!(error instanceof AiUnavailableError)) throw error;
@@ -341,6 +359,8 @@ export function useInspection() {
             ocrConfidence: 0,
             assessmentNote: outcome.note,
             letterHeight: outcome.letterHeight,
+            selectedFieldLabels: outcome.selectedFieldLabels,
+            findingsOutsideSelection: outcome.findingsOutsideSelection,
             scanId: outcome.scanId,
             productLabel: outcome.productName,
             progress: 100,

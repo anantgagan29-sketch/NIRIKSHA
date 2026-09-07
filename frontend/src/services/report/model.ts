@@ -58,6 +58,21 @@ export interface ReportData {
   imageNote: string | null;
   fields: ReportField[];
   requirements: ReportRequirement[];
+  /**
+   * What this assessment was asked to cover, named for a reader.
+   *
+   * Empty means the whole label — which is what every assessment recorded
+   * before selections existed covered, and what the document has always
+   * reported.
+   */
+  selectedFieldLabels: string[];
+  /**
+   * Findings the reading produced outside the request.
+   *
+   * A narrowed report says these exist rather than dropping them: a document
+   * that quietly omits a real finding reads as one that found nothing.
+   */
+  findingsOutsideSelection: string[];
   scope: string;
   /** Present only for a reading the browser produced rather than the service. */
   qualification: string | null;
@@ -192,8 +207,19 @@ export async function buildReportData(product: DemoProduct): Promise<ReportData>
       : product.imageUrl
         ? "Product image unavailable — the photograph could not be read."
         : "Product image unavailable — this assessment was recorded without one.",
+    // The document covers what was assessed. A requirement outside the
+    // request was still computed, and is still in the scan — it is left out
+    // of the report because reporting it would answer a question nobody
+    // asked, and the findings summary below says it exists.
+    // Only what was asked about reaches the document. The rest was still
+    // assessed and is still in the scan; leaving it in would answer questions
+    // nobody asked and bury the one they did.
     fields: product.fields.map(fieldOf),
-    requirements: product.checks.map(requirementOf),
+    requirements: product.checks
+      .filter((check) => check.selected !== false)
+      .map(requirementOf),
+    selectedFieldLabels: product.selectedFieldLabels ?? [],
+    findingsOutsideSelection: product.findingsOutsideSelection ?? [],
     scope: SCOPE,
     qualification: product.readOnDevice ? ON_DEVICE : null,
     letterHeight: product.letterHeight ?? null,

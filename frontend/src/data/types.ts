@@ -36,6 +36,14 @@ export interface ComplianceCheck {
   /** Why this outcome was reached. */
   reason: string;
   evidence?: string;
+  /**
+   * False when this requirement was outside what the inspection asked about.
+   *
+   * Such a check still carries its real status — it was assessed, it just
+   * was not requested. Defaults true so every check recorded before
+   * selections existed reads as part of its assessment, which it was.
+   */
+  selected?: boolean;
   /** The instrument and provision this rule comes from. */
   provision: string;
   instrument: string;
@@ -79,6 +87,16 @@ export interface DemoProduct {
    */
   readOnDevice?: boolean;
   gtin?: string;
+  /**
+   * Declarations this assessment covered, named for a person.
+   *
+   * Empty for an assessment that covered everything — which is every scan
+   * recorded before selections existed, and every one where the person left
+   * the choice alone.
+   */
+  selectedFieldLabels?: string[];
+  /** Findings the reading produced outside what was asked about. */
+  findingsOutsideSelection?: string[];
   result: ComplianceResult;
   score: number;
   quality: ImageQuality;

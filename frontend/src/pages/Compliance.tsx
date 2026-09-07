@@ -13,8 +13,14 @@ export function Compliance() {
   const { t } = useLanguage();
   const { product, loading, error } = useScanFromRoute();
 
-  const failures = product.checks.filter((check) => check.status === "fail");
-  const reviews = product.checks.filter((check) => check.status === "review");
+  // The page shows the assessment that was asked for. A requirement outside
+  // the request was still assessed and is still in the scan; showing it here
+  // would answer a question nobody asked, and the banner below says how many
+  // such findings exist rather than hiding that they do.
+  const assessed = product.checks.filter((check) => check.selected !== false);
+
+  const failures = assessed.filter((check) => check.status === "fail");
+  const reviews = assessed.filter((check) => check.status === "review");
   const firstFailureField = failures[0]?.evidence;
 
   return (
@@ -57,7 +63,24 @@ export function Compliance() {
 
       <div className="mt-6 grid gap-5 lg:grid-cols-[1.5fr_1fr]">
         <div className="flex min-w-0 flex-col gap-5">
-          <ResultBanner result={product.result} checks={product.checks} score={product.score} />
+          <ResultBanner result={product.result} checks={assessed} score={product.score} />
+
+          {/* Named before the findings, so nobody reads a narrowed result as
+              a full one. */}
+          {(product.selectedFieldLabels?.length ?? 0) > 0 && (
+            <div className="rounded-[var(--radius-card)] border border-line bg-canvas px-4 py-3.5">
+              <p className="text-[13px] text-ink">
+                <span className="font-medium">Checks performed:</span>{" "}
+                {product.selectedFieldLabels!.join(", ")}
+              </p>
+              <p className="mt-1 text-[12px] leading-relaxed text-muted">
+                Requirements outside these were not assessed here. Nothing about them should be
+                read from this result.
+                {(product.findingsOutsideSelection?.length ?? 0) > 0 &&
+                  ` The label was still read in full, and ${product.findingsOutsideSelection!.length} issue${product.findingsOutsideSelection!.length === 1 ? "" : "s"} outside the selection ${product.findingsOutsideSelection!.length === 1 ? "was" : "were"} recorded with the scan.`}
+              </p>
+            </div>
+          )}
 
           {failures.length > 0 && (
             <Card className="border-fail/25">
@@ -91,7 +114,7 @@ export function Compliance() {
               action={<span className="text-[11.5px] text-muted">Select a check for its evidence</span>}
             />
             <CardBody className="p-0">
-              <CheckList checks={product.checks} />
+              <CheckList checks={assessed} />
             </CardBody>
           </Card>
         </div>
@@ -116,7 +139,7 @@ export function Compliance() {
                 Classification decides which requirements apply, so a rule that does not govern this
                 package is marked not applicable rather than failed.
               </p>
-              {product.checks
+              {assessed
                 .filter((check) => check.status === "not_applicable")
                 .map((check) => (
                   <div key={check.id} className="rounded-lg border border-line bg-canvas px-3.5 py-2.5">

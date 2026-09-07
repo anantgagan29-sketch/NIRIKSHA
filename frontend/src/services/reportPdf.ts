@@ -295,6 +295,32 @@ export async function buildComplianceReport(data: ReportData): Promise<Blob> {
   w.text(`Product: ${data.productName}`, { size: 10 });
   w.text(`Net quantity: ${data.netQuantity}`, { size: 10 });
 
+  // What this document covers, stated before its findings. A narrowed report
+  // that does not say it is narrowed reads as a full one, and its silences
+  // read as passes.
+  if (data.selectedFieldLabels.length) {
+    w.move(4);
+    w.text(`Selected checks: ${data.selectedFieldLabels.join(", ")}`, { size: 10, bold: true });
+    w.text(
+      "This assessment covers the declarations listed above. Requirements outside them were " +
+        "not assessed here and no conclusion about them should be drawn from this document.",
+      { size: 8.5, colour: MUTED },
+    );
+  }
+
+  // Findings the reading produced outside the request. Named, not detailed:
+  // the document says they exist so nothing is hidden, and points at the full
+  // assessment for what they were.
+  if (data.findingsOutsideSelection.length) {
+    w.move(4);
+    w.text(
+      `Outside the selected checks, the reading also found ${data.findingsOutsideSelection.length} ` +
+        `issue${data.findingsOutsideSelection.length === 1 ? "" : "s"}. ` +
+        "They are recorded in the full assessment for this scan.",
+      { size: 8.5, colour: STATUS_COLOUR.review },
+    );
+  }
+
   if (data.qualification) {
     w.move(4);
     w.text(data.qualification, { size: 8.5, colour: STATUS_COLOUR.review });

@@ -459,7 +459,9 @@ export function Inspect() {
                     declarations were extracted and{" "}
                     {state.checks.filter((c) => c.selected !== false).length} applicable
                     requirements were evaluated
-                    {state.selectedFieldLabels.length
+                    {/* Named only when narrowed. "for All Fields" says nothing
+                        a reader did not already assume. */}
+                    {state.selectedFields?.length
                       ? ` for ${state.selectedFieldLabels.join(", ")}.`
                       : "."}
                   </p>

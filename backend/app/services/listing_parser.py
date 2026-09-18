@@ -19,7 +19,7 @@ from typing import Any
 
 from google import genai
 
-from app.core.config import AI_TEMPERATURE, GEMINI_API_KEY
+from app.core.config import generation_config, AI_TEMPERATURE, GEMINI_API_KEY
 from app.services.ai_provider import call_with_fallback
 
 client = genai.Client(api_key=GEMINI_API_KEY)
@@ -93,12 +93,10 @@ def parse_listing_text(text: str) -> dict[str, Any]:
         response = client.models.generate_content(
             model=model,
             contents=[PROMPT, text],
-            config={
-                "response_mime_type": "application/json",
-                # Reading, not composing. The same reason the label parser
-                # runs at zero: a listing should not read differently twice.
-                "temperature": AI_TEMPERATURE,
-            },
+            # Reading, not composing. The shared config pins temperature (a
+            # listing should not read differently twice) and turns off
+            # reasoning tokens, which add seconds and nothing else.
+            config=generation_config(response_mime_type="application/json"),
         )
 
         if not response.text:

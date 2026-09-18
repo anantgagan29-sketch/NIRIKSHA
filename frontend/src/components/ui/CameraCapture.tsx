@@ -36,6 +36,8 @@ export function CameraCapture({
   const [shot, setShot] = useState<{ file: File; url: string } | null>(null);
   const { t } = useLanguage();
   const shotRef = useRef<string | null>(null);
+  // The on-screen guide, so the capture can crop to exactly what it shows.
+  const guideRef = useRef<HTMLDivElement | null>(null);
 
   // The camera runs only while this is open, and stops on every way out.
   useEffect(() => {
@@ -56,7 +58,7 @@ export function CameraCapture({
   }
 
   async function take() {
-    const file = await capture();
+    const file = await capture(guideRef.current);
 
     if (!file) return;
 
@@ -106,7 +108,10 @@ export function CameraCapture({
 
               {state === "live" && (
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
-                  <div className="h-[70%] w-[85%] rounded-lg border-2 border-white/70 shadow-[0_0_0_100vmax_rgba(9,12,16,0.35)]" />
+                  <div
+                    ref={guideRef}
+                    className="h-[70%] w-[85%] rounded-lg border-2 border-white/70 shadow-[0_0_0_100vmax_rgba(9,12,16,0.35)]"
+                  />
                 </div>
               )}
 

@@ -340,7 +340,13 @@ def call_with_fallback(
                 if reason in (QUOTA, RATE_LIMIT):
                     break
 
-                if attempt <= transient_retries:
+                # A transient failure is retried on the same model only when
+                # there is no other model to move to. With one waiting, the
+                # walk itself is the retry — and it costs a second instead of
+                # a pause plus a second attempt at a model that just said no.
+                is_last = model == ready[-1]
+
+                if is_last and attempt <= transient_retries:
                     time.sleep(retry_delay)
                     continue
 

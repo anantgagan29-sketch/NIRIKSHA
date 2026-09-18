@@ -62,6 +62,7 @@ from app.core.config import (
     GEMINI_MAX_RETRIES,
     GEMINI_MODELS as CONFIGURED_MODELS,
     GEMINI_RETRY_DELAY,
+    generation_config
 )
 
 GEMINI_MODELS = CONFIGURED_MODELS
@@ -935,13 +936,12 @@ def send_to_gemini(
     response = client.models.generate_content(
         model=model,
         contents=[image, PRODUCT_PROMPT],
-        config={
-            "response_mime_type": "application/json",
-            # Reading what is printed, not composing something plausible.
-            # Left at the default, this call returned a different address and
-            # batch number for the same photograph every time.
-            "temperature": AI_TEMPERATURE,
-        }
+        # Reading what is printed, not composing something plausible. The
+        # shared config pins temperature (left at the default, this call
+        # returned a different address for the same photograph every time)
+        # and turns off reasoning tokens, which cost seconds and add nothing
+        # to a transcription.
+        config=generation_config(response_mime_type="application/json")
     )
 
     print(f"Gemini: Success using {model}")

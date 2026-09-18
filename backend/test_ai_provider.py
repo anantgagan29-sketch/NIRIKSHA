@@ -90,8 +90,26 @@ try:
     value, used = call_with_fallback(flaky, models=["m1", "m2"], transient_retries=1, retry_delay=0, label="test")
 finally:
     time.sleep = _real_sleep
-check("m1 retried once then abandoned, m2 answered",
-      attempts == ["m1", "m1", "m2"] and used == "m2", str(attempts))
+# With another model waiting, a 503 is not retried on the same model: the
+# walk itself is the retry, and it costs a second instead of a pause plus a
+# second attempt at a model that just said no.
+check("m1 abandoned on first 503, m2 answered — no same-model retry",
+      attempts == ["m1", "m2"] and used == "m2", str(attempts))
+
+# When it is the last model there is nowhere to move, so it does get its
+# retry — giving up would fail the request over one bad moment.
+availability.reset()
+attempts.clear()
+_calls = {"n": 0}
+def last_resort(model):
+    attempts.append(model)
+    _calls["n"] += 1
+    if _calls["n"] == 1:
+        raise Exception("503 UNAVAILABLE")
+    return {"ok": True}
+value2, used2 = call_with_fallback(last_resort, models=["only"], transient_retries=1, retry_delay=0, label="test")
+check("the last model is retried once before giving up",
+      attempts == ["only", "only"] and used2 == "only", str(attempts))
 check("the answer is returned", value == {"ok": True})
 
 print("\n=== a bad request is never retried ===")

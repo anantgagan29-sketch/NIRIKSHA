@@ -20,7 +20,11 @@ export interface DecodedImage {
 }
 
 export async function decodeImage(file: Blob): Promise<DecodedImage> {
-  const bitmap = await createImageBitmap(file).catch(() => {
+  // A phone stores a portrait photograph as landscape pixels plus a tag that
+  // says "rotate me". Decoded without honouring the tag the label comes up
+  // sideways, the quality check measures the wrong axes, and the reader is
+  // handed text it cannot read. from-image applies the tag.
+  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" }).catch(() => {
     throw new Error(
       "This image could not be opened. It may be corrupted, or in a format this browser cannot read.",
     );

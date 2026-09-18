@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from google import genai
 from PIL import Image
 
-from app.core.config import AI_TEMPERATURE
+from app.core.config import AI_TEMPERATURE, generation_config
 from app.services.ai_provider import call_with_fallback
 
 
@@ -382,13 +382,7 @@ Return ONLY the JSON object.
                 image,
                 prompt
             ],
-            config={
-                "response_mime_type": "application/json",
-                # Reading what is printed, not composing something plausible.
-                # See AI_TEMPERATURE: at the default the same label came back
-                # with a different address on every call.
-                "temperature": AI_TEMPERATURE,
-            }
+            config=generation_config(response_mime_type="application/json")
         )
 
     try:

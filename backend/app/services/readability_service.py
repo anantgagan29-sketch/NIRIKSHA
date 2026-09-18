@@ -30,7 +30,7 @@ client = genai.Client(
 # GEMINI MODELS
 # ============================================================
 
-from app.core.config import GEMINI_MODELS as CONFIGURED_MODELS
+from app.core.config import GEMINI_MODELS as CONFIGURED_MODELS, generation_config
 
 from app.services.ai_provider import call_with_fallback
 
@@ -423,9 +423,7 @@ Required JSON structure:
             prompt,
             image
         ],
-        config={
-            "response_mime_type": "application/json"
-        }
+        config=generation_config(response_mime_type="application/json")
     )
 
     raw_text = response.text

@@ -55,6 +55,46 @@ function describe(cause: unknown): string {
   return MESSAGES[name] ?? "The camera could not be started. Use Upload Image instead.";
 }
 
+
+/**
+ * Where the on-screen guide box lands in the video's own pixels.
+ *
+ * With object-contain the video content is scaled to fit and centred, so an
+ * element-space rectangle has to be shifted past the letterbox bars and
+ * divided by the scale before it names any pixels. The result is clamped to
+ * the frame: a guide that overhangs the content area crops to the content's
+ * edge rather than reading pixels that do not exist.
+ */
+export function guideToVideoPixels(
+  video: HTMLVideoElement,
+  guide: Element,
+): { x: number; y: number; width: number; height: number } | null {
+  const element = video.getBoundingClientRect();
+  const box = guide.getBoundingClientRect();
+
+  if (!element.width || !element.height) return null;
+
+  const scale = Math.min(element.width / video.videoWidth, element.height / video.videoHeight);
+  const contentWidth = video.videoWidth * scale;
+  const contentHeight = video.videoHeight * scale;
+  const offsetX = element.left + (element.width - contentWidth) / 2;
+  const offsetY = element.top + (element.height - contentHeight) / 2;
+
+  const x = Math.max(0, (box.left - offsetX) / scale);
+  const y = Math.max(0, (box.top - offsetY) / scale);
+  const right = Math.min(video.videoWidth, (box.right - offsetX) / scale);
+  const bottom = Math.min(video.videoHeight, (box.bottom - offsetY) / scale);
+
+  const width = Math.round(right - x);
+  const height = Math.round(bottom - y);
+
+  // A degenerate box — the guide off-screen, or not laid out yet — falls
+  // back to the whole frame rather than an empty capture.
+  if (width < 64 || height < 64) return null;
+
+  return { x: Math.round(x), y: Math.round(y), width, height };
+}
+
 export function useCameraStream({ facing = "environment" }: Options = {}) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -148,22 +188,39 @@ export function useCameraStream({ facing = "environment" }: Options = {}) {
    * scaled down to the on-screen preview would lose exactly the small print
    * the inspection is looking for.
    */
-  const capture = useCallback(async (): Promise<File | null> => {
+  const capture = useCallback(async (guide?: Element | null): Promise<File | null> => {
     const video = videoRef.current;
 
     if (!video || !video.videoWidth) return null;
 
+    // What the person framed is what they get. The viewfinder dims everything
+    // outside the guide box, which is a promise that only the box matters —
+    // and a capture of the whole frame breaks it: the label they lined up
+    // comes back small in the middle of a table, and the reading suffers for
+    // it. So the capture is cropped to the guide.
+    //
+    // The video is shown with object-contain, so its content sits centred in
+    // the element with bars on two sides. The guide's on-screen rectangle is
+    // mapped through that letterboxing into the video's own pixels.
+    const crop = guide ? guideToVideoPixels(video, guide) : null;
+
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    canvas.width = crop ? crop.width : video.videoWidth;
+    canvas.height = crop ? crop.height : video.videoHeight;
 
     const context = canvas.getContext("2d");
     if (!context) return null;
 
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    if (crop) {
+      context.drawImage(video, crop.x, crop.y, crop.width, crop.height, 0, 0, crop.width, crop.height);
+    } else {
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    }
 
+    // 0.9 is indistinguishable from 0.95 to the reader and around a third
+    // smaller on the wire.
     const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/jpeg", 0.95),
+      canvas.toBlob(resolve, "image/jpeg", 0.9),
     );
 
     if (!blob) return null;

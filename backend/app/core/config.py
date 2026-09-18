@@ -66,16 +66,18 @@ GEMINI_API_KEY: str | None = os.getenv("GEMINI_API_KEY")
 #
 # Order still matters more than length: the first model that answers is the
 # one that decides how long an inspection takes.
+#
+# gemini-2.5-flash and gemini-2.5-flash-lite are not listed: both now return
+# 404. A retired name costs a request and a retry on every inspection and
+# can never answer.
 AI_MODELS: list[str] = _csv(
     "AI_MODELS",
-    "gemini-3.5-flash,"
-    "gemini-3.7-flash,"
-    "gemini-2.5-flash,"
-    "gemini-3.8-flash,"
     "gemini-3-flash-preview,"
+    "gemini-3.5-flash,"
     "gemini-3.6-flash,"
-    "gemini-3.1-flash-lite,"
-    "gemini-2.5-flash-lite"
+    "gemini-3.7-flash,"
+    "gemini-3.8-flash,"
+    "gemini-3.1-flash-lite"
 )
 
 # Kept as the previous name so nothing that imported it breaks.
@@ -90,6 +92,13 @@ GEMINI_MODELS: list[str] = AI_MODELS
 # compliance verdict has to be — the same packet cannot pass one minute and
 # fail the next.
 AI_TEMPERATURE: float = float(os.getenv("AI_TEMPERATURE", "0"))
+
+# Reasoning tokens the model may spend before answering. Reading a label is
+# transcription, not deliberation: the answer is what is printed, and there is
+# nothing to reason towards. Left at the model's default the same call took
+# 27s; with the budget at zero it took 5s and read the same fields. Set above
+# zero only to test whether a particular label benefits from it.
+AI_THINKING_BUDGET: int = int(os.getenv("AI_THINKING_BUDGET", "0"))
 
 
 # --------------------------------------------------------------------------
@@ -129,11 +138,13 @@ REQUIRE_AUTH: bool = os.getenv(
 # for an hour costs nothing and saves a request on every inspection in
 # between. A per-minute limit clears on its own. A 503 is the provider having
 # a bad moment and is worth returning to quickly.
-# How long any single model gets before the next one is tried. A healthy
-# model answers well inside this; one having a slow spell is set aside so the
-# remaining models still get their turn within the request's own deadline.
+# How long any single model gets before the next one is tried. With reasoning
+# tokens off a healthy model answers in five to seven seconds, so twelve is
+# room to spare — and a model that has not answered by then is having a bad
+# moment, and every second spent waiting on it is a second the next model
+# could have used.
 PER_MODEL_TIMEOUT_SECONDS: float = float(
-    os.getenv("PER_MODEL_TIMEOUT_SECONDS", "22")
+    os.getenv("PER_MODEL_TIMEOUT_SECONDS", "12")
 )
 
 
@@ -220,3 +231,21 @@ READABILITY_TIMEOUT_SECONDS: float = float(os.getenv("READABILITY_TIMEOUT_SECOND
 # the right trade: a fast wrong reading is worth nothing here.
 VISION_MAX_EDGE: int = int(os.getenv("VISION_MAX_EDGE", "2048"))
 VISION_JPEG_QUALITY: int = int(os.getenv("VISION_JPEG_QUALITY", "85"))
+
+
+def generation_config(**extra) -> dict:
+    """
+    The settings every vision call shares.
+
+    Built in one place so a change to how the model is asked — the thinking
+    budget, the temperature — reaches the parser, the readability pass and the
+    listing reader together, rather than three copies drifting apart.
+    """
+    from google.genai import types
+
+    config = {
+        "temperature": AI_TEMPERATURE,
+        "thinking_config": types.ThinkingConfig(thinking_budget=AI_THINKING_BUDGET),
+    }
+    config.update(extra)
+    return config

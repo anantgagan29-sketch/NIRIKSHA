@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export function PageHeader({
   eyebrow,
@@ -32,10 +33,13 @@ export function PageHeader({
  * component so the claim cannot drift toward "certified" as the product grows.
  */
 export function AssessmentNotice({ variant = "default", className }: { variant?: "default" | "complaint" | "inline"; className?: string }) {
+  const { t } = useLanguage();
+  // The complaint wording has no translation yet, so it stays in English
+  // rather than being paraphrased: it is a legal statement.
   const text =
     variant === "complaint"
       ? "Submitting this records the complaint in the NIRIKSHA system. NIRIKSHA is not connected to any government complaint portal, and submission here does not by itself constitute a filing with a statutory authority."
-      : "NIRIKSHA performs an automated compliance assessment from an image. It is a decision-support tool, not a substitute for statutory inspection, and it is not a government certification.";
+      : t("notice.assessment");
 
   if (variant === "inline") {
     return (

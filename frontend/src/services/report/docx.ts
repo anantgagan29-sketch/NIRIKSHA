@@ -89,7 +89,7 @@ function declarations(data: ReportData): Table {
     rows: [
       new TableRow({
         tableHeader: true,
-        children: [cell("Declaration", true), cell("Read from the label", true), cell("Confidence", true)],
+        children: [cell(data.strings("compliance.requirement"), true), cell(data.strings("report.declarations"), true), cell(data.strings("common.confidence"), true)],
       }),
       ...data.fields.map(
         (field) =>
@@ -105,7 +105,7 @@ function declarations(data: ReportData): Table {
   });
 }
 
-function requirement(item: ReportRequirement): Paragraph[] {
+function requirement(item: ReportRequirement, s: ReportData["strings"]): Paragraph[] {
   const colour = STATUS_COLOUR[item.status] ?? MUTED;
   const parts: Paragraph[] = [
     new Paragraph({
@@ -122,9 +122,9 @@ function requirement(item: ReportRequirement): Paragraph[] {
     }),
   ];
 
-  if (item.requirement) parts.push(line(`Requirement: ${item.requirement}`, { size: 19, indent: 240 }));
-  if (item.finding) parts.push(line(`Finding: ${item.finding}`, { size: 19, indent: 240 }));
-  if (item.detected) parts.push(line(`Detected: ${item.detected}`, { size: 19, indent: 240 }));
+  if (item.requirement) parts.push(line(`${s("report.requirement")}: ${item.requirement}`, { size: 19, indent: 240 }));
+  if (item.finding) parts.push(line(`${s("report.finding")}: ${item.finding}`, { size: 19, indent: 240 }));
+  if (item.detected) parts.push(line(`${s("report.detected")}: ${item.detected}`, { size: 19, indent: 240 }));
   if (item.legalReference) {
     parts.push(line(item.legalReference, { size: 17, color: MUTED, indent: 240 }));
   }
@@ -140,7 +140,7 @@ function requirement(item: ReportRequirement): Paragraph[] {
  */
 function productImage(data: ReportData): Paragraph {
   if (!data.image) {
-    return line(data.imageNote ?? "Product image unavailable.", { size: 19, color: MUTED });
+    return line(data.imageNote ?? data.strings("report.imageUnavailable"), { size: 19, color: MUTED });
   }
 
   const maxWidth = 220;
@@ -163,6 +163,7 @@ function productImage(data: ReportData): Paragraph {
 }
 
 export async function buildWordReport(data: ReportData): Promise<Blob> {
+  const s = data.strings;
   const doc = new Document({
     title: `NIRIKSHA compliance assessment ${data.scanReference}`,
     creator: "NIRIKSHA",
@@ -188,15 +189,15 @@ export async function buildWordReport(data: ReportData): Promise<Blob> {
             ],
           }),
 
-          line(`Scan reference: ${data.scanReference}`, { size: 19 }),
-          line(`Assessed: ${data.assessedLabel}`, { size: 19, color: MUTED }),
+          line(`${s("report.scanReference")}: ${data.scanReference}`, { size: 19 }),
+          line(`${s("report.assessed")}: ${data.assessedLabel}`, { size: 19, color: MUTED }),
 
-          heading("Assessment"),
+          heading(s("report.assessment")),
           new Paragraph({
             spacing: { after: 100 },
             children: [
               new TextRun({
-                text: `${data.resultLabel} — score ${data.score}`,
+                text: `${data.resultLabel} — ${s("report.score")} ${data.score}`,
                 bold: true,
                 size: 24,
                 color:
@@ -208,20 +209,15 @@ export async function buildWordReport(data: ReportData): Promise<Blob> {
               }),
             ],
           }),
-          line(`Product: ${data.productName}`),
-          line(`Net quantity: ${data.netQuantity}`),
+          line(`${s("report.product")}: ${data.productName}`),
+          line(`${s("report.netQuantity")}: ${data.netQuantity}`),
 
           // Same scope statement as the PDF, so the two documents cannot
           // disagree about what was assessed.
           ...(data.selectedFieldLabels.length
             ? [
-                line(`Selected checks: ${data.selectedFieldLabels.join(", ")}`, { bold: true }),
-                line(
-                  "This assessment covers the declarations listed above. Requirements outside " +
-                    "them were not assessed here and no conclusion about them should be drawn " +
-                    "from this document.",
-                  { size: 17, color: MUTED },
-                ),
+                line(`${s("report.selectedChecks")}: ${data.selectedFieldLabels.join(", ")}`, { bold: true }),
+                line(s("report.selectedNote"), { size: 17, color: MUTED }),
               ]
             : []),
           ...(data.findingsOutsideSelection.length
@@ -238,16 +234,16 @@ export async function buildWordReport(data: ReportData): Promise<Blob> {
             ? [line(data.qualification, { size: 18, color: STATUS_COLOUR.review })]
             : []),
 
-          heading("Product image"),
+          heading(s("report.productImage")),
           productImage(data),
 
-          heading("Declarations read from the label"),
+          heading(s("report.declarations")),
           declarations(data),
 
-          heading("Requirements assessed"),
-          ...data.requirements.flatMap(requirement),
+          heading(s("report.requirements")),
+          ...data.requirements.flatMap((item) => requirement(item, data.strings)),
 
-          heading("Scope of this assessment"),
+          heading(s("report.scope")),
           new Paragraph({
             alignment: AlignmentType.JUSTIFIED,
             children: [new TextRun({ text: data.scope, color: MUTED, size: 19 })],

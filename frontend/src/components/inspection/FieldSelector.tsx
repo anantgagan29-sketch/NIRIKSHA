@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 
 import { SELECTABLE_FIELDS, ALL_FIELD_IDS, isAllFields } from "@/services/fieldSelection";
 import { cn } from "@/lib/cn";
+import { useLanguage } from "@/hooks/useLanguage";
 
 /**
  * Choosing what this inspection is about.
@@ -28,6 +29,7 @@ export function FieldSelector({
   className?: string;
 }) {
   const all = isAllFields(selected);
+  const { label } = useLanguage();
 
   function toggle(id: string) {
     onChange(selected.includes(id) ? selected.filter((f) => f !== id) : [...selected, id]);
@@ -83,7 +85,7 @@ export function FieldSelector({
 
               <span className="flex min-w-0 flex-col">
                 <span className={cn("text-[13.5px]", on ? "font-medium text-ink" : "text-ink")}>
-                  {field.label}
+                  {label("field", field.id, field.label)}
                 </span>
                 <span className="text-[11.5px] leading-relaxed text-muted">{field.hint}</span>
               </span>

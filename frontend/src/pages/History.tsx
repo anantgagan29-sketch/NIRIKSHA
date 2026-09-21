@@ -20,7 +20,8 @@ import { useLanguage } from "@/hooks/useLanguage";
 const RANGES = { all: "All time", week: "Last 7 days", month: "Last 30 days" } as const;
 
 export function History() {
-  const { t } = useLanguage();
+  const locale = useLanguage();
+  const { t } = locale;
   const scans = useAsync(listScans, []);
   const stats = useAsync(getScanStats, []);
 
@@ -63,7 +64,7 @@ export function History() {
         rawText: outcome.rawText ?? "",
         ocrConfidence: 0,
         scannedAt: new Date().toISOString(),
-      });
+      }, locale);
 
       const { downloadComplianceReport } = await import("@/services/reportPdf");
       await downloadComplianceReport(data);

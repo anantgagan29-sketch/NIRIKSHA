@@ -7,6 +7,11 @@
  * that the translation was never written — an application about honest
  * labelling should not mislabel itself.
  *
+ * Every dictionary is generated from `scripts/i18n/<code>.py` by
+ * `scripts/i18n_gen.py`, which refuses to emit one that lacks a key English
+ * has. The eighteen beyond English and Hindi were written for this release and
+ * still want a native speaker's read before anyone relies on their wording.
+ *
  * Adding a language later is a two-step change: set `supported` here, and add
  * its dictionary in this folder. Nothing else in the interface needs touching.
  */
@@ -23,28 +28,32 @@ export interface LanguageOption {
 export const LANGUAGES: LanguageOption[] = [
   { code: "en", native: "English", english: "English", supported: true },
   { code: "hi", native: "हिन्दी", english: "Hindi", supported: true },
-  { code: "bn", native: "বাংলা", english: "Bengali", supported: false },
-  { code: "te", native: "తెలుగు", english: "Telugu", supported: false },
-  { code: "mr", native: "मराठी", english: "Marathi", supported: false },
-  { code: "ta", native: "தமிழ்", english: "Tamil", supported: false },
-  { code: "gu", native: "ગુજરાતી", english: "Gujarati", supported: false },
-  { code: "kn", native: "ಕನ್ನಡ", english: "Kannada", supported: false },
-  { code: "ml", native: "മലയാളം", english: "Malayalam", supported: false },
-  { code: "pa", native: "ਪੰਜਾਬੀ", english: "Punjabi", supported: false },
-  { code: "ur", native: "اردو", english: "Urdu", supported: false },
-  { code: "as", native: "অসমীয়া", english: "Assamese", supported: false },
-  { code: "or", native: "ଓଡ଼ିଆ", english: "Odia", supported: false },
-  { code: "sa", native: "संस्कृत", english: "Sanskrit", supported: false },
-  { code: "ne", native: "नेपाली", english: "Nepali", supported: false },
-  { code: "kok", native: "कोंकणी", english: "Konkani", supported: false },
-  { code: "mai", native: "मैथिली", english: "Maithili", supported: false },
-  { code: "ks", native: "कश्मीरी", english: "Kashmiri", supported: false },
-  { code: "sd", native: "सिंधी", english: "Sindhi", supported: false },
-  { code: "doi", native: "डोगरी", english: "Dogri", supported: false },
+  { code: "bn", native: "বাংলা", english: "Bengali", supported: true },
+  { code: "te", native: "తెలుగు", english: "Telugu", supported: true },
+  { code: "mr", native: "मराठी", english: "Marathi", supported: true },
+  { code: "ta", native: "தமிழ்", english: "Tamil", supported: true },
+  { code: "gu", native: "ગુજરાતી", english: "Gujarati", supported: true },
+  { code: "kn", native: "ಕನ್ನಡ", english: "Kannada", supported: true },
+  { code: "ml", native: "മലയാളം", english: "Malayalam", supported: true },
+  { code: "pa", native: "ਪੰਜਾਬੀ", english: "Punjabi", supported: true },
+  { code: "ur", native: "اردو", english: "Urdu", supported: true },
+  { code: "as", native: "অসমীয়া", english: "Assamese", supported: true },
+  { code: "or", native: "ଓଡ଼ିଆ", english: "Odia", supported: true },
+  { code: "sa", native: "संस्कृत", english: "Sanskrit", supported: true },
+  { code: "ne", native: "नेपाली", english: "Nepali", supported: true },
+  { code: "kok", native: "कोंकणी", english: "Konkani", supported: true },
+  { code: "mai", native: "मैथिली", english: "Maithili", supported: true },
+  { code: "ks", native: "कॉशुर", english: "Kashmiri", supported: true },
+  { code: "sd", native: "सिन्धी", english: "Sindhi", supported: true },
+  { code: "doi", native: "डोगरी", english: "Dogri", supported: true },
 ];
 
-/** Urdu is written right to left; the interface has to follow the script. */
-export const RTL_LANGUAGES = new Set(["ur", "sd"]);
+/**
+ * Urdu is written right to left; the interface has to follow the script.
+ * Sindhi and Kashmiri are offered in their Devanagari orthography here, so
+ * they read left to right like the rest.
+ */
+export const RTL_LANGUAGES = new Set(["ur"]);
 
 export function findLanguage(code: string): LanguageOption | undefined {
   return LANGUAGES.find((language) => language.code === code);

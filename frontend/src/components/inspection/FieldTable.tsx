@@ -7,6 +7,7 @@ import { Modal } from "@/components/ui/Modal";
 import { StatusPill, fieldPill } from "@/components/ui/StatusPill";
 import { cn } from "@/lib/cn";
 import type { ExtractedField } from "@/data/types";
+import { useLanguage } from "@/hooks/useLanguage";
 
 /**
  * Structured extraction, not a text dump.
@@ -27,6 +28,7 @@ export function FieldTable({
   className?: string;
 }) {
   const [rawOpen, setRawOpen] = useState(false);
+  const { label } = useLanguage();
   // A confidence figure only exists where characters were scored, which is
   // the on-device reader. Its absence is how the two paths are told apart.
   const onDevice = confidence !== undefined && confidence > 0;
@@ -63,7 +65,7 @@ export function FieldTable({
                 className="flex items-start gap-4 px-5 py-3.5"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-[11.5px] font-medium text-muted">{field.label}</p>
+                  <p className="text-[11.5px] font-medium text-muted">{label("field", field.key, field.label)}</p>
                   <p
                     className={cn(
                       "mt-0.5 break-words text-[14px]",

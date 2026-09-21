@@ -38,7 +38,11 @@ const STATUS_MARK: Record<string, string> = {
   not_applicable: "—",
 };
 
+// The Noto faces the interface loads come first, so a report in an Indian
+// script is set in a designed typeface rather than the system's fallback.
 const FAMILY =
+  '"Noto Sans Devanagari", "Noto Sans Bengali", "Noto Sans Tamil", "Noto Sans Telugu", "Noto Sans Kannada", ' +
+  '"Noto Sans Malayalam", "Noto Sans Gujarati", "Noto Sans Gurmukhi", "Noto Sans Oriya", "Noto Nastaliq Urdu", ' +
   '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 
 function font(size: number, weight: 400 | 600 | 700 = 400): string {
@@ -139,16 +143,17 @@ class Sheet {
 
 /** Lays the whole report out. Called once to measure, once to draw. */
 function compose(sheet: Sheet, data: ReportData, bitmap: ImageBitmap | null): void {
+  const s = data.strings;
   sheet.text("NIRIKSHA", { size: 30, weight: 700 });
   sheet.text("COMPLIANCE ASSESSMENT", { size: 12, weight: 600, colour: MUTED });
   sheet.move(8);
   sheet.rule();
 
-  sheet.text(`Scan reference: ${data.scanReference}`, { size: 13 });
-  sheet.text(`Assessed: ${data.assessedLabel}`, { size: 13, colour: MUTED });
+  sheet.text(`${s("report.scanReference")}: ${data.scanReference}`, { size: 13 });
+  sheet.text(`${s("report.assessed")}: ${data.assessedLabel}`, { size: 13, colour: MUTED });
 
-  sheet.heading("Assessment");
-  sheet.text(`${data.resultLabel.toUpperCase()} — SCORE ${data.score}`, {
+  sheet.heading(s("report.assessment"));
+  sheet.text(`${data.resultLabel.toUpperCase()} — ${s("report.score").toUpperCase()} ${data.score}`, {
     size: 18,
     weight: 700,
     colour:
@@ -159,29 +164,29 @@ function compose(sheet: Sheet, data: ReportData, bitmap: ImageBitmap | null): vo
           : STATUS_COLOUR.review,
   });
   sheet.move(4);
-  sheet.text(`Product: ${data.productName}`, { size: 14 });
-  sheet.text(`Net quantity: ${data.netQuantity}`, { size: 14 });
+  sheet.text(`${s("report.product")}: ${data.productName}`, { size: 14 });
+  sheet.text(`${s("report.netQuantity")}: ${data.netQuantity}`, { size: 14 });
 
   if (data.qualification) {
     sheet.move(6);
     sheet.text(data.qualification, { size: 12, colour: STATUS_COLOUR.review });
   }
 
-  sheet.heading("Product image");
+  sheet.heading(s("report.productImage"));
 
   if (bitmap) {
     sheet.image(bitmap, 300, 300);
   } else {
-    sheet.text(data.imageNote ?? "Product image unavailable.", { size: 13, colour: MUTED });
+    sheet.text(data.imageNote ?? s("report.imageUnavailable"), { size: 13, colour: MUTED });
   }
 
-  sheet.heading("Declarations read from the label");
+  sheet.heading(s("report.declarations"));
 
   for (const field of data.fields) {
     sheet.text(`${field.label}: ${field.value}`, { size: 13.5 });
 
     if (field.confidence !== null) {
-      sheet.text(`read at ${field.confidence}% confidence`, {
+      sheet.text(s("report.readAt", { n: String(field.confidence) }), {
         size: 11.5,
         colour: MUTED,
         indent: 14,
@@ -191,7 +196,7 @@ function compose(sheet: Sheet, data: ReportData, bitmap: ImageBitmap | null): vo
     sheet.move(2);
   }
 
-  sheet.heading("Requirements assessed");
+  sheet.heading(s("report.requirements"));
 
   for (const requirement of data.requirements) {
     sheet.move(6);
@@ -201,20 +206,20 @@ function compose(sheet: Sheet, data: ReportData, bitmap: ImageBitmap | null): vo
     );
 
     if (requirement.requirement) {
-      sheet.text(`Requirement: ${requirement.requirement}`, { size: 12.5, indent: 14 });
+      sheet.text(`${s("report.requirement")}: ${requirement.requirement}`, { size: 12.5, indent: 14 });
     }
     if (requirement.finding) {
-      sheet.text(`Finding: ${requirement.finding}`, { size: 12.5, indent: 14 });
+      sheet.text(`${s("report.finding")}: ${requirement.finding}`, { size: 12.5, indent: 14 });
     }
     if (requirement.detected) {
-      sheet.text(`Detected: ${requirement.detected}`, { size: 12.5, indent: 14 });
+      sheet.text(`${s("report.detected")}: ${requirement.detected}`, { size: 12.5, indent: 14 });
     }
     if (requirement.legalReference) {
       sheet.text(requirement.legalReference, { size: 11.5, colour: MUTED, indent: 14 });
     }
   }
 
-  sheet.heading("Scope of this assessment");
+  sheet.heading(s("report.scope"));
   sheet.text(data.scope, { size: 12.5, colour: MUTED });
   sheet.move(MARGIN);
 }

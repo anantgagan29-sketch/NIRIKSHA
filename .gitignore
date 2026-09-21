@@ -50,3 +50,4 @@ backend/uploads/*
 scan-cache.json
 
 .DS_Store
+frontend/.claude/

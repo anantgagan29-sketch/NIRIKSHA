@@ -1,6 +1,7 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
 
 import { reportFilename, saveBlob, type ReportData } from "@/services/report/model";
+import { ScriptText, isRightToLeft, needsScriptRendering } from "@/services/report/scriptText";
 // The dark lockup: these pages are white, and the light variant exists for
 // the console's dark surface.
 // `?inline` gives a data: URI rather than a path. A plain asset import hands
@@ -92,20 +93,48 @@ class Writer {
   private doc: PDFDocument;
   private regular: PDFFont;
   private bold: PDFFont;
+  /**
+   * Set for a report in a script the standard fonts cannot draw. Every line
+   * then goes through the browser's text engine (see scriptText.ts); the
+   * English report never touches it.
+   */
+  private script: ScriptText | null;
+  private rtl: boolean;
+  private notice: string;
 
-  private constructor(doc: PDFDocument, regular: PDFFont, bold: PDFFont) {
+  private constructor(
+    doc: PDFDocument,
+    regular: PDFFont,
+    bold: PDFFont,
+    script: ScriptText | null,
+    rtl: boolean,
+    notice: string,
+  ) {
     this.doc = doc;
     this.regular = regular;
     this.bold = bold;
+    this.script = script;
+    this.rtl = rtl;
+    this.notice = notice;
     this.page = this.newPage();
     this.y = A4[1] - MARGIN;
   }
 
-  static async create(doc: PDFDocument) {
+  static async create(doc: PDFDocument, language: string, notice: string) {
+    let script: ScriptText | null = null;
+
+    if (needsScriptRendering(language)) {
+      script = new ScriptText(language);
+      await script.ready();
+    }
+
     return new Writer(
       doc,
       await doc.embedFont(StandardFonts.Helvetica),
       await doc.embedFont(StandardFonts.HelveticaBold),
+      script,
+      isRightToLeft(language),
+      notice,
     );
   }
 
@@ -113,8 +142,10 @@ class Writer {
     const page = this.doc.addPage(A4);
 
     // The qualification appears on every page, because a page read on its own
-    // must still carry it.
-    page.drawText(pdfSafe(NOTICE.slice(0, 118)).text, {
+    // must still carry it. In a translated report this footer keeps the
+    // English line — the standard font draws it synchronously — and the full
+    // qualification in the reader's language closes the document.
+    page.drawText(pdfSafe(this.notice.slice(0, 118)).text, {
       x: MARGIN,
       y: 26,
       size: 6.5,
@@ -152,13 +183,35 @@ class Writer {
     return lines;
   }
 
-  text(
+  async text(
     content: string,
     options: { size?: number; bold?: boolean; colour?: ReturnType<typeof rgb>; indent?: number } = {},
-  ) {
+  ): Promise<void> {
     const size = options.size ?? 10;
     const font = options.bold ? this.bold : this.regular;
     const indent = options.indent ?? 0;
+
+    if (this.script) {
+      const colour = options.colour ?? INK;
+      const tint: [number, number, number] = [colour.red, colour.green, colour.blue];
+      const width = this.width - indent;
+
+      for (const line of this.script.wrap(content, size, Boolean(options.bold), width)) {
+        const rendered = await this.script.render(line, size, Boolean(options.bold), tint, width);
+        const png = await this.doc.embedPng(rendered.png);
+
+        this.space(rendered.height + 2);
+        this.page.drawImage(png, {
+          // Right-to-left text hangs from the right margin.
+          x: this.rtl ? A4[0] - MARGIN - indent - rendered.width : MARGIN + indent,
+          y: this.y - rendered.height,
+          width: rendered.width,
+          height: rendered.height,
+        });
+        this.y -= rendered.height + 2;
+      }
+      return;
+    }
 
     const safe = pdfSafe(content);
     this.droppedCharacters += safe.dropped;
@@ -255,7 +308,8 @@ export async function buildComplianceReport(data: ReportData): Promise<Blob> {
   doc.setProducer("NIRIKSHA");
   doc.setCreationDate(new Date());
 
-  const w = await Writer.create(doc);
+  const s = data.strings;
+  const w = await Writer.create(doc, data.language, NOTICE);
 
   /* masthead */
   // The lockup already carries the wordmark and the line beneath it, so
@@ -267,8 +321,8 @@ export async function buildComplianceReport(data: ReportData): Promise<Blob> {
   if (logo) {
     w.image(logo, 150);
   } else {
-    w.text("NIRIKSHA", { size: 20, bold: true });
-    w.text("Automated compliance assessment for packaged commodities", {
+    await w.text("NIRIKSHA", { size: 20, bold: true });
+    await w.text(s("report.masthead"), {
       size: 9,
       colour: MUTED,
     });
@@ -277,14 +331,14 @@ export async function buildComplianceReport(data: ReportData): Promise<Blob> {
   w.move(6);
   w.rule();
 
-  w.text(`Scan reference: ${data.scanReference}`, { size: 9 });
-  w.text(`Assessed: ${data.assessedLabel}`, { size: 9, colour: MUTED });
+  await w.text(`${s("report.scanReference")}: ${data.scanReference}`, { size: 9 });
+  await w.text(`${s("report.assessed")}: ${data.assessedLabel}`, { size: 9, colour: MUTED });
   w.move(10);
 
   /* outcome */
-  w.text("Assessment", { size: 13, bold: true });
+  await w.text(s("report.assessment"), { size: 13, bold: true });
   w.move(2);
-  w.text(`${data.resultLabel} — score ${data.score}`, {
+  await w.text(`${data.resultLabel} — ${s("report.score")} ${data.score}`, {
     size: 11,
     bold: true,
     colour:
@@ -292,20 +346,16 @@ export async function buildComplianceReport(data: ReportData): Promise<Blob> {
         data.result === "compliant" ? "pass" : data.result === "non_compliant" ? "fail" : "review"
       ],
   });
-  w.text(`Product: ${data.productName}`, { size: 10 });
-  w.text(`Net quantity: ${data.netQuantity}`, { size: 10 });
+  await w.text(`${s("report.product")}: ${data.productName}`, { size: 10 });
+  await w.text(`${s("report.netQuantity")}: ${data.netQuantity}`, { size: 10 });
 
   // What this document covers, stated before its findings. A narrowed report
   // that does not say it is narrowed reads as a full one, and its silences
   // read as passes.
   if (data.selectedFieldLabels.length) {
     w.move(4);
-    w.text(`Selected checks: ${data.selectedFieldLabels.join(", ")}`, { size: 10, bold: true });
-    w.text(
-      "This assessment covers the declarations listed above. Requirements outside them were " +
-        "not assessed here and no conclusion about them should be drawn from this document.",
-      { size: 8.5, colour: MUTED },
-    );
+    await w.text(`${s("report.selectedChecks")}: ${data.selectedFieldLabels.join(", ")}`, { size: 10, bold: true });
+    await w.text(s("report.selectedNote"), { size: 8.5, colour: MUTED });
   }
 
   // Findings the reading produced outside the request. Named, not detailed:
@@ -313,17 +363,15 @@ export async function buildComplianceReport(data: ReportData): Promise<Blob> {
   // assessment for what they were.
   if (data.findingsOutsideSelection.length) {
     w.move(4);
-    w.text(
-      `Outside the selected checks, the reading also found ${data.findingsOutsideSelection.length} ` +
-        `issue${data.findingsOutsideSelection.length === 1 ? "" : "s"}. ` +
-        "They are recorded in the full assessment for this scan.",
-      { size: 8.5, colour: STATUS_COLOUR.review },
-    );
+    await w.text(s("report.outsideSelection", { n: String(data.findingsOutsideSelection.length) }), {
+      size: 8.5,
+      colour: STATUS_COLOUR.review,
+    });
   }
 
   if (data.qualification) {
     w.move(4);
-    w.text(data.qualification, { size: 8.5, colour: STATUS_COLOUR.review });
+    await w.text(data.qualification, { size: 8.5, colour: STATUS_COLOUR.review });
   }
 
   w.move(10);
@@ -332,35 +380,32 @@ export async function buildComplianceReport(data: ReportData): Promise<Blob> {
   // Placed before the readings, because everything below is a claim about
   // this picture and a reader should see it first. Bounded on both edges so
   // it illustrates the report rather than filling its opening page.
-  w.text("Product image", { size: 10, bold: true });
+  await w.text(s("report.productImage"), { size: 10, bold: true });
   w.move(4);
 
   if (data.image) {
     try {
       w.image(await doc.embedPng(data.image.bytes), 200, 200);
     } catch {
-      w.text("Product image unavailable — it could not be embedded.", {
-        size: 9,
-        colour: MUTED,
-      });
+      await w.text(s("report.imageUnavailable"), { size: 9, colour: MUTED });
     }
   } else {
-    w.text(data.imageNote ?? "Product image unavailable.", { size: 9, colour: MUTED });
+    await w.text(data.imageNote ?? s("report.imageUnavailable"), { size: 9, colour: MUTED });
   }
 
   w.move(10);
 
   /* declarations read */
   w.rule();
-  w.text("Declarations read from the label", { size: 13, bold: true });
+  await w.text(s("report.declarations"), { size: 13, bold: true });
   w.move(4);
 
   for (const field of data.fields) {
-    w.text(`${field.label}: ${field.value}`, { size: 9.5 });
+    await w.text(`${field.label}: ${field.value}`, { size: 9.5 });
 
     // Confidence is only meaningful where something was read.
     if (field.confidence !== null) {
-      w.text(`read at ${field.confidence}% confidence`, { size: 8, colour: MUTED, indent: 10 });
+      await w.text(s("report.readAt", { n: String(field.confidence) }), { size: 8, colour: MUTED, indent: 10 });
     }
   }
 
@@ -368,12 +413,12 @@ export async function buildComplianceReport(data: ReportData): Promise<Blob> {
 
   /* every requirement, with its reason and citation */
   w.rule();
-  w.text("Requirements assessed", { size: 13, bold: true });
+  await w.text(s("report.requirements"), { size: 13, bold: true });
   w.move(4);
 
   for (const requirement of data.requirements) {
-    w.text(requirement.label, { size: 10, bold: true });
-    w.text(requirement.statusLabel, {
+    await w.text(requirement.label, { size: 10, bold: true });
+    await w.text(requirement.statusLabel, {
       size: 8.5,
       colour: STATUS_COLOUR[requirement.status] ?? MUTED,
       indent: 10,
@@ -382,12 +427,12 @@ export async function buildComplianceReport(data: ReportData): Promise<Blob> {
     // What the rule asks, then why this outcome followed. A reader who was
     // not present for the inspection needs both to judge the finding.
     if (requirement.requirement) {
-      w.text(`Requirement: ${requirement.requirement}`, { size: 9, indent: 10 });
+      await w.text(`${s("report.requirement")}: ${requirement.requirement}`, { size: 9, indent: 10 });
     }
-    if (requirement.finding) w.text(`Finding: ${requirement.finding}`, { size: 9, indent: 10 });
-    if (requirement.detected) w.text(`Detected: ${requirement.detected}`, { size: 9, indent: 10 });
+    if (requirement.finding) await w.text(`${s("report.finding")}: ${requirement.finding}`, { size: 9, indent: 10 });
+    if (requirement.detected) await w.text(`${s("report.detected")}: ${requirement.detected}`, { size: 9, indent: 10 });
     if (requirement.legalReference) {
-      w.text(requirement.legalReference, { size: 8, colour: MUTED, indent: 10 });
+      await w.text(requirement.legalReference, { size: 8, colour: MUTED, indent: 10 });
     }
 
     w.move(4);
@@ -402,36 +447,36 @@ export async function buildComplianceReport(data: ReportData): Promise<Blob> {
 
     w.move(6);
     w.rule();
-    w.text("Font / lettering compliance", { size: 13, bold: true });
-    w.text(rule7.provision, { size: 8, colour: MUTED });
+    await w.text(s("report.lettering"), { size: 13, bold: true });
+    await w.text(rule7.provision, { size: 8, colour: MUTED });
     w.move(4);
 
-    w.text(
+    await w.text(
       rule7.requirement.determined && rule7.requirement.minimumHeightMm !== null
         ? `Applicable minimum: ${rule7.requirement.minimumHeightMm} mm`
         : "Applicable minimum: not determined",
       { size: 10, bold: true },
     );
-    w.text(rule7.requirement.basis, { size: 8.5, colour: MUTED });
+    await w.text(rule7.requirement.basis, { size: 8.5, colour: MUTED });
 
     if (!rule7.scale.available) {
       w.move(3);
-      w.text(rule7.scale.note, { size: 8.5, colour: STATUS_COLOUR.review });
+      await w.text(rule7.scale.note, { size: 8.5, colour: STATUS_COLOUR.review });
     }
 
     w.move(6);
 
     for (const finding of rule7.findings) {
-      w.text(finding.label, { size: 10, bold: true });
-      w.text(`${finding.status.toUpperCase().replace("_", " ")}  ·  evidence ${finding.evidenceConfidence}`, {
+      await w.text(finding.label, { size: 10, bold: true });
+      await w.text(`${finding.status.toUpperCase().replace("_", " ")}  ·  evidence ${finding.evidenceConfidence}`, {
         size: 8.5,
         colour: STATUS_COLOUR[finding.status] ?? MUTED,
         indent: 10,
       });
 
-      w.text(`Required: ${finding.requirement}`, { size: 9, indent: 10 });
-      if (finding.observed) w.text(`Observed: ${finding.observed}`, { size: 9, indent: 10 });
-      w.text(
+      await w.text(`Required: ${finding.requirement}`, { size: 9, indent: 10 });
+      if (finding.observed) await w.text(`Observed: ${finding.observed}`, { size: 9, indent: 10 });
+      await w.text(
         `Character height: ${
           finding.characterHeightMm !== null
             ? `approximately ${finding.characterHeightMm} mm`
@@ -439,34 +484,34 @@ export async function buildComplianceReport(data: ReportData): Promise<Blob> {
         }`,
         { size: 9, indent: 10 },
       );
-      w.text(`Finding: ${finding.finding}`, { size: 9, indent: 10 });
+      await w.text(`Finding: ${finding.finding}`, { size: 9, indent: 10 });
 
       // Named in full so it cannot be mistaken for a compliance percentage.
       if (finding.ocrConfidence !== null) {
-        w.text(
+        await w.text(
           `Text recognition confidence: ${Math.round(finding.ocrConfidence * 100)}% ` +
             `(reading confidence, not a measure of lettering compliance)`,
           { size: 8, colour: MUTED, indent: 10 },
         );
       }
 
-      w.text(finding.provision, { size: 8, colour: MUTED, indent: 10 });
+      await w.text(finding.provision, { size: 8, colour: MUTED, indent: 10 });
       w.move(4);
     }
 
-    w.text(rule7.widthRule, { size: 8.5, colour: MUTED });
+    await w.text(rule7.widthRule, { size: 8.5, colour: MUTED });
   }
 
   /* what this is not */
   w.move(6);
   w.rule();
-  w.text("Scope of this assessment", { size: 13, bold: true });
+  await w.text(s("report.scope"), { size: 13, bold: true });
   w.move(2);
-  w.text(data.scope, { size: 9, colour: MUTED });
+  await w.text(data.scope, { size: 9, colour: MUTED });
 
   if (w.droppedCharacters > 0) {
     w.move(4);
-    w.text(
+    await w.text(
       `Note: ${w.droppedCharacters} character(s) in the source text could not be drawn in this ` +
         `document's font and appear as "?". The on-screen assessment shows them correctly.`,
       { size: 8, colour: MUTED },

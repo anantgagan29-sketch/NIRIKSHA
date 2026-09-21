@@ -21,7 +21,7 @@ import { fieldsForSelection } from "@/services/fieldSelection";
  * labelled placeholder for the eventual download.
  */
 export function Reports() {
-  const { t } = useLanguage();
+  const { t, label, selectionLabels } = useLanguage();
   const { product } = useScanFromRoute();
 
   // The document covers what the inspection asked about. A requirement or a
@@ -122,7 +122,7 @@ export function Reports() {
             {(product.selectedFieldLabels?.length ?? 0) > 0 && (
               <p className="mt-2 text-[12.5px] text-muted">
                 <span className="font-medium text-ink">Selected checks:</span>{" "}
-                {product.selectedFieldLabels!.join(", ")}
+                {selectionLabels(product.selectedFields, product.selectedFieldLabels).join(", ")}
               </p>
             )}
 
@@ -136,7 +136,7 @@ export function Reports() {
             <dl className="mt-4 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
               {declarations.slice(0, 6).map((field) => (
                 <div key={field.key}>
-                  <dt className="text-[11px] uppercase tracking-wider text-faint">{field.label}</dt>
+                  <dt className="text-[11px] uppercase tracking-wider text-faint">{label("field", field.key, field.label)}</dt>
                   <dd className="mt-0.5 text-[13px] text-ink">
                     {field.value ?? <span className="text-muted">Not detected</span>}
                   </dd>
@@ -161,7 +161,7 @@ export function Reports() {
               <tbody>
                 {requirements.map((check) => (
                   <tr key={check.id} className="border-b border-line last:border-0 align-top">
-                    <td className="py-2.5 pr-3 text-[13px] text-ink">{check.label}</td>
+                    <td className="py-2.5 pr-3 text-[13px] text-ink">{label("check", check.id, check.label)}</td>
                     <td className="py-2.5 pr-3 text-[12.5px] text-muted">{check.detected ?? "—"}</td>
                     <td className="py-2.5 pr-3 font-mono text-[11.5px] text-muted">{check.provision}</td>
                     <td className="py-2.5">

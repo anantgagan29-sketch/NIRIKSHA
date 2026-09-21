@@ -10,7 +10,7 @@ import { useScanFromRoute } from "@/hooks/useScanFromRoute";
 import { useLanguage } from "@/hooks/useLanguage";
 
 export function Compliance() {
-  const { t } = useLanguage();
+  const { t, label, selectionLabels } = useLanguage();
   const { product, loading, error } = useScanFromRoute();
 
   // The page shows the assessment that was asked for. A requirement outside
@@ -71,7 +71,7 @@ export function Compliance() {
             <div className="rounded-[var(--radius-card)] border border-line bg-canvas px-4 py-3.5">
               <p className="text-[13px] text-ink">
                 <span className="font-medium">Checks performed:</span>{" "}
-                {product.selectedFieldLabels!.join(", ")}
+                {selectionLabels(product.selectedFields, product.selectedFieldLabels).join(", ")}
               </p>
               <p className="mt-1 text-[12px] leading-relaxed text-muted">
                 Requirements outside these were not assessed here. Nothing about them should be
@@ -143,7 +143,7 @@ export function Compliance() {
                 .filter((check) => check.status === "not_applicable")
                 .map((check) => (
                   <div key={check.id} className="rounded-lg border border-line bg-canvas px-3.5 py-2.5">
-                    <p className="text-[12.5px] font-medium text-ink">{check.label}</p>
+                    <p className="text-[12.5px] font-medium text-ink">{label("check", check.id, check.label)}</p>
                     <p className="mt-1 text-[11.5px] leading-relaxed text-muted">{check.reason}</p>
                     <p className="mt-1.5 font-mono text-[10.5px] text-faint">{check.provision}</p>
                   </div>

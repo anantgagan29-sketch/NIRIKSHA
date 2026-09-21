@@ -5,6 +5,7 @@ import { Drawer } from "@/components/ui/Modal";
 import { StatusPill, checkPill } from "@/components/ui/StatusPill";
 import { cn } from "@/lib/cn";
 import type { ComplianceCheck } from "@/data/types";
+import { useLanguage } from "@/hooks/useLanguage";
 
 /**
  * Field-level compliance checks.
@@ -16,6 +17,7 @@ import type { ComplianceCheck } from "@/data/types";
  */
 export function CheckList({ checks, className }: { checks: ComplianceCheck[]; className?: string }) {
   const [active, setActive] = useState<ComplianceCheck | null>(null);
+  const { label } = useLanguage();
 
   return (
     <>
@@ -39,7 +41,7 @@ export function CheckList({ checks, className }: { checks: ComplianceCheck[]; cl
               >
                 <StatusPill {...pill} size="sm" />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13.5px] font-medium text-ink">{check.label}</span>
+                  <span className="block truncate text-[13.5px] font-medium text-ink">{label("check", check.id, check.label)}</span>
                   <span className="mt-0.5 block truncate text-xs text-muted">
                     {check.detected ?? (check.status === "not_applicable" ? "Does not apply to this package" : "Not detected")}
                   </span>
@@ -63,12 +65,13 @@ export function CheckList({ checks, className }: { checks: ComplianceCheck[]; cl
 
 function Evidence({ check }: { check: ComplianceCheck }) {
   const pill = checkPill(check.status);
+  const { label } = useLanguage();
 
   return (
     <div className="flex flex-col gap-5 p-5">
       <div className="flex flex-col gap-2.5">
         <StatusPill {...pill} className="self-start" />
-        <h3 className="font-display text-lg font-semibold leading-snug text-ink">{check.label}</h3>
+        <h3 className="font-display text-lg font-semibold leading-snug text-ink">{label("check", check.id, check.label)}</h3>
         <p className="font-mono text-[11px] text-muted">
           {check.instrument} — {check.provision}
         </p>

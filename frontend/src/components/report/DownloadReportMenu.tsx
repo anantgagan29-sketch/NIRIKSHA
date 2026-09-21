@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import type { DemoProduct } from "@/data/types";
 import { buildReportData } from "@/services/report/model";
+import { useLanguage } from "@/hooks/useLanguage";
 
 /**
  * The download control: one assessment, four files.
@@ -40,6 +41,7 @@ export function DownloadReportMenu({
   const [busy, setBusy] = useState<Format | null>(null);
   const container = useRef<HTMLDivElement | null>(null);
   const toast = useToast();
+  const locale = useLanguage();
 
   // A menu that stays open after the pointer has moved on is a menu in the
   // way. Escape closes it too, because the keyboard has to reach everything
@@ -73,7 +75,8 @@ export function DownloadReportMenu({
     setBusy(format);
 
     try {
-      const data = await buildReportData(product);
+      // The document in the language the screen is in.
+      const data = await buildReportData(product, locale);
 
       // The document writers are loaded when one is asked for, not when the
       // page is. Between them pdf-lib and docx are a large part of what the

@@ -2,6 +2,24 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 
 import { EN, type TranslationKey } from "@/i18n/en";
 import { HI } from "@/i18n/hi";
+import { BN } from "@/i18n/bn";
+import { TE } from "@/i18n/te";
+import { MR } from "@/i18n/mr";
+import { TA } from "@/i18n/ta";
+import { GU } from "@/i18n/gu";
+import { KN } from "@/i18n/kn";
+import { ML } from "@/i18n/ml";
+import { PA } from "@/i18n/pa";
+import { UR } from "@/i18n/ur";
+import { AS } from "@/i18n/as";
+import { OR } from "@/i18n/or";
+import { SA } from "@/i18n/sa";
+import { NE } from "@/i18n/ne";
+import { KOK } from "@/i18n/kok";
+import { MAI } from "@/i18n/mai";
+import { KS } from "@/i18n/ks";
+import { SD } from "@/i18n/sd";
+import { DOI } from "@/i18n/doi";
 import { LANGUAGES, RTL_LANGUAGES, findLanguage } from "@/i18n/languages";
 
 /**
@@ -28,6 +46,24 @@ export type Language = string;
 const DICTIONARIES: Record<string, Partial<Record<TranslationKey, string>>> = {
   en: EN,
   hi: HI,
+  bn: BN,
+  te: TE,
+  mr: MR,
+  ta: TA,
+  gu: GU,
+  kn: KN,
+  ml: ML,
+  pa: PA,
+  ur: UR,
+  as: AS,
+  or: OR,
+  sa: SA,
+  ne: NE,
+  kok: KOK,
+  mai: MAI,
+  ks: KS,
+  sd: SD,
+  doi: DOI,
 };
 
 const STORAGE_KEY = "niriksha.lang";
@@ -47,6 +83,22 @@ interface LanguageValue {
    * grammatical sense in another language.
    */
   t: (key: TranslationKey, vars?: Record<string, string>) => string;
+  /**
+   * The name of a declaration (`field.<key>`) or requirement (`check.<id>`)
+   * in the interface language.
+   *
+   * These names arrive on the data itself, in English, from the reading
+   * service. The key is what identifies them; the English label is the
+   * fallback for a key no dictionary knows, so a new check on the server
+   * still has a name here before anyone has translated it.
+   */
+  label: (kind: "field" | "check", key: string, fallback: string) => string;
+  /**
+   * Names a field selection for a reader. `ids` are the backend's own keys;
+   * `fallbacks` are the English names it sent with them, used for a scan
+   * recorded before ids were stored or for an id no dictionary knows.
+   */
+  selectionLabels: (ids: string[] | null | undefined, fallbacks: string[] | undefined) => string[];
   languages: typeof LANGUAGES;
 }
 
@@ -106,6 +158,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         }
 
         return interpolate(text, vars);
+      },
+      label: (kind, key, fallback) => {
+        const text = dictionary[`${kind}.${key}` as TranslationKey] ?? EN[`${kind}.${key}` as TranslationKey];
+        return text ?? fallback;
+      },
+      selectionLabels: (ids, fallbacks) => {
+        if (!ids?.length) return fallbacks ?? [];
+        return ids.map((id, index) => {
+          const text = dictionary[`field.${id}` as TranslationKey] ?? EN[`field.${id}` as TranslationKey];
+          return text ?? fallbacks?.[index] ?? id;
+        });
       },
     };
   }, [language, setLanguage]);

@@ -31,7 +31,7 @@ import { useLanguage } from "@/hooks/useLanguage";
  * cannot advance past a frame that is too poor to read.
  */
 export function Inspect() {
-  const { t } = useLanguage();
+  const { t, selectionLabels } = useLanguage();
   const { state, startDemo, startUpload, runPipeline, reset } = useInspection();
   const navigate = useNavigate();
   const toast = useToast();
@@ -462,7 +462,7 @@ export function Inspect() {
                     {/* Named only when narrowed. "for All Fields" says nothing
                         a reader did not already assume. */}
                     {state.selectedFields?.length
-                      ? ` for ${state.selectedFieldLabels.join(", ")}.`
+                      ? ` for ${selectionLabels(state.selectedFields, state.selectedFieldLabels).join(", ")}.`
                       : "."}
                   </p>
                   <div className="flex flex-wrap gap-2.5">

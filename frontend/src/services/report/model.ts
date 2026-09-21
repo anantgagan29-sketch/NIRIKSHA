@@ -1,3 +1,4 @@
+import { EN, type TranslationKey } from "@/i18n/en";
 import type {
   ComplianceCheck,
   DemoProduct,
@@ -43,7 +44,35 @@ export interface ReportRequirement {
   legalReference: string;
 }
 
+/**
+ * The language a report is written in.
+ *
+ * `t` and `label` are the interface's own translation functions, handed in
+ * so the document says what the screen said. Omitted, the report is English,
+ * which is what every caller before languages existed got.
+ */
+export interface ReportLocale {
+  language: string;
+  t: (key: TranslationKey, vars?: Record<string, string>) => string;
+  label: (kind: "field" | "check", key: string, fallback: string) => string;
+  selectionLabels: (ids: string[] | null | undefined, fallbacks: string[] | undefined) => string[];
+}
+
+export const ENGLISH_LOCALE: ReportLocale = {
+  language: "en",
+  t: (key, vars) => {
+    const text: string = EN[key] ?? key;
+    return vars ? text.replace(/\{(\w+)\}/g, (whole, name) => vars[name] ?? whole) : text;
+  },
+  label: (_kind, _key, fallback) => fallback,
+  selectionLabels: (_ids, fallbacks) => fallbacks ?? [],
+};
+
 export interface ReportData {
+  /** The language every string below is in; the renderers pick fonts by it. */
+  language: string;
+  /** The report's own headings, in that language. */
+  strings: (key: TranslationKey, vars?: Record<string, string>) => string;
   scanReference: string;
   assessedAt: Date;
   assessedLabel: string;
@@ -80,17 +109,18 @@ export interface ReportData {
   letterHeight: LetterHeightAssessment | null;
 }
 
-const RESULT_LABEL: Record<string, string> = {
-  compliant: "Compliant",
-  non_compliant: "Non-compliant",
-  needs_review: "Review required",
+// Translation keys, resolved through the locale the report is built in.
+const RESULT_LABEL: Record<string, TranslationKey> = {
+  compliant: "report.compliant",
+  non_compliant: "report.nonCompliant",
+  needs_review: "report.needsReview",
 };
 
-const STATUS_LABEL: Record<RequirementStatus, string> = {
-  pass: "PASS",
-  fail: "FAIL",
-  review: "REVIEW",
-  not_applicable: "NOT APPLICABLE",
+const STATUS_LABEL: Record<RequirementStatus, TranslationKey> = {
+  pass: "report.pass",
+  fail: "report.fail",
+  review: "report.review",
+  not_applicable: "report.notApplicable",
 };
 
 const SCOPE =
@@ -160,23 +190,23 @@ async function loadImage(url: string | undefined): Promise<ReportImage | null> {
   }
 }
 
-function fieldOf(field: ExtractedField): ReportField {
+function fieldOf(field: ExtractedField, locale: ReportLocale): ReportField {
   const value = (field.value ?? "").trim();
 
   return {
-    label: field.label,
-    value: value || "Not detected",
+    label: locale.label("field", field.key, field.label),
+    value: value || locale.t("common.notDetected"),
     confidence: value && field.confidence != null ? field.confidence : null,
   };
 }
 
-function requirementOf(check: ComplianceCheck): ReportRequirement {
+function requirementOf(check: ComplianceCheck, locale: ReportLocale): ReportRequirement {
   const status = (check.status as RequirementStatus) ?? "review";
 
   return {
-    label: check.label,
+    label: locale.label("check", check.id, check.label),
     status,
-    statusLabel: STATUS_LABEL[status] ?? String(check.status).toUpperCase(),
+    statusLabel: STATUS_LABEL[status] ? locale.t(STATUS_LABEL[status]) : String(check.status).toUpperCase(),
     requirement: check.requirement ?? "",
     finding: check.reason ?? "",
     detected: check.detected ?? "",
@@ -185,28 +215,33 @@ function requirementOf(check: ComplianceCheck): ReportRequirement {
 }
 
 /** Turns a finished scan into the document every exporter renders. */
-export async function buildReportData(product: DemoProduct): Promise<ReportData> {
+export async function buildReportData(
+  product: DemoProduct,
+  locale: ReportLocale = ENGLISH_LOCALE,
+): Promise<ReportData> {
   const assessedAt = new Date(product.scannedAt);
   const image = await loadImage(product.imageUrl);
 
   return {
+    language: locale.language,
+    strings: locale.t,
     scanReference: product.scanId,
     assessedAt,
-    assessedLabel: assessedAt.toLocaleString("en-IN", {
+    // The date in the reader's language and India's conventions; a locale
+    // the browser lacks falls back to its default rather than throwing.
+    assessedLabel: assessedAt.toLocaleString(`${locale.language}-IN`, {
       dateStyle: "full",
       timeStyle: "short",
     }),
     productName: product.name,
     netQuantity: product.netQuantity || "—",
     result: product.result,
-    resultLabel: RESULT_LABEL[product.result] ?? product.result,
+    resultLabel: RESULT_LABEL[product.result] ? locale.t(RESULT_LABEL[product.result]) : product.result,
     score: product.score,
     image,
     imageNote: image
       ? null
-      : product.imageUrl
-        ? "Product image unavailable — the photograph could not be read."
-        : "Product image unavailable — this assessment was recorded without one.",
+      : locale.t("report.imageUnavailable"),
     // The document covers what was assessed. A requirement outside the
     // request was still computed, and is still in the scan — it is left out
     // of the report because reporting it would answer a question nobody
@@ -214,13 +249,15 @@ export async function buildReportData(product: DemoProduct): Promise<ReportData>
     // Only what was asked about reaches the document. The rest was still
     // assessed and is still in the scan; leaving it in would answer questions
     // nobody asked and bury the one they did.
-    fields: product.fields.map(fieldOf),
+    fields: product.fields.map((field) => fieldOf(field, locale)),
     requirements: product.checks
       .filter((check) => check.selected !== false)
-      .map(requirementOf),
-    selectedFieldLabels: product.selectedFieldLabels ?? [],
+      .map((check) => requirementOf(check, locale)),
+    selectedFieldLabels: locale.selectionLabels(product.selectedFields, product.selectedFieldLabels),
     findingsOutsideSelection: product.findingsOutsideSelection ?? [],
-    scope: SCOPE,
+    // The legal qualification in the reader's language. English keeps the
+    // fuller wording below, which every translation carries in substance.
+    scope: locale.language === "en" ? SCOPE : locale.t("notice.assessment"),
     qualification: product.readOnDevice ? ON_DEVICE : null,
     // Rule 7 governs the height of the lettering, which is a property of the
     // declarations themselves rather than one of them. It is not something a

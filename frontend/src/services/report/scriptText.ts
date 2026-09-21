@@ -51,6 +51,7 @@ const ASCENT = 1.1;
 const DESCENT = 0.55;
 
 export interface RenderedLine {
+  /** JPEG bytes, despite the name kept from the first version. */
   png: Uint8Array;
   /** In PDF points. */
   width: number;
@@ -113,6 +114,14 @@ export class ScriptText {
     return lines;
   }
 
+  /**
+   * Sets a whole paragraph — wrapped to `maxWidth` — as one image.
+   *
+   * One image per paragraph rather than per line, and JPEG rather than
+   * PNG: pdf-lib decodes every PNG it embeds in JavaScript, and a report
+   * of a hundred lines took half a minute that way. A JPEG is embedded as
+   * it is. The page is white, so the opaque background costs nothing.
+   */
   async render(
     text: string,
     size: number,
@@ -121,23 +130,38 @@ export class ScriptText {
     maxWidth: number,
   ): Promise<RenderedLine> {
     const rtl = isRightToLeft(this.language);
-    const width = Math.min(maxWidth, Math.max(1, this.measure(text, size, bold)));
-    const height = size * (ASCENT + DESCENT);
+    const lines = this.wrap(text, size, bold, maxWidth);
+    const lineHeight = size * (ASCENT + DESCENT);
+    const width = Math.min(
+      maxWidth,
+      Math.max(1, ...lines.map((line) => this.measure(line, size, bold))),
+    );
+    const height = lineHeight * lines.length;
 
     this.canvas.width = Math.ceil(width * SCALE);
     this.canvas.height = Math.ceil(height * SCALE);
 
     const context = this.context;
-    context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, this.canvas.width, this.canvas.height);
     context.font = this.font(size, bold);
     context.fillStyle = `rgb(${colour.map((c) => Math.round(c * 255)).join(",")})`;
     context.textBaseline = "alphabetic";
     context.direction = rtl ? "rtl" : "ltr";
     context.textAlign = rtl ? "right" : "left";
-    context.fillText(text, rtl ? this.canvas.width : 0, size * ASCENT * SCALE);
 
-    const blob: Blob | null = await new Promise((resolve) => this.canvas.toBlob(resolve, "image/png"));
-    if (!blob) throw new Error("The rendered line could not be encoded.");
+    lines.forEach((line, index) => {
+      context.fillText(
+        line,
+        rtl ? this.canvas.width : 0,
+        (index * lineHeight + size * ASCENT) * SCALE,
+      );
+    });
+
+    const blob: Blob | null = await new Promise((resolve) =>
+      this.canvas.toBlob(resolve, "image/jpeg", 0.92),
+    );
+    if (!blob) throw new Error("The rendered text could not be encoded.");
 
     return {
       png: new Uint8Array(await blob.arrayBuffer()),

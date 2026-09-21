@@ -196,20 +196,21 @@ class Writer {
       const tint: [number, number, number] = [colour.red, colour.green, colour.blue];
       const width = this.width - indent;
 
-      for (const line of this.script.wrap(content, size, Boolean(options.bold), width)) {
-        const rendered = await this.script.render(line, size, Boolean(options.bold), tint, width);
-        const png = await this.doc.embedPng(rendered.png);
+      // The whole paragraph as one image. A paragraph that will not fit
+      // what is left of the page starts a new one; none is taller than a
+      // page.
+      const rendered = await this.script.render(content, size, Boolean(options.bold), tint, width);
+      const image = await this.doc.embedJpg(rendered.png);
 
-        this.space(rendered.height + 2);
-        this.page.drawImage(png, {
-          // Right-to-left text hangs from the right margin.
-          x: this.rtl ? A4[0] - MARGIN - indent - rendered.width : MARGIN + indent,
-          y: this.y - rendered.height,
-          width: rendered.width,
-          height: rendered.height,
-        });
-        this.y -= rendered.height + 2;
-      }
+      this.space(rendered.height + 2);
+      this.page.drawImage(image, {
+        // Right-to-left text hangs from the right margin.
+        x: this.rtl ? A4[0] - MARGIN - indent - rendered.width : MARGIN + indent,
+        y: this.y - rendered.height,
+        width: rendered.width,
+        height: rendered.height,
+      });
+      this.y -= rendered.height + 2;
       return;
     }
 

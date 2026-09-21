@@ -3,6 +3,7 @@ import { PIPELINE_STAGES } from "@/data/pipeline";
 import * as api from "@/services/inspectionService";
 import { assessUpload, inspectUpload, recogniseUpload } from "@/services/liveInspection";
 import { AiUnavailableError, HAS_BACKEND, scanProduct } from "@/services/nirikshaApi";
+import { prepareUpload } from "@/services/uploadPrep";
 import type {
   ComplianceCheck,
   ComplianceResult,
@@ -302,8 +303,15 @@ export function useInspection() {
           let outcome: Awaited<ReturnType<typeof scanProduct>> | null = null;
 
           try {
+            // Sent at the size the server reads it at, not the size the
+            // camera saved it at. Measured on the 5 MB photographs phones
+            // produce, this is the difference between a two-second upload
+            // and a fraction of one.
+            const upload = await prepareUpload(file);
+            if (upload.reduced) console.info(`Upload reduced to ${Math.round(upload.file.size / 1024)} KB before sending.`);
+
             outcome = await scanProduct(
-              file,
+              upload.file,
               undefined,
               eventId.current ?? undefined,
               packageWidth.current,

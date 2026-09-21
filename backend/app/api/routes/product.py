@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends, Response
 
 from app.core.auth import current_user_id
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
@@ -229,8 +229,41 @@ def build_visual_evidence(
 # SCAN PRODUCT
 # ============================================================
 
+class StageClock:
+    """
+    Records how long each stage of a scan took.
+
+    The figures go back with the result and in a Server-Timing header, so a
+    slow inspection can be read from the response rather than guessed at
+    from a spinner. Every value is milliseconds.
+    """
+
+    def __init__(self):
+        self.started = time.perf_counter()
+        self.mark = self.started
+        self.stages: dict[str, int] = {}
+
+    def lap(self, name: str) -> None:
+        now = time.perf_counter()
+        self.stages[name] = round((now - self.mark) * 1000)
+        self.mark = now
+
+    def finish(self) -> dict[str, int]:
+        self.stages["total"] = round((time.perf_counter() - self.started) * 1000)
+        return dict(self.stages)
+
+    def header(self) -> str:
+        return ", ".join(f"{name};dur={ms}" for name, ms in self.stages.items())
+
+
+# Deliberately not `async`: everything in here blocks — the image decode,
+# the wait on the model, the database write. Declared async, all of that
+# held the event loop, and a second scan arriving during the first waited
+# for it to finish before its bytes were even read. As a plain function
+# FastAPI runs it in a worker thread and the loop stays free.
 @router.post("/product/scan")
-async def scan_product(
+def scan_product(
+    response: Response,
     file: UploadFile = File(...),
     # One scan action, named by the client. Sent again with the same value --
     # a retry, a double submit -- this returns the first result rather than
@@ -271,6 +304,8 @@ async def scan_product(
        ↓
     Final Result
     """
+
+    clock = StageClock()
 
     # ========================================================
     # 1. CHECK FILE TYPE
@@ -313,7 +348,7 @@ async def scan_product(
 
     try:
 
-        file_content = await file.read()
+        file_content = file.file.read()
 
         if not file_content:
 
@@ -328,6 +363,8 @@ async def scan_product(
         ) as buffer:
 
             buffer.write(file_content)
+
+        clock.lap("upload")
 
         # An identical image has an identical answer. During a demonstration
         # the same packet is inspected several times, and each repeat used to
@@ -358,6 +395,7 @@ async def scan_product(
     cached = scan_cache.get(fingerprint)
 
     if cached is not None:
+        clock.lap("cache")
 
         print("Scan: served from cache; no model was called.")
 
@@ -368,6 +406,9 @@ async def scan_product(
             cached["scan_id"] = database.record_scan(cached, user_id, scan_event_id, thumbnail_for_record(file_path))
         except Exception as e:
             print("Scan: could not record cached scan -", str(e))
+        clock.lap("record")
+        cached["timings"] = clock.finish()
+        response.headers["Server-Timing"] = clock.header()
 
         return cached
 
@@ -402,6 +443,8 @@ async def scan_product(
                 + str(e)
             )
         )
+
+    clock.lap("quality")
 
     # ========================================================
     # 5. STOP IF PHOTO QUALITY IS TOO LOW
@@ -450,6 +493,9 @@ async def scan_product(
         # Rejected photos are recorded too: a run of retakes is worth seeing
         # in the history, and it is what the quality gate is there to prevent.
         rejected["scan_id"] = database.record_scan(rejected, user_id, scan_event_id, thumbnail_for_record(file_path))
+        clock.lap("record")
+        rejected["timings"] = clock.finish()
+        response.headers["Server-Timing"] = clock.header()
 
         return rejected
 
@@ -466,6 +512,7 @@ async def scan_product(
     # the whole request with it and the user is left with nothing.
 
     prepared_path = prepare_for_vision(file_path)
+    clock.lap("prepare")
 
     started = time.perf_counter()
 
@@ -647,6 +694,7 @@ async def scan_product(
         f"Vision stage completed in "
         f"{time.perf_counter() - started:.1f}s"
     )
+    clock.lap("vision")
 
 
     # ========================================================
@@ -751,6 +799,8 @@ async def scan_product(
         "processing_path": "vision_model"
     }
 
+    clock.lap("rules")
+
     # Only a completed inspection is stored. A failure is never served back
     # as though it were an answer.
     if result.get("scan_status") == "SUCCESS":
@@ -774,6 +824,10 @@ async def scan_product(
         )
 
         result["scan_id"] = None
+
+    clock.lap("record")
+    result["timings"] = clock.finish()
+    response.headers["Server-Timing"] = clock.header()
 
     return result
 

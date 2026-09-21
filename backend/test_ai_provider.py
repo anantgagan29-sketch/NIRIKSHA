@@ -112,6 +112,74 @@ check("the last model is retried once before giving up",
       attempts == ["only", "only"] and used2 == "only", str(attempts))
 check("the answer is returned", value == {"ok": True})
 
+print("\n=== a slow model is hedged, and the first answer wins ===")
+availability.reset()
+import threading as _th
+order = []
+def slow_then_fast(model):
+    order.append(model)
+    if model == "m1":
+        _th.Event().wait(1.2)   # still running when m2 answers
+        return {"from": "m1"}
+    return {"from": "m2"}
+_t0 = time.monotonic()
+value3, used3 = call_with_fallback(
+    slow_then_fast, models=["m1", "m2"], label="test", hedge_after=0.2, max_inflight=2,
+)
+_took = time.monotonic() - _t0
+check("m2 was started while m1 was still running", order == ["m1", "m2"], str(order))
+check("the fast answer was returned", used3 == "m2" and value3 == {"from": "m2"}, str(value3))
+check("no waiting for the slow one", _took < 1.0, f"{_took:.2f}s")
+check("a hedged-out model is not penalised", availability.is_available("m1"))
+
+print("\n=== a 503 frees its place at once; no hedge wait ===")
+availability.reset()
+order.clear()
+def fail_fast_then_answer(model):
+    order.append(model)
+    if model == "m1":
+        raise Exception("503 UNAVAILABLE")
+    return {"ok": True}
+_t0 = time.monotonic()
+value4, used4 = call_with_fallback(
+    fail_fast_then_answer, models=["m1", "m2"], label="test", hedge_after=5, max_inflight=2,
+)
+check("next model started immediately after the 503", used4 == "m2" and time.monotonic() - _t0 < 0.5)
+
+print("\n=== a model past its slice is abandoned ===")
+availability.reset()
+def hangs(model):
+    if model == "m1":
+        _th.Event().wait(2)
+        return {"from": "m1"}
+    return {"from": "m2"}
+_t0 = time.monotonic()
+value5, used5 = call_with_fallback(
+    hangs, models=["m1", "m2"], label="test", hedge_after=10, max_inflight=1, per_model_timeout=0.3,
+)
+check("slice expiry moved on to m2", used5 == "m2" and time.monotonic() - _t0 < 1.0, f"{used5} {time.monotonic()-_t0:.2f}s")
+check("the abandoned model rests", not availability.is_available("m1"))
+
+print("\n=== the model that answered fastest is asked first next time ===")
+availability.reset()
+availability.mark_succeeded("m3", 2.0)
+availability.mark_succeeded("m1", 6.0)
+check("fast answerer first, then slower, then untried in configured order",
+      availability.order(["m1", "m2", "m3", "m4"]) == ["m3", "m1", "m2", "m4"],
+      str(availability.order(["m1", "m2", "m3", "m4"])))
+
+print("\n=== a briefly resting model is waited for, not failed ===")
+availability.reset()
+availability.mark_failed("m1", "unavailable")   # 5s rest
+_real_sleep2 = time.sleep; slept = []
+time.sleep = lambda s_: slept.append(s_)
+try:
+    v6, u6 = call_with_fallback(lambda m: {"ok": m}, models=["m1"], label="test",
+                                overall_deadline=time.monotonic() + 30)
+finally:
+    time.sleep = _real_sleep2
+check("waited for the rest to end, then asked", u6 == "m1" and slept and slept[0] > 0, str(slept))
+
 print("\n=== a bad request is never retried ===")
 availability.reset()
 tries = []

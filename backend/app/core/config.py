@@ -138,13 +138,32 @@ REQUIRE_AUTH: bool = os.getenv(
 # for an hour costs nothing and saves a request on every inspection in
 # between. A per-minute limit clears on its own. A 503 is the provider having
 # a bad moment and is worth returning to quickly.
-# How long any single model gets before the next one is tried. With reasoning
-# tokens off a healthy model answers in five to seven seconds, so twelve is
-# room to spare — and a model that has not answered by then is having a bad
-# moment, and every second spent waiting on it is a second the next model
-# could have used.
+# How long any single model gets before its call is abandoned. This used to
+# be twelve seconds, when models were asked one at a time and a slow one held
+# everything behind it. Now the next model is asked after three seconds
+# regardless (AI_HEDGE_AFTER_SECONDS), so a slow model costs nothing to keep
+# waiting on — and at twelve seconds the log showed answers arriving from
+# calls that had just been thrown away. The slice only needs to be shorter
+# than the overall budget.
 PER_MODEL_TIMEOUT_SECONDS: float = float(
-    os.getenv("PER_MODEL_TIMEOUT_SECONDS", "12")
+    os.getenv("PER_MODEL_TIMEOUT_SECONDS", "25")
+)
+
+
+# Hedging. A model that has not answered after this many seconds gets company:
+# the next ready model is asked the same question in parallel, and the first
+# answer wins. The provider answers the same call in three seconds one minute
+# and eight the next, and a 503 takes four to seven seconds to arrive — so
+# waiting for each model in turn is what put an inspection past a minute.
+#
+# This spends requests, not tricks: a slow scan costs up to
+# AI_HEDGE_MAX_INFLIGHT requests, each from a different model's own published
+# allowance. A scan the first model answers promptly costs one, as before.
+AI_HEDGE_AFTER_SECONDS: float = float(
+    os.getenv("AI_HEDGE_AFTER_SECONDS", "3")
+)
+AI_HEDGE_MAX_INFLIGHT: int = int(
+    os.getenv("AI_HEDGE_MAX_INFLIGHT", "3")
 )
 
 
@@ -156,8 +175,18 @@ RATE_LIMIT_COOLDOWN_SECONDS: float = float(
     os.getenv("RATE_LIMIT_COOLDOWN_SECONDS", "60")
 )
 
+# A 503 says the model is busy this moment, not this minute: the same model
+# has been seen to refuse and then answer within seconds. With models asked
+# in parallel a retry is cheap, so the rest is short — long enough not to
+# hammer a model that just said no, no longer.
 UNAVAILABLE_COOLDOWN_SECONDS: float = float(
-    os.getenv("UNAVAILABLE_COOLDOWN_SECONDS", "45")
+    os.getenv("UNAVAILABLE_COOLDOWN_SECONDS", "5")
+)
+
+# A model that ran past its slice is slower than the others today, which is
+# worth remembering for a little longer than a refusal.
+TIMEOUT_COOLDOWN_SECONDS: float = float(
+    os.getenv("TIMEOUT_COOLDOWN_SECONDS", "20")
 )
 
 
@@ -202,7 +231,7 @@ GEMINI_RETRY_DELAY: float = float(os.getenv("GEMINI_RETRY_DELAY", "0.8"))
 # healthy model answers in roughly 20-30s. The deadline sits above that but
 # well below the point where a demonstration stalls: passing it hands the
 # inspection to the on-device path, which finishes rather than failing.
-GEMINI_TIMEOUT_SECONDS: float = float(os.getenv("GEMINI_TIMEOUT_SECONDS", "70"))
+GEMINI_TIMEOUT_SECONDS: float = float(os.getenv("GEMINI_TIMEOUT_SECONDS", "45"))
 
 # Deadline for the readability pass specifically. It only adds per-declaration
 # confidence and bounding boxes, so it is allowed to be dropped rather than

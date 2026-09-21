@@ -1,6 +1,8 @@
 import { Check, X, AlertTriangle, Minus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { CheckStatus, ComplianceResult, FieldStatus, QualityVerdict } from "@/data/types";
+import { useLanguage } from "@/hooks/useLanguage";
+import type { TranslationKey } from "@/i18n/en";
 
 /**
  * The single place compliance status becomes colour.
@@ -31,6 +33,21 @@ const ICONS: Record<Tone, typeof Check> = {
   busy: Loader2,
 };
 
+const PILL_KEYS: Record<string, TranslationKey> = {
+  Pass: "status.pass",
+  Fail: "status.fail",
+  "Needs Review": "status.needsReview",
+  "Not Applicable": "status.notApplicable",
+  Detected: "status.detected",
+  "Not Detected": "common.notDetected",
+  Compliant: "status.compliant",
+  "Non-Compliant": "status.nonCompliant",
+  Pending: "status.pending",
+  Processing: "status.processing",
+  Complete: "status.complete",
+  Completed: "status.complete",
+};
+
 export function StatusPill({
   tone,
   label,
@@ -43,6 +60,11 @@ export function StatusPill({
   className?: string;
 }) {
   const Icon = ICONS[tone];
+  const { t } = useLanguage();
+  // The pill helpers below name statuses in English; the interface language
+  // is applied here, once, so every caller shows the same word.
+  const key = PILL_KEYS[label];
+  const text = key ? t(key) : label;
   return (
     <span
       className={cn(
@@ -53,7 +75,7 @@ export function StatusPill({
       )}
     >
       <Icon aria-hidden="true" className={cn(size === "sm" ? "h-3 w-3" : "h-3.5 w-3.5", tone === "busy" && "animate-spin")} />
-      {label}
+      {text}
     </span>
   );
 }

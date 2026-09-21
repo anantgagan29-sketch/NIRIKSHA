@@ -11,6 +11,7 @@ import { AssessmentNotice } from "@/components/ui/PageHeader";
 import { HeroVisual } from "@/components/3d/HeroVisual";
 import { Reveal } from "@/components/ui/Reveal";
 import { useLanguage } from "@/hooks/useLanguage";
+import type { TranslationKey } from "@/i18n/en";
 import { useToast } from "@/components/ui/Toast";
 import { DEMO_PRODUCTS } from "@/data/demoProducts";
 import { useAsync } from "@/hooks/useAsync";
@@ -172,7 +173,7 @@ export function Dashboard() {
                         done ? "text-ink" : active ? "font-medium text-brand-700" : "text-faint",
                       )}
                     >
-                      {stage.title}
+                      {t(`pipeline.${stage.id}.title` as TranslationKey)}
                     </span>
                   </li>
                 );

@@ -274,6 +274,31 @@ export const EN = {
   "report.review": "REVIEW",
   "report.notApplicable": "NOT APPLICABLE",
 
+  /* pipeline — the six stages of an inspection */
+  "pipeline.quality.title": "Image Quality",
+  "pipeline.vision.title": "Computer Vision",
+  "pipeline.ocr.title": "OCR Extraction",
+  "pipeline.fields.title": "Field Extraction",
+  "pipeline.rules.title": "Rule Validation",
+  "pipeline.result.title": "Compliance Result",
+  "pipeline.quality.description": "Sharpness, brightness, resolution and text visibility measured before anything is read.",
+  "pipeline.vision.description": "The label surface is located and the regions carrying declarations are isolated.",
+  "pipeline.ocr.description": "Text recognised with a confidence value for every word. Raw output is preserved.",
+  "pipeline.fields.description": "Free text becomes structured declarations, each keeping the evidence it came from.",
+  "pipeline.rules.description": "Only the requirements that apply to this package are selected and tested.",
+  "pipeline.result.description": "Field outcomes combined into an assessment, with the reason for each.",
+  "inspect.sampleNote": "Each sample carries a real declaration set and runs through every stage of the workspace. They are demonstration products, not real commodities.",
+
+  /* reportPage — the on-screen report */
+  "reportPage.scanId": "Scan ID",
+  "reportPage.overallResult": "Overall result",
+  "reportPage.scannedProduct": "Scanned product",
+  "reportPage.fieldChecks": "Field checks",
+  "reportPage.provision": "Provision",
+  "reportPage.recognisedText": "Recognised text",
+  "reportPage.modelReturned": "What the model returned",
+  "reportPage.whatThisIs": "What this report is",
+
   /* field — declaration names, as read from a label */
   "field.product_name": "Product Name",
   "field.brand": "Brand",

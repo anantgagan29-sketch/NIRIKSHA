@@ -3,6 +3,8 @@ import { Check, X, AlertTriangle, Loader2, Circle } from "lucide-react";
 import { PIPELINE_STAGES } from "@/data/pipeline";
 import { cn } from "@/lib/cn";
 import type { StageState } from "@/data/types";
+import { useLanguage } from "@/hooks/useLanguage";
+import type { TranslationKey } from "@/i18n/en";
 
 /**
  * The six-stage inspection rail.
@@ -27,12 +29,12 @@ const RING: Record<StageState, string> = {
   failed: "border-fail/30 bg-fail-bg text-fail",
 };
 
-const LABEL: Record<StageState, string> = {
-  pending: "Pending",
-  processing: "Processing",
-  complete: "Completed",
-  warning: "Completed with warnings",
-  failed: "Failed",
+const LABEL: Record<StageState, TranslationKey> = {
+  pending: "status.pending",
+  processing: "status.processing",
+  complete: "status.complete",
+  warning: "status.completeWithWarnings",
+  failed: "status.fail",
 };
 
 export function PipelineRail({
@@ -44,6 +46,7 @@ export function PipelineRail({
   compact?: boolean;
   className?: string;
 }) {
+  const { t } = useLanguage();
   return (
     <ol className={cn("flex flex-col", className)}>
       {PIPELINE_STAGES.map((stage, index) => {
@@ -91,12 +94,12 @@ export function PipelineRail({
                     state === "pending" ? "text-faint" : "text-ink",
                   )}
                 >
-                  {stage.title}
+                  {t(`pipeline.${stage.id}.title` as TranslationKey)}
                 </p>
-                <span className="sr-only">{LABEL[state]}</span>
+                <span className="sr-only">{t(LABEL[state])}</span>
               </div>
               {!compact && (
-                <p className="mt-1 text-xs leading-relaxed text-muted">{stage.description}</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted">{t(`pipeline.${stage.id}.description` as TranslationKey)}</p>
               )}
             </div>
           </li>

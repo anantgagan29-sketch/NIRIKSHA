@@ -163,8 +163,7 @@ export function Inspect() {
                 />
                 <CardBody className="flex flex-col gap-2.5">
                   <p className="mb-1 text-[13px] leading-relaxed text-muted">
-                    Each sample carries a real declaration set and runs through every stage of the
-                    workspace. They are demonstration products, not real commodities.
+                    {t("inspect.sampleNote")}
                   </p>
                   {DEMO_PRODUCTS.map((item) => (
                     <button

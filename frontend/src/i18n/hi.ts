@@ -282,6 +282,31 @@ export const HI: Partial<Record<keyof typeof EN, string>> = {
   "report.review": "समीक्षा",
   "report.notApplicable": "लागू नहीं",
 
+  /* pipeline — the six stages of an inspection */
+  "pipeline.quality.title": "छवि गुणवत्ता",
+  "pipeline.vision.title": "कंप्यूटर विज़न",
+  "pipeline.ocr.title": "OCR निष्कर्षण",
+  "pipeline.fields.title": "फ़ील्ड निष्कर्षण",
+  "pipeline.rules.title": "नियम सत्यापन",
+  "pipeline.result.title": "अनुपालन परिणाम",
+  "pipeline.quality.description": "कुछ भी पढ़ने से पहले तीक्ष्णता, चमक, रिज़ॉल्यूशन और पाठ की दृश्यता मापी जाती है।",
+  "pipeline.vision.description": "लेबल की सतह खोजी जाती है और घोषणाओं वाले क्षेत्र अलग किए जाते हैं।",
+  "pipeline.ocr.description": "हर शब्द के लिए विश्वसनीयता मान के साथ पाठ पहचाना जाता है। कच्चा आउटपुट सुरक्षित रहता है।",
+  "pipeline.fields.description": "मुक्त पाठ संरचित घोषणाओं में बदलता है, हर घोषणा अपना प्रमाण साथ रखती है।",
+  "pipeline.rules.description": "केवल इस पैकेज पर लागू आवश्यकताएँ चुनी और परखी जाती हैं।",
+  "pipeline.result.description": "फ़ील्ड परिणामों को एक मूल्यांकन में जोड़ा जाता है, हर एक के कारण के साथ।",
+  "inspect.sampleNote": "हर नमूने में वास्तविक घोषणा-सेट है और वह कार्यक्षेत्र के हर चरण से गुज़रता है। ये प्रदर्शन उत्पाद हैं, वास्तविक वस्तुएँ नहीं।",
+
+  /* reportPage — the on-screen report */
+  "reportPage.scanId": "स्कैन ID",
+  "reportPage.overallResult": "समग्र परिणाम",
+  "reportPage.scannedProduct": "स्कैन किया गया उत्पाद",
+  "reportPage.fieldChecks": "फ़ील्ड जाँचें",
+  "reportPage.provision": "प्रावधान",
+  "reportPage.recognisedText": "पहचाना गया पाठ",
+  "reportPage.modelReturned": "मॉडल ने क्या लौटाया",
+  "reportPage.whatThisIs": "यह रिपोर्ट क्या है",
+
   /* field — declaration names, as read from a label */
   "field.product_name": "उत्पाद का नाम",
   "field.brand": "ब्रांड",

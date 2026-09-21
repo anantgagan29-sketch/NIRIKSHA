@@ -76,16 +76,16 @@ export function Reports() {
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line px-7 py-6">
           <div className="flex flex-col gap-1.5">
             <BrandLockup className="max-w-[11rem]" />
-            <p className="text-[11.5px] text-muted">Product Compliance Report</p>
+            <p className="text-[11.5px] text-muted">{t("reports.title")}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 border-b border-line px-7 py-5 sm:grid-cols-4">
-          <Meta label="Scan ID" value={product.scanId} mono />
-          <Meta label="Product" value={product.name} />
-          <Meta label="Assessment date" value={assessed} />
+          <Meta label={t("reportPage.scanId")} value={product.scanId} mono />
+          <Meta label={t("report.product")} value={product.name} />
+          <Meta label={t("report.assessed")} value={assessed} />
           <div>
-            <p className="text-[11px] uppercase tracking-wider text-faint">Overall result</p>
+            <p className="text-[11px] uppercase tracking-wider text-faint">{t("reportPage.overallResult")}</p>
             <StatusPill {...resultPill(product.result)} size="sm" className="mt-1.5" />
           </div>
         </div>
@@ -98,7 +98,7 @@ export function Reports() {
             taking the page. */}
         <div className="grid gap-6 border-b border-line px-7 py-6 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)]">
           <div>
-            <h3 className="font-display text-sm font-semibold text-ink">Scanned product</h3>
+            <h3 className="font-display text-sm font-semibold text-ink">{t("reportPage.scannedProduct")}</h3>
 
             {product.imageUrl ? (
               <img
@@ -109,19 +109,19 @@ export function Reports() {
               />
             ) : (
               <p className="mt-2.5 rounded-lg border border-dashed border-line bg-canvas px-4 py-8 text-center text-[12.5px] text-muted">
-                Product image unavailable
+                {t("report.imageUnavailable")}
               </p>
             )}
           </div>
 
           <div>
-            <h3 className="font-display text-sm font-semibold text-ink">Assessment</h3>
+            <h3 className="font-display text-sm font-semibold text-ink">{t("report.assessment")}</h3>
 
             {/* Named before the findings, so a narrowed document is not read
                 as a full one. */}
             {(product.selectedFieldLabels?.length ?? 0) > 0 && (
               <p className="mt-2 text-[12.5px] text-muted">
-                <span className="font-medium text-ink">Selected checks:</span>{" "}
+                <span className="font-medium text-ink">{t("report.selectedChecks")}:</span>{" "}
                 {selectionLabels(product.selectedFields, product.selectedFieldLabels).join(", ")}
               </p>
             )}
@@ -129,7 +129,7 @@ export function Reports() {
             <div className="mt-2.5 flex flex-wrap items-center gap-3">
               <StatusPill {...resultPill(product.result)} />
               <span className="text-[13px] text-muted">
-                Score <span className="tnum font-mono text-ink">{product.score}</span>
+                {t("report.score")} <span className="tnum font-mono text-ink">{product.score}</span>
               </span>
             </div>
 
@@ -138,7 +138,7 @@ export function Reports() {
                 <div key={field.key}>
                   <dt className="text-[11px] uppercase tracking-wider text-faint">{label("field", field.key, field.label)}</dt>
                   <dd className="mt-0.5 text-[13px] text-ink">
-                    {field.value ?? <span className="text-muted">Not detected</span>}
+                    {field.value ?? <span className="text-muted">{t("common.notDetected")}</span>}
                   </dd>
                 </div>
               ))}
@@ -147,15 +147,15 @@ export function Reports() {
         </div>
 
         <CardBody className="px-7 py-6">
-          <h3 className="font-display text-sm font-semibold text-ink">Field checks</h3>
+          <h3 className="font-display text-sm font-semibold text-ink">{t("reportPage.fieldChecks")}</h3>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[36rem] border-collapse text-left">
               <thead>
                 <tr className="border-b border-line text-[11px] uppercase tracking-wider text-faint">
-                  <th className="py-2 pr-3 font-semibold">Requirement</th>
-                  <th className="py-2 pr-3 font-semibold">Detected</th>
-                  <th className="py-2 pr-3 font-semibold">Provision</th>
-                  <th className="py-2 font-semibold">Result</th>
+                  <th className="py-2 pr-3 font-semibold">{t("compliance.requirement")}</th>
+                  <th className="py-2 pr-3 font-semibold">{t("report.detected")}</th>
+                  <th className="py-2 pr-3 font-semibold">{t("reportPage.provision")}</th>
+                  <th className="py-2 font-semibold">{t("history.result")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -195,7 +195,7 @@ export function Reports() {
           {product.rawText ? (
             <>
               <h3 className="mt-7 font-display text-sm font-semibold text-ink">
-                {product.ocrConfidence > 0 ? "Recognised text" : "What the model returned"}
+                {product.ocrConfidence > 0 ? t("reportPage.recognisedText") : t("reportPage.modelReturned")}
               </h3>
               <p className="mt-1 text-[11.5px] text-muted">
                 {product.ocrConfidence > 0 ? (
@@ -218,7 +218,7 @@ export function Reports() {
             </>
           ) : null}
 
-          <h3 className="mt-7 font-display text-sm font-semibold text-ink">What this report is</h3>
+          <h3 className="mt-7 font-display text-sm font-semibold text-ink">{t("reportPage.whatThisIs")}</h3>
           <AssessmentNotice className="mt-2" />
           <p className="mt-2.5 text-[11.5px] leading-relaxed text-muted">
             Automated text recognition can misread a label. Where a value was read with low

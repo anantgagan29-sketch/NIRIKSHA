@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
 
-import { reportFilename, saveBlob, type ReportData } from "@/services/report/model";
+import { REPORT_TEMPLATE_VERSION, reportFilename, saveBlob, type ReportData } from "@/services/report/model";
 import { ScriptText, isRightToLeft, needsScriptRendering } from "@/services/report/scriptText";
 // The dark lockup: these pages are white, and the light variant exists for
 // the console's dark surface.
@@ -308,6 +308,12 @@ export async function buildComplianceReport(data: ReportData): Promise<Blob> {
   doc.setTitle(`NIRIKSHA compliance assessment ${data.scanReference}`);
   doc.setProducer("NIRIKSHA");
   doc.setCreationDate(new Date());
+  // The document says which language it is in and which template drew it,
+  // so a report found later can be reproduced or told apart from another
+  // language's copy of the same scan.
+  doc.setLanguage(data.language);
+  doc.setSubject(`language=${data.language}; template=${REPORT_TEMPLATE_VERSION}; scan=${data.scanReference}`);
+  doc.setKeywords(["NIRIKSHA", "compliance", data.language, data.scanReference]);
 
   const s = data.strings;
   const w = await Writer.create(doc, data.language, NOTICE);

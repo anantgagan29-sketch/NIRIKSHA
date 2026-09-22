@@ -664,6 +664,8 @@ export async function scanProduct(
 interface BackendScanRow {
   /** "image" for a photographed pack, "listing" for an online listing. */
   source_kind?: string | null;
+  /** The language this scan was most recently reported in, if ever. */
+  report_language?: string | null;
   id: string;
   created_at: string;
   filename?: string | null;
@@ -709,7 +711,37 @@ export async function listScans(): Promise<ScanRecord[]> {
     score: row.score ?? 0,
     date: row.created_at,
     relative: relativeTime(row.created_at),
+    reportLanguage: row.report_language ?? null,
   }));
+}
+
+/** The metadata the server keeps about one generated report. */
+export interface ReportGeneration {
+  reportId: string;
+  scanId: string;
+  language: string;
+  format: string;
+  status: string;
+  templateVersion: string;
+  generatedAt: string;
+  generatedBy: string | null;
+  download: "client";
+}
+
+/**
+ * Records that a report was generated. The server validates the language
+ * and format against its own lists and refuses anything else.
+ */
+export async function registerReportGeneration(
+  scanId: string,
+  language: string,
+  format: string,
+): Promise<ReportGeneration> {
+  return request<ReportGeneration>(`/reports/${encodeURIComponent(scanId)}/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ language, format }),
+  });
 }
 
 export interface ScanStats {

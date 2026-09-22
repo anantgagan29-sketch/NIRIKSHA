@@ -269,6 +269,17 @@ export const ML: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "തിരിച്ചറിഞ്ഞ വാചകം",
   "reportPage.modelReturned": "മോഡൽ തിരികെ നൽകിയത്",
   "reportPage.whatThisIs": "ഈ റിപ്പോർട്ട് എന്താണ്",
+  /* reportDialog */
+  "reportDialog.title": "റിപ്പോർട്ട് ഭാഷ തിരഞ്ഞെടുക്കുക",
+  "reportDialog.hint": "നിങ്ങളുടെ റിപ്പോർട്ടിന്റെ ഭാഷ തിരഞ്ഞെടുക്കുക. ഇത് ഈ സ്ക്രീനിന്റെ ഭാഷയുമായി യോജിക്കണമെന്നില്ല.",
+  "reportDialog.generate": "റിപ്പോർട്ട് തയ്യാറാക്കുക",
+  "reportDialog.current": "ഇന്റർഫേസ് ഭാഷ",
+  /* history */
+  "history.reportLanguage": "റിപ്പോർട്ട് ഭാഷ",
+  "history.allLanguages": "എല്ലാ ഭാഷകളും",
+  "history.notGenerated": "തയ്യാറാക്കിയിട്ടില്ല",
+  /* report */
+  "report.generating": "നിങ്ങളുടെ {language} റിപ്പോർട്ട് തയ്യാറാക്കുന്നു…",
   /* field */
   "field.product_name": "ഉൽപ്പന്നത്തിന്റെ പേര്",
   "field.brand": "ബ്രാൻഡ്",

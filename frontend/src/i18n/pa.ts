@@ -269,6 +269,17 @@ export const PA: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "ਪਛਾਣੀ ਲਿਖਤ",
   "reportPage.modelReturned": "ਮਾਡਲ ਨੇ ਕੀ ਵਾਪਸ ਕੀਤਾ",
   "reportPage.whatThisIs": "ਇਹ ਰਿਪੋਰਟ ਕੀ ਹੈ",
+  /* reportDialog */
+  "reportDialog.title": "ਰਿਪੋਰਟ ਦੀ ਭਾਸ਼ਾ ਚੁਣੋ",
+  "reportDialog.hint": "ਆਪਣੀ ਰਿਪੋਰਟ ਦੀ ਭਾਸ਼ਾ ਚੁਣੋ। ਇਸ ਦਾ ਇਸ ਸਕ੍ਰੀਨ ਦੀ ਭਾਸ਼ਾ ਨਾਲ ਮੇਲ ਖਾਣਾ ਜ਼ਰੂਰੀ ਨਹੀਂ।",
+  "reportDialog.generate": "ਰਿਪੋਰਟ ਬਣਾਓ",
+  "reportDialog.current": "ਇੰਟਰਫੇਸ ਭਾਸ਼ਾ",
+  /* history */
+  "history.reportLanguage": "ਰਿਪੋਰਟ ਭਾਸ਼ਾ",
+  "history.allLanguages": "ਸਾਰੀਆਂ ਭਾਸ਼ਾਵਾਂ",
+  "history.notGenerated": "ਨਹੀਂ ਬਣੀ",
+  /* report */
+  "report.generating": "ਤੁਹਾਡੀ {language} ਰਿਪੋਰਟ ਤਿਆਰ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ…",
   /* field */
   "field.product_name": "ਉਤਪਾਦ ਦਾ ਨਾਮ",
   "field.brand": "ਬ੍ਰਾਂਡ",

@@ -269,6 +269,17 @@ export const MAI: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "चिन्हल पाठ",
   "reportPage.modelReturned": "मॉडल की घुरौलक",
   "reportPage.whatThisIs": "ई रिपोर्ट की अछि",
+  /* reportDialog */
+  "reportDialog.title": "रिपोर्टक भाषा चुनू",
+  "reportDialog.hint": "अपन रिपोर्टक भाषा चुनू। एकरा एहि स्क्रीनक भाषा सँ मेल खाएब जरूरी नहि।",
+  "reportDialog.generate": "रिपोर्ट बनाउ",
+  "reportDialog.current": "इंटरफेस भाषा",
+  /* history */
+  "history.reportLanguage": "रिपोर्ट भाषा",
+  "history.allLanguages": "सभ भाषा",
+  "history.notGenerated": "नहि बनल",
+  /* report */
+  "report.generating": "अहाँक {language} रिपोर्ट तैयार भऽ रहल अछि…",
   /* field */
   "field.product_name": "उत्पादक नाम",
   "field.brand": "ब्रांड",

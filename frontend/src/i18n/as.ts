@@ -269,6 +269,17 @@ export const AS: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "চিনাক্ত পাঠ",
   "reportPage.modelReturned": "মডেলে যি ঘূৰাই দিলে",
   "reportPage.whatThisIs": "এই প্ৰতিবেদন কি",
+  /* reportDialog */
+  "reportDialog.title": "প্ৰতিবেদনৰ ভাষা বাছক",
+  "reportDialog.hint": "আপোনাৰ প্ৰতিবেদনৰ ভাষা বাছক। ই এই স্ক্ৰীনৰ ভাষাৰ সৈতে মিলিব নালাগে।",
+  "reportDialog.generate": "প্ৰতিবেদন প্ৰস্তুত কৰক",
+  "reportDialog.current": "ইন্টাৰফেচ ভাষা",
+  /* history */
+  "history.reportLanguage": "প্ৰতিবেদন ভাষা",
+  "history.allLanguages": "সকলো ভাষা",
+  "history.notGenerated": "প্ৰস্তুত হোৱা নাই",
+  /* report */
+  "report.generating": "আপোনাৰ {language} প্ৰতিবেদন প্ৰস্তুত হৈ আছে…",
   /* field */
   "field.product_name": "সামগ্ৰীৰ নাম",
   "field.brand": "ব্ৰেণ্ড",

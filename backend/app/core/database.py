@@ -23,6 +23,7 @@ import os
 import re
 import sqlite3
 import threading
+import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
 
@@ -264,6 +265,20 @@ def init_db() -> None:
                 source_kind   TEXT
             );
 
+            -- One row per report generated from a scan: which language it
+            -- was written in, in what format, by whom and with which
+            -- template. The document itself is made on the reader's device
+            -- and is not stored; this is what makes it reproducible.
+            CREATE TABLE IF NOT EXISTS report_generations (
+                id               TEXT PRIMARY KEY,
+                scan_id          TEXT NOT NULL,
+                user_id          TEXT,
+                language         TEXT NOT NULL,
+                format           TEXT NOT NULL,
+                template_version TEXT NOT NULL,
+                generated_at     TEXT NOT NULL
+            );
+
             CREATE TABLE IF NOT EXISTS complaints (
                 id             TEXT PRIMARY KEY,
                 scan_id        TEXT,
@@ -329,6 +344,17 @@ def init_db() -> None:
 
         if "source_kind" not in columns:
             db.execute("ALTER TABLE scans ADD COLUMN source_kind TEXT")
+
+        # The language the scan was most recently reported in, denormalised
+        # onto the row so the history can show and filter by it without a
+        # join. The full record of every generation is in report_generations.
+        if "report_language" not in columns:
+            db.execute("ALTER TABLE scans ADD COLUMN report_language TEXT")
+
+        db.execute(
+            "CREATE INDEX IF NOT EXISTS idx_report_generations_scan "
+            "ON report_generations (scan_id, generated_at DESC)"
+        )
 
         # Indexed here, not in the script above: on an older database neither
         # column exists until the lines above add it.
@@ -517,7 +543,7 @@ def list_scans(
         rows = db.execute(
             f"""
             SELECT id, created_at, filename, product_name, net_quantity,
-                   scan_status, status, score, source_kind
+                   scan_status, status, score, source_kind, report_language
             FROM scans
             WHERE {_OWNED_BY}
             ORDER BY created_at DESC LIMIT ?
@@ -544,6 +570,72 @@ def get_scan(
             (scan_id, user_id),
         ).fetchone()
     return json.loads(row["result_json"]) if row else None
+
+
+def record_report(
+    scan_id: str,
+    user_id: Optional[str],
+    language: str,
+    fmt: str,
+    template_version: str,
+) -> Optional[dict[str, Any]]:
+    """
+    Notes that a report was generated from a scan.
+
+    Returns the record, or None when the scan is not this user's — the
+    check is the same one every read of a scan makes, so nobody can annotate
+    an inspection they cannot see.
+    """
+    now = _now()
+    report_id = f"{scan_id}-{language.upper()}-{uuid.uuid4().hex[:6]}"
+
+    with _lock, _connect() as db:
+        owned = db.execute(
+            f"SELECT 1 FROM scans WHERE id = ? AND {_OWNED_BY}",
+            (scan_id, user_id),
+        ).fetchone()
+        if not owned:
+            return None
+
+        db.execute(
+            """
+            INSERT INTO report_generations
+                (id, scan_id, user_id, language, format, template_version, generated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (report_id, scan_id, user_id, language, fmt, template_version, now),
+        )
+        db.execute(
+            "UPDATE scans SET report_language = ? WHERE id = ?",
+            (language, scan_id),
+        )
+
+    return {
+        "report_id": report_id,
+        "scan_id": scan_id,
+        "language": language,
+        "format": fmt,
+        "template_version": template_version,
+        "generated_at": now,
+        "generated_by": user_id,
+    }
+
+
+def list_reports(scan_id: str, user_id: Optional[str]) -> list[dict[str, Any]]:
+    """Every report generated from one scan, newest first."""
+    with _connect() as db:
+        rows = db.execute(
+            f"""
+            SELECT r.id AS report_id, r.scan_id, r.language, r.format,
+                   r.template_version, r.generated_at, r.user_id AS generated_by
+            FROM report_generations r
+            JOIN scans s ON s.id = r.scan_id
+            WHERE r.scan_id = ? AND s.{_OWNED_BY}
+            ORDER BY r.generated_at DESC
+            """,
+            (scan_id, user_id),
+        ).fetchall()
+    return [dict(row) for row in rows]
 
 
 def get_scan_image(

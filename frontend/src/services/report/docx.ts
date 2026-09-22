@@ -14,6 +14,7 @@ import {
 } from "docx";
 
 import { reportFilename, saveBlob, type ReportData, type ReportRequirement } from "./model";
+import { isRightToLeft } from "./scriptText";
 
 /**
  * The assessment as a real Word document.
@@ -43,9 +44,16 @@ const STATUS_MARK: Record<string, string> = {
   not_applicable: "—",
 };
 
+// Set once per document, before any paragraph is made: Word lays a
+// right-to-left paragraph out from the right margin, and Urdu needs every
+// one of them so. Module state rather than an argument threaded through
+// every helper, because a document is built in one synchronous pass.
+let rightToLeft = false;
+
 function heading(text: string): Paragraph {
   return new Paragraph({
     heading: HeadingLevel.HEADING_2,
+    bidirectional: rightToLeft,
     spacing: { before: 320, after: 140 },
     border: {
       bottom: { style: BorderStyle.SINGLE, size: 6, color: "D8DCE0", space: 6 },
@@ -56,6 +64,7 @@ function heading(text: string): Paragraph {
 
 function line(text: string, options: { size?: number; color?: string; bold?: boolean; indent?: number } = {}): Paragraph {
   return new Paragraph({
+    bidirectional: rightToLeft,
     spacing: { after: 60 },
     indent: options.indent ? { left: options.indent } : undefined,
     children: [
@@ -164,6 +173,7 @@ function productImage(data: ReportData): Paragraph {
 
 export async function buildWordReport(data: ReportData): Promise<Blob> {
   const s = data.strings;
+  rightToLeft = isRightToLeft(data.language);
   const doc = new Document({
     title: `NIRIKSHA compliance assessment ${data.scanReference}`,
     creator: "NIRIKSHA",

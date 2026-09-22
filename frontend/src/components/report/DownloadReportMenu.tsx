@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import type { DemoProduct } from "@/data/types";
 import { buildReportData } from "@/services/report/model";
-import { useLanguage } from "@/hooks/useLanguage";
+import { reportLocale } from "@/services/report/locale";
+import { registerReport } from "@/services/report/registry";
+import { ReportLanguageDialog } from "@/components/report/ReportLanguageDialog";
 
 /**
  * The download control: one assessment, four files.
@@ -39,9 +41,12 @@ export function DownloadReportMenu({
 }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<Format | null>(null);
+  // The format chosen from the menu, waiting on a language. The document is
+  // not made until the dialog answers; nothing about the screen's language
+  // is consulted in between.
+  const [pending, setPending] = useState<Format | null>(null);
   const container = useRef<HTMLDivElement | null>(null);
   const toast = useToast();
-  const locale = useLanguage();
 
   // A menu that stays open after the pointer has moved on is a menu in the
   // way. Escape closes it too, because the keyboard has to reach everything
@@ -66,7 +71,7 @@ export function DownloadReportMenu({
     };
   }, [open]);
 
-  async function download(format: Format) {
+  async function download(format: Format, language: string) {
     // Guarded rather than merely disabled: a second click that lands before
     // React has re-rendered would otherwise start a second generation and
     // hand the reader two copies of the same file.
@@ -75,8 +80,9 @@ export function DownloadReportMenu({
     setBusy(format);
 
     try {
-      // The document in the language the screen is in.
-      const data = await buildReportData(product, locale);
+      // The document in the language that was asked for — never the
+      // screen's language unless that is what was chosen.
+      const data = await buildReportData(product, reportLocale(language));
 
       // The document writers are loaded when one is asked for, not when the
       // page is. Between them pdf-lib and docx are a large part of what the
@@ -94,7 +100,13 @@ export function DownloadReportMenu({
       }
 
       setOpen(false);
+      setPending(null);
       toast("success", `Report downloaded as ${format === "docx" ? "a Word document" : format.toUpperCase()}.`);
+
+      // Recorded after the file is in the reader's hands, and never in the
+      // way of it: the history shows which language each scan was last
+      // reported in, and a failure to note that is not a failure to report.
+      void registerReport(product.scanId, language, format);
     } catch (cause) {
       // Reported, never thrown onwards: a failed export must not take the
       // assessment screen down with it.
@@ -109,6 +121,7 @@ export function DownloadReportMenu({
   }
 
   const current = FORMATS.find((format) => format.id === busy);
+  const chosen = FORMATS.find((format) => format.id === pending);
 
   return (
     <div className="relative" ref={container}>
@@ -128,6 +141,16 @@ export function DownloadReportMenu({
         {!busy && <ChevronDown className="h-3.5 w-3.5 opacity-70" aria-hidden="true" />}
       </Button>
 
+      <ReportLanguageDialog
+        open={pending !== null}
+        busy={busy !== null}
+        formatLabel={chosen?.label ?? ""}
+        onClose={() => setPending(null)}
+        onConfirm={(language) => {
+          if (pending) void download(pending, language);
+        }}
+      />
+
       {open && (
         <div
           role="menu"
@@ -139,7 +162,10 @@ export function DownloadReportMenu({
               role="menuitem"
               type="button"
               disabled={busy !== null}
-              onClick={() => void download(format.id)}
+              onClick={() => {
+                setOpen(false);
+                setPending(format.id);
+              }}
               className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-brand-50 disabled:pointer-events-none disabled:opacity-50"
             >
               <format.icon className="h-4 w-4 shrink-0 text-brand-700" aria-hidden="true" />

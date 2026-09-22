@@ -307,6 +307,16 @@ export const HI: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.modelReturned": "मॉडल ने क्या लौटाया",
   "reportPage.whatThisIs": "यह रिपोर्ट क्या है",
 
+  /* reportDialog — choosing the language a report is written in */
+  "reportDialog.title": "रिपोर्ट की भाषा चुनें",
+  "reportDialog.hint": "अपनी रिपोर्ट की भाषा चुनें। इसका इस स्क्रीन की भाषा से मेल खाना ज़रूरी नहीं है।",
+  "reportDialog.generate": "रिपोर्ट बनाएँ",
+  "reportDialog.current": "इंटरफ़ेस भाषा",
+  "history.reportLanguage": "रिपोर्ट भाषा",
+  "history.allLanguages": "सभी भाषाएँ",
+  "history.notGenerated": "नहीं बनी",
+  "report.generating": "आपकी {language} रिपोर्ट तैयार की जा रही है…",
+
   /* field — declaration names, as read from a label */
   "field.product_name": "उत्पाद का नाम",
   "field.brand": "ब्रांड",

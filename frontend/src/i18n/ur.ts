@@ -269,6 +269,17 @@ export const UR: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "پہچانا گیا متن",
   "reportPage.modelReturned": "ماڈل نے کیا لوٹایا",
   "reportPage.whatThisIs": "یہ رپورٹ کیا ہے",
+  /* reportDialog */
+  "reportDialog.title": "رپورٹ کی زبان منتخب کریں",
+  "reportDialog.hint": "اپنی رپورٹ کی زبان منتخب کریں۔ اس کا اس اسکرین کی زبان سے ملنا ضروری نہیں۔",
+  "reportDialog.generate": "رپورٹ تیار کریں",
+  "reportDialog.current": "انٹرفیس زبان",
+  /* history */
+  "history.reportLanguage": "رپورٹ زبان",
+  "history.allLanguages": "تمام زبانیں",
+  "history.notGenerated": "تیار نہیں",
+  /* report */
+  "report.generating": "آپ کی {language} رپورٹ تیار کی جا رہی ہے…",
   /* field */
   "field.product_name": "پروڈکٹ کا نام",
   "field.brand": "برانڈ",

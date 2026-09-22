@@ -269,6 +269,17 @@ export const NE: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "पहिचान गरिएको पाठ",
   "reportPage.modelReturned": "मोडेलले के फर्कायो",
   "reportPage.whatThisIs": "यो प्रतिवेदन के हो",
+  /* reportDialog */
+  "reportDialog.title": "प्रतिवेदनको भाषा छान्नुहोस्",
+  "reportDialog.hint": "आफ्नो प्रतिवेदनको भाषा छान्नुहोस्। यो यस स्क्रिनको भाषासँग मिल्नु पर्दैन।",
+  "reportDialog.generate": "प्रतिवेदन बनाउनुहोस्",
+  "reportDialog.current": "इन्टरफेस भाषा",
+  /* history */
+  "history.reportLanguage": "प्रतिवेदन भाषा",
+  "history.allLanguages": "सबै भाषा",
+  "history.notGenerated": "बनेको छैन",
+  /* report */
+  "report.generating": "तपाईंको {language} प्रतिवेदन तयार हुँदैछ…",
   /* field */
   "field.product_name": "उत्पादनको नाम",
   "field.brand": "ब्रान्ड",

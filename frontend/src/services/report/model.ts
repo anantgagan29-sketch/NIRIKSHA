@@ -267,23 +267,22 @@ export async function buildReportData(
   };
 }
 
+/** Bumped when the layout or wording of the documents changes. */
+export const REPORT_TEMPLATE_VERSION = "2";
+
 /**
  * A filename someone can find again later.
  *
- * Everything outside letters, digits and spaces goes: a product name is read
- * off a label and arrives with slashes, quotes and rupee signs in it, any of
- * which a filesystem or a browser will object to.
+ *   NIRIKSHA_Compliance_Report_<scan reference>_<LANGUAGE>.pdf
+ *
+ * The scan reference is what the history and the server know the report
+ * by; the language code says which of several reports of the same scan
+ * this is. Both are ASCII, so the name survives every filesystem and
+ * browser — a Tamil product name in a filename would not.
  */
 export function reportFilename(data: ReportData, extension: string): string {
-  const name = data.productName
-    .replace(/[^\p{L}\p{N} ]+/gu, " ")
-    .trim()
-    .replace(/\s+/g, "_")
-    .slice(0, 60);
-
-  const date = data.assessedAt.toISOString().slice(0, 10);
-
-  return ["Niriksha_Inspection_Report", name || "Scan", date].join("_") + "." + extension;
+  const reference = data.scanReference.replace(/[^A-Za-z0-9-]+/g, "-").replace(/^-+|-+$/g, "") || "scan";
+  return `NIRIKSHA_Compliance_Report_${reference}_${data.language.toUpperCase()}.${extension}`;
 }
 
 /** Hands a finished document to the browser as a download. */

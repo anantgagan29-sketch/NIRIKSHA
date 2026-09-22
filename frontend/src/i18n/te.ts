@@ -269,6 +269,17 @@ export const TE: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "గుర్తించిన పాఠ్యం",
   "reportPage.modelReturned": "మోడల్ ఏమి తిరిగి ఇచ్చింది",
   "reportPage.whatThisIs": "ఈ నివేదిక ఏమిటి",
+  /* reportDialog */
+  "reportDialog.title": "నివేదిక భాషను ఎంచుకోండి",
+  "reportDialog.hint": "మీ నివేదిక భాషను ఎంచుకోండి. ఇది ఈ స్క్రీన్ భాషతో సరిపోలాల్సిన అవసరం లేదు.",
+  "reportDialog.generate": "నివేదిక రూపొందించు",
+  "reportDialog.current": "ఇంటర్‌ఫేస్ భాష",
+  /* history */
+  "history.reportLanguage": "నివేదిక భాష",
+  "history.allLanguages": "అన్ని భాషలు",
+  "history.notGenerated": "రూపొందించలేదు",
+  /* report */
+  "report.generating": "మీ {language} నివేదిక రూపొందుతోంది…",
   /* field */
   "field.product_name": "ఉత్పత్తి పేరు",
   "field.brand": "బ్రాండ్",

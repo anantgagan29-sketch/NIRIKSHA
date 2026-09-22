@@ -269,6 +269,17 @@ export const TA: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "அடையாளம் கண்ட உரை",
   "reportPage.modelReturned": "மாதிரி திருப்பியது",
   "reportPage.whatThisIs": "இந்த அறிக்கை என்ன",
+  /* reportDialog */
+  "reportDialog.title": "அறிக்கை மொழியைத் தேர்ந்தெடுக்கவும்",
+  "reportDialog.hint": "உங்கள் அறிக்கையின் மொழியைத் தேர்ந்தெடுக்கவும். இது இந்தத் திரையின் மொழியுடன் பொருந்த வேண்டியதில்லை.",
+  "reportDialog.generate": "அறிக்கை உருவாக்கு",
+  "reportDialog.current": "இடைமுக மொழி",
+  /* history */
+  "history.reportLanguage": "அறிக்கை மொழி",
+  "history.allLanguages": "எல்லா மொழிகளும்",
+  "history.notGenerated": "உருவாக்கப்படவில்லை",
+  /* report */
+  "report.generating": "உங்கள் {language} அறிக்கை உருவாக்கப்படுகிறது…",
   /* field */
   "field.product_name": "தயாரிப்பின் பெயர்",
   "field.brand": "பிராண்ட்",

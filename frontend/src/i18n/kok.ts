@@ -269,6 +269,17 @@ export const KOK: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "वळखिल्लो मजकूर",
   "reportPage.modelReturned": "मॉडेलान कितें परत दिलें",
   "reportPage.whatThisIs": "हो अहवाल कितें आसा",
+  /* reportDialog */
+  "reportDialog.title": "अहवालाची भास वेंचात",
+  "reportDialog.hint": "तुमच्या अहवालाची भास वेंचात. ती ह्या स्क्रीनाच्या भाशेकडेन जुळपाची गरज ना.",
+  "reportDialog.generate": "अहवाल तयार करात",
+  "reportDialog.current": "इंटरफेस भास",
+  /* history */
+  "history.reportLanguage": "अहवाल भास",
+  "history.allLanguages": "सगळ्यो भासो",
+  "history.notGenerated": "तयार ना",
+  /* report */
+  "report.generating": "तुमचो {language} अहवाल तयार जाता…",
   /* field */
   "field.product_name": "उत्पादनाचें नांव",
   "field.brand": "ब्रँड",

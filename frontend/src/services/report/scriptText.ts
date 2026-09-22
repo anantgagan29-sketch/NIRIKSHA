@@ -78,6 +78,23 @@ export class ScriptText {
     this.context = context;
   }
 
+  /**
+   * Encodes the canvas synchronously.
+   *
+   * toBlob and convertToBlob both hand the encode to a callback, and a tab
+   * in the background gets one callback a second — a hundred paragraphs
+   * took a hundred seconds when the reader switched tabs while waiting.
+   * toDataURL returns at once whatever the tab's state.
+   */
+  private encode(): Uint8Array {
+    const dataUrl = this.canvas.toDataURL("image/jpeg", 0.92);
+    const base64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+
   async ready(): Promise<void> {
     try {
       await document.fonts.load(`16px ${familyFor(this.language)}`);
@@ -158,13 +175,8 @@ export class ScriptText {
       );
     });
 
-    const blob: Blob | null = await new Promise((resolve) =>
-      this.canvas.toBlob(resolve, "image/jpeg", 0.92),
-    );
-    if (!blob) throw new Error("The rendered text could not be encoded.");
-
     return {
-      png: new Uint8Array(await blob.arrayBuffer()),
+      png: this.encode(),
       width,
       height,
       baseline: size * ASCENT,

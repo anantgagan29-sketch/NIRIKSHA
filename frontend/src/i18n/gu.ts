@@ -269,6 +269,17 @@ export const GU: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "ઓળખાયેલ લખાણ",
   "reportPage.modelReturned": "મોડેલે શું પાછું આપ્યું",
   "reportPage.whatThisIs": "આ અહેવાલ શું છે",
+  /* reportDialog */
+  "reportDialog.title": "અહેવાલની ભાષા પસંદ કરો",
+  "reportDialog.hint": "તમારા અહેવાલની ભાષા પસંદ કરો. તે આ સ્ક્રીનની ભાષા સાથે મેળ ખાવી જરૂરી નથી.",
+  "reportDialog.generate": "અહેવાલ બનાવો",
+  "reportDialog.current": "ઇન્ટરફેસ ભાષા",
+  /* history */
+  "history.reportLanguage": "અહેવાલ ભાષા",
+  "history.allLanguages": "બધી ભાષાઓ",
+  "history.notGenerated": "બનાવેલ નથી",
+  /* report */
+  "report.generating": "તમારો {language} અહેવાલ તૈયાર થઈ રહ્યો છે…",
   /* field */
   "field.product_name": "ઉત્પાદનનું નામ",
   "field.brand": "બ્રાન્ડ",

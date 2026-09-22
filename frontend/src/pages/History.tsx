@@ -14,19 +14,25 @@ import { cn } from "@/lib/cn";
 import type { ComplianceResult } from "@/data/types";
 import { scanImageUrl, getScan } from "@/services/nirikshaApi";
 import { buildReportData } from "@/services/report/model";
+import { reportLocale } from "@/services/report/locale";
+import { registerReport } from "@/services/report/registry";
+import { REPORT_LANGUAGES, reportLanguage } from "@/i18n/reportLanguages";
+import { ReportLanguageDialog } from "@/components/report/ReportLanguageDialog";
 import { useToast } from "@/components/ui/Toast";
 import { useLanguage } from "@/hooks/useLanguage";
 
 const RANGES = { all: "All time", week: "Last 7 days", month: "Last 30 days" } as const;
 
 export function History() {
-  const locale = useLanguage();
-  const { t } = locale;
+  const { t } = useLanguage();
   const scans = useAsync(listScans, []);
   const stats = useAsync(getScanStats, []);
 
   const toast = useToast();
   const [building, setBuilding] = useState<string | null>(null);
+  // The row whose PDF was asked for, waiting on a language. The document
+  // is not built until the dialog answers.
+  const [pendingScan, setPendingScan] = useState<string | null>(null);
 
   /**
    * Fetches one stored scan and turns it into a report.
@@ -35,7 +41,7 @@ export function History() {
    * first — a report built from the summary alone would be missing the very
    * reasoning it exists to record.
    */
-  async function downloadFor(scanId: string) {
+  async function downloadFor(scanId: string, language: string) {
     setBuilding(scanId);
 
     try {
@@ -64,7 +70,7 @@ export function History() {
         rawText: outcome.rawText ?? "",
         ocrConfidence: 0,
         scannedAt: new Date().toISOString(),
-      }, locale);
+      }, reportLocale(language));
 
       const { downloadComplianceReport } = await import("@/services/reportPdf");
       await downloadComplianceReport(data);
@@ -73,6 +79,12 @@ export function History() {
       if (imageUrl) URL.revokeObjectURL(imageUrl);
 
       toast("success", `Report for ${scanId} downloaded.`);
+      setPendingScan(null);
+
+      // Noted after the download, never before it: the history's language
+      // column reads from this, and the list re-fetches to show it.
+      await registerReport(scanId, language, "pdf");
+      scans.reload();
     } catch (cause) {
       toast("warning", cause instanceof Error ? cause.message : "That report could not be built.");
     } finally {
@@ -83,6 +95,7 @@ export function History() {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<ComplianceResult | "all">("all");
   const [range, setRange] = useState<keyof typeof RANGES>("all");
+  const [reportLang, setReportLang] = useState<string>("all");
 
   const rows = useMemo(() => {
     const all = scans.data ?? [];
@@ -101,9 +114,10 @@ export function History() {
         scan.category.toLowerCase().includes(query.toLowerCase());
       const matchesResult = result === "all" || scan.result === result;
       const matchesRange = !cutoff || new Date(scan.date).getTime() >= cutoff;
-      return matchesQuery && matchesResult && matchesRange;
+      const matchesLanguage = reportLang === "all" || scan.reportLanguage === reportLang;
+      return matchesQuery && matchesResult && matchesRange && matchesLanguage;
     });
-  }, [scans.data, query, result, range]);
+  }, [scans.data, query, result, range, reportLang]);
 
   return (
     <div className="mx-auto max-w-[1500px] px-4 py-8 sm:px-6">
@@ -164,6 +178,20 @@ export function History() {
               </Select>
 
               <Select
+                value={reportLang}
+                onChange={(event) => setReportLang(event.target.value)}
+                aria-label={t("history.reportLanguage")}
+                className="min-w-0 flex-1 sm:w-auto sm:flex-none"
+              >
+                <option value="all">{t("history.allLanguages")}</option>
+                {REPORT_LANGUAGES.map((option) => (
+                  <option key={option.code} value={option.code}>
+                    {option.nativeName} · {option.name}
+                  </option>
+                ))}
+              </Select>
+
+              <Select
                 value={range}
                 onChange={(event) => setRange(event.target.value as keyof typeof RANGES)}
                 aria-label="Filter by date"
@@ -200,13 +228,14 @@ export function History() {
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[42rem] border-collapse text-left">
+              <table className="w-full min-w-[52rem] border-collapse text-left">
                 <thead>
                   <tr className="border-b border-line text-[11px] uppercase tracking-wider text-faint">
                     <th className="px-5 py-3 font-semibold">Product</th>
                     <th className="px-5 py-3 font-semibold">Result</th>
                     <th className="px-5 py-3 font-semibold">Date</th>
                     <th className="px-5 py-3 font-semibold">Scan ID</th>
+                    <th className="px-5 py-3 font-semibold">{t("history.reportLanguage")}</th>
                     <th className="px-5 py-3 font-semibold">Action</th>
                   </tr>
                 </thead>
@@ -222,6 +251,16 @@ export function History() {
                       </td>
                       <td className="px-5 py-3.5 text-[12.5px] text-muted">{scan.relative}</td>
                       <td className="px-5 py-3.5 font-mono text-[12px] text-muted">{scan.scanId}</td>
+                      <td className="px-5 py-3.5 text-[12.5px]">
+                        {scan.reportLanguage ? (
+                          <span lang={scan.reportLanguage} className="text-ink">
+                            {reportLanguage(scan.reportLanguage).nativeName}
+                            <span className="text-muted"> · {reportLanguage(scan.reportLanguage).name}</span>
+                          </span>
+                        ) : (
+                          <span className="text-faint">{t("history.notGenerated")}</span>
+                        )}
+                      </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <Link
@@ -235,7 +274,7 @@ export function History() {
                           <button
                             type="button"
                             disabled={building === scan.scanId}
-                            onClick={() => downloadFor(scan.scanId)}
+                            onClick={() => setPendingScan(scan.scanId)}
                             className="text-[12.5px] font-medium text-brand-700 hover:underline disabled:opacity-50"
                           >
                             {building === scan.scanId ? "Preparing…" : "PDF"}
@@ -251,6 +290,16 @@ export function History() {
         </CardBody>
       </Card>
       </Reveal>
+
+      <ReportLanguageDialog
+        open={pendingScan !== null}
+        busy={building !== null}
+        formatLabel="PDF"
+        onClose={() => setPendingScan(null)}
+        onConfirm={(language) => {
+          if (pendingScan) void downloadFor(pendingScan, language);
+        }}
+      />
     </div>
   );
 }

@@ -269,6 +269,17 @@ export const DOI: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "पन्छानेआ पाठ",
   "reportPage.modelReturned": "माडल नै केह् वापस दित्ता",
   "reportPage.whatThisIs": "एह् रिपोर्ट केह् ऐ",
+  /* reportDialog */
+  "reportDialog.title": "रिपोर्ट दी भाशा चुनो",
+  "reportDialog.hint": "अपनी रिपोर्ट दी भाशा चुनो। इसदा इस स्क्रीन दी भाशा कन्नै मेल खाना जरूरी नेईं।",
+  "reportDialog.generate": "रिपोर्ट बनाओ",
+  "reportDialog.current": "इंटरफेस भाशा",
+  /* history */
+  "history.reportLanguage": "रिपोर्ट भाशा",
+  "history.allLanguages": "सारियां भाशां",
+  "history.notGenerated": "नेईं बनी",
+  /* report */
+  "report.generating": "तुंदी {language} रिपोर्ट त्यार कीती जा करदी ऐ…",
   /* field */
   "field.product_name": "उत्पाद दा नां",
   "field.brand": "ब्रांड",

@@ -299,6 +299,16 @@ export const EN = {
   "reportPage.modelReturned": "What the model returned",
   "reportPage.whatThisIs": "What this report is",
 
+  /* reportDialog — choosing the language a report is written in */
+  "reportDialog.title": "Choose report language",
+  "reportDialog.hint": "Select the language for your report. It does not have to match the language of this screen.",
+  "reportDialog.generate": "Generate report",
+  "reportDialog.current": "Interface language",
+  "history.reportLanguage": "Report language",
+  "history.allLanguages": "All languages",
+  "history.notGenerated": "Not generated",
+  "report.generating": "Generating your {language} report…",
+
   /* field — declaration names, as read from a label */
   "field.product_name": "Product Name",
   "field.brand": "Brand",

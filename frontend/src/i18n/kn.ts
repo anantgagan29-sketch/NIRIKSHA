@@ -269,6 +269,17 @@ export const KN: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "ಗುರುತಿಸಿದ ಪಠ್ಯ",
   "reportPage.modelReturned": "ಮಾದರಿ ಏನು ಹಿಂತಿರುಗಿಸಿತು",
   "reportPage.whatThisIs": "ಈ ವರದಿ ಏನು",
+  /* reportDialog */
+  "reportDialog.title": "ವರದಿ ಭಾಷೆಯನ್ನು ಆರಿಸಿ",
+  "reportDialog.hint": "ನಿಮ್ಮ ವರದಿಯ ಭಾಷೆಯನ್ನು ಆರಿಸಿ. ಇದು ಈ ಪರದೆಯ ಭಾಷೆಗೆ ಹೊಂದಿಕೆಯಾಗಬೇಕಿಲ್ಲ.",
+  "reportDialog.generate": "ವರದಿ ರಚಿಸಿ",
+  "reportDialog.current": "ಇಂಟರ್‌ಫೇಸ್ ಭಾಷೆ",
+  /* history */
+  "history.reportLanguage": "ವರದಿ ಭಾಷೆ",
+  "history.allLanguages": "ಎಲ್ಲಾ ಭಾಷೆಗಳು",
+  "history.notGenerated": "ರಚಿಸಿಲ್ಲ",
+  /* report */
+  "report.generating": "ನಿಮ್ಮ {language} ವರದಿ ರಚನೆಯಾಗುತ್ತಿದೆ…",
   /* field */
   "field.product_name": "ಉತ್ಪನ್ನದ ಹೆಸರು",
   "field.brand": "ಬ್ರ್ಯಾಂಡ್",

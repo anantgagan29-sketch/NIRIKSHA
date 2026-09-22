@@ -269,6 +269,17 @@ export const OR: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "ଚିହ୍ନଟ ପାଠ୍ୟ",
   "reportPage.modelReturned": "ମଡେଲ୍ କଣ ଫେରାଇଲା",
   "reportPage.whatThisIs": "ଏହି ରିପୋର୍ଟ କଣ",
+  /* reportDialog */
+  "reportDialog.title": "ରିପୋର୍ଟ ଭାଷା ବାଛନ୍ତୁ",
+  "reportDialog.hint": "ଆପଣଙ୍କ ରିପୋର୍ଟର ଭାଷା ବାଛନ୍ତୁ। ଏହା ଏହି ସ୍କ୍ରିନର ଭାଷା ସହ ମେଳ ଖାଇବା ଆବଶ୍ୟକ ନୁହେଁ।",
+  "reportDialog.generate": "ରିପୋର୍ଟ ପ୍ରସ୍ତୁତ କରନ୍ତୁ",
+  "reportDialog.current": "ଇଣ୍ଟରଫେସ୍ ଭାଷା",
+  /* history */
+  "history.reportLanguage": "ରିପୋର୍ଟ ଭାଷା",
+  "history.allLanguages": "ସମସ୍ତ ଭାଷା",
+  "history.notGenerated": "ପ୍ରସ୍ତୁତ ହୋଇନାହିଁ",
+  /* report */
+  "report.generating": "ଆପଣଙ୍କ {language} ରିପୋର୍ଟ ପ୍ରସ୍ତୁତ ହେଉଛି…",
   /* field */
   "field.product_name": "ଉତ୍ପାଦର ନାମ",
   "field.brand": "ବ୍ରାଣ୍ଡ",

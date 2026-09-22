@@ -269,6 +269,17 @@ export const SA: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "अभिज्ञातः पाठः",
   "reportPage.modelReturned": "प्रतिरूपेण किं प्रत्यर्पितम्",
   "reportPage.whatThisIs": "इदं प्रतिवेदनं किम्",
+  /* reportDialog */
+  "reportDialog.title": "प्रतिवेदनभाषां चिनोतु",
+  "reportDialog.hint": "स्वप्रतिवेदनस्य भाषां चिनोतु। सा अस्य पटलस्य भाषया सह न अवश्यं मेलति।",
+  "reportDialog.generate": "प्रतिवेदनं निर्मातु",
+  "reportDialog.current": "अन्तराफलकभाषा",
+  /* history */
+  "history.reportLanguage": "प्रतिवेदनभाषा",
+  "history.allLanguages": "सर्वाः भाषाः",
+  "history.notGenerated": "न निर्मितम्",
+  /* report */
+  "report.generating": "भवतः {language} प्रतिवेदनं सज्जीक्रियते…",
   /* field */
   "field.product_name": "उत्पादनाम",
   "field.brand": "ब्राण्ड्",

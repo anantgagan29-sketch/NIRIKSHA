@@ -120,6 +120,8 @@ export interface ScanRecord {
   score: number;
   date: string;
   relative: string;
+  /** The language this scan was last reported in; null when never reported. */
+  reportLanguage?: string | null;
 }
 
 export type ComplaintStatus = "submitted" | "under_review" | "verified" | "action_taken" | "rejected";

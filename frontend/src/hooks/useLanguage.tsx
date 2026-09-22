@@ -1,25 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { EN, type TranslationKey } from "@/i18n/en";
-import { HI } from "@/i18n/hi";
-import { BN } from "@/i18n/bn";
-import { TE } from "@/i18n/te";
-import { MR } from "@/i18n/mr";
-import { TA } from "@/i18n/ta";
-import { GU } from "@/i18n/gu";
-import { KN } from "@/i18n/kn";
-import { ML } from "@/i18n/ml";
-import { PA } from "@/i18n/pa";
-import { UR } from "@/i18n/ur";
-import { AS } from "@/i18n/as";
-import { OR } from "@/i18n/or";
-import { SA } from "@/i18n/sa";
-import { NE } from "@/i18n/ne";
-import { KOK } from "@/i18n/kok";
-import { MAI } from "@/i18n/mai";
-import { KS } from "@/i18n/ks";
-import { SD } from "@/i18n/sd";
-import { DOI } from "@/i18n/doi";
+import { DICTIONARIES } from "@/i18n/dictionaries";
 import { LANGUAGES, RTL_LANGUAGES, findLanguage } from "@/i18n/languages";
 
 /**
@@ -43,28 +25,6 @@ import { LANGUAGES, RTL_LANGUAGES, findLanguage } from "@/i18n/languages";
 
 export type Language = string;
 
-const DICTIONARIES: Record<string, Partial<Record<TranslationKey, string>>> = {
-  en: EN,
-  hi: HI,
-  bn: BN,
-  te: TE,
-  mr: MR,
-  ta: TA,
-  gu: GU,
-  kn: KN,
-  ml: ML,
-  pa: PA,
-  ur: UR,
-  as: AS,
-  or: OR,
-  sa: SA,
-  ne: NE,
-  kok: KOK,
-  mai: MAI,
-  ks: KS,
-  sd: SD,
-  doi: DOI,
-};
 
 const STORAGE_KEY = "niriksha.lang";
 

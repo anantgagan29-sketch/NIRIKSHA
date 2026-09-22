@@ -269,6 +269,17 @@ export const KS: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "पन्छानमुत मतन",
   "reportPage.modelReturned": "मॉडलन क्या वापस दित",
   "reportPage.whatThisIs": "यि रिपोर्ट क्या छु",
+  /* reportDialog */
+  "reportDialog.title": "रिपोर्ट ज़बान चुनिव",
+  "reportDialog.hint": "पनुन रिपोर्ट ज़बान चुनिव। यि छु न ज़रूरी यॅथ स्क्रीनुक ज़बान सॉत्य रलुन।",
+  "reportDialog.generate": "रिपोर्ट त्यार करिव",
+  "reportDialog.current": "इंटरफेस ज़बान",
+  /* history */
+  "history.reportLanguage": "रिपोर्ट ज़बान",
+  "history.allLanguages": "सॉरी ज़बान",
+  "history.notGenerated": "त्यार नु",
+  /* report */
+  "report.generating": "तुहुन्ज़ {language} रिपोर्ट छि त्यार गछान…",
   /* field */
   "field.product_name": "प्रोडक्ट नाव",
   "field.brand": "ब्रांड",

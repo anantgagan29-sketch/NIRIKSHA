@@ -269,6 +269,17 @@ export const MR: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "ओळखलेला मजकूर",
   "reportPage.modelReturned": "मॉडेलने काय परत दिले",
   "reportPage.whatThisIs": "हा अहवाल काय आहे",
+  /* reportDialog */
+  "reportDialog.title": "अहवालाची भाषा निवडा",
+  "reportDialog.hint": "तुमच्या अहवालाची भाषा निवडा. ती या स्क्रीनच्या भाषेशी जुळणे आवश्यक नाही.",
+  "reportDialog.generate": "अहवाल तयार करा",
+  "reportDialog.current": "इंटरफेस भाषा",
+  /* history */
+  "history.reportLanguage": "अहवाल भाषा",
+  "history.allLanguages": "सर्व भाषा",
+  "history.notGenerated": "तयार नाही",
+  /* report */
+  "report.generating": "तुमचा {language} अहवाल तयार होत आहे…",
   /* field */
   "field.product_name": "उत्पादनाचे नाव",
   "field.brand": "ब्रँड",

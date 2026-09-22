@@ -269,6 +269,17 @@ export const SD: Partial<Record<keyof typeof EN, string>> = {
   "reportPage.recognisedText": "सुञातल मतन",
   "reportPage.modelReturned": "मॉडल छा वापस ॾिनो",
   "reportPage.whatThisIs": "ही रिपोर्ट छा आहे",
+  /* reportDialog */
+  "reportDialog.title": "रिपोर्ट जी ॿोली चुंडियो",
+  "reportDialog.hint": "पंहिंजी रिपोर्ट जी ॿोली चुंडियो। हिन जो हिन स्क्रीन जी ॿोलीअ सां मिलण ज़रूरी नाहे।",
+  "reportDialog.generate": "रिपोर्ट तयार कयो",
+  "reportDialog.current": "इंटरफेस ॿोली",
+  /* history */
+  "history.reportLanguage": "रिपोर्ट ॿोली",
+  "history.allLanguages": "सभु ॿोलियूं",
+  "history.notGenerated": "तयार नाहे",
+  /* report */
+  "report.generating": "तव्हांजी {language} रिपोर्ट तयार थी रही आहे…",
   /* field */
   "field.product_name": "प्रोडक्ट जो नालो",
   "field.brand": "ब्रांड",

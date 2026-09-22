@@ -113,7 +113,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
                   reply can be routed without asking. */}
               <a
                 href={`mailto:${HELP_EMAIL}?subject=${encodeURIComponent("NIRIKSHA support")}`}
-                className="block truncate font-mono text-[11px] text-white/70 underline-offset-2 hover:text-white hover:underline"
+                className="block break-all font-mono text-[11px] leading-snug text-white/70 underline-offset-2 hover:text-white hover:underline"
               >
                 {HELP_EMAIL}
               </a>

@@ -268,7 +268,7 @@ def init_db() -> None:
             -- One row per report generated from a scan: which language it
             -- was written in, in what format, by whom and with which
             -- template. The document itself is made on the reader's device
-            -- and is not stored; this is what makes it reproducible.
+            -- and is not stored. This record is what makes it reproducible.
             CREATE TABLE IF NOT EXISTS report_generations (
                 id               TEXT PRIMARY KEY,
                 scan_id          TEXT NOT NULL,

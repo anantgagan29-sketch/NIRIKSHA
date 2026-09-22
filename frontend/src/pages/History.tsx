@@ -231,12 +231,12 @@ export function History() {
               <table className="w-full min-w-[52rem] border-collapse text-left">
                 <thead>
                   <tr className="border-b border-line text-[11px] uppercase tracking-wider text-faint">
-                    <th className="px-5 py-3 font-semibold">Product</th>
-                    <th className="px-5 py-3 font-semibold">Result</th>
-                    <th className="px-5 py-3 font-semibold">Date</th>
-                    <th className="px-5 py-3 font-semibold">Scan ID</th>
+                    <th className="px-5 py-3 font-semibold">{t("history.product")}</th>
+                    <th className="px-5 py-3 font-semibold">{t("history.result")}</th>
+                    <th className="px-5 py-3 font-semibold">{t("history.when")}</th>
+                    <th className="px-5 py-3 font-semibold">{t("reportPage.scanId")}</th>
                     <th className="px-5 py-3 font-semibold">{t("history.reportLanguage")}</th>
-                    <th className="px-5 py-3 font-semibold">Action</th>
+                    <th className="px-5 py-3 font-semibold">{t("common.view")}</th>
                   </tr>
                 </thead>
                 <tbody>

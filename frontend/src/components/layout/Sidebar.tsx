@@ -9,9 +9,12 @@ import {
   Info,
   ShieldCheck,
   Settings,
-  Phone,
+  Mail,
   X,
 } from "lucide-react";
+
+/** Where a person writes for help. */
+const HELP_EMAIL = "nirikshahelp@gmail.com";
 import { BrandLockup } from "./Brand";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
@@ -99,17 +102,25 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
           <div className="flex items-center gap-2.5">
             <span
               aria-hidden="true"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-white"
             >
-              <Phone className="h-4 w-4" />
+              <Mail className="h-4 w-4" />
             </span>
-            <div>
+            <div className="min-w-0">
               <p className="text-[13px] font-semibold text-white">Need Help?</p>
-              <p className="font-mono text-[11px] text-white/60">1800-123-4567</p>
+              {/* A mailto link opens the reader's own mail client with the
+                  address filled in, and the subject names the product so a
+                  reply can be routed without asking. */}
+              <a
+                href={`mailto:${HELP_EMAIL}?subject=${encodeURIComponent("NIRIKSHA support")}`}
+                className="block truncate font-mono text-[11px] text-white/70 underline-offset-2 hover:text-white hover:underline"
+              >
+                {HELP_EMAIL}
+              </a>
             </div>
           </div>
           <p className="mt-2.5 text-[11px] leading-relaxed text-white/45">
-            Mon – Fri, 10 AM – 6 PM. Demonstration contact only.
+            Mon – Fri, 10 AM – 6 PM. Replies within one working day.
           </p>
         </div>
       </aside>

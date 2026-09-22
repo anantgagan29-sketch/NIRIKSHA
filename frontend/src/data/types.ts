@@ -194,7 +194,16 @@ export interface LetterHeightAssessment {
   provision: string;
   /** The applicable minimum, and how it was arrived at. */
   requirement: { determined: boolean; minimumHeightMm: number | null; basis: string; table: string | null };
-  scale: { available: boolean; note: string };
+  scale: {
+    available: boolean;
+    /**
+     * Where the millimetres came from: a dimension somebody measured, or
+     * the barcode in the frame — which bounds the scale rather than fixing
+     * it, and so can establish a shortfall but never a compliance.
+     */
+    source?: string | null;
+    note: string;
+  };
   widthRule: string;
   findings: LetterHeightFinding[];
   overall: LetterHeightStatus;

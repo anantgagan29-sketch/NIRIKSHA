@@ -466,6 +466,14 @@ export async function buildComplianceReport(data: ReportData): Promise<Blob> {
     );
     await w.text(rule7.requirement.basis, { size: 8.5, colour: MUTED });
 
+    // A scale taken from the barcode is stated in the document, because it
+    // is what a FAIL below rests on and a reader is entitled to see the
+    // assumption. A missing scale is stated for the same reason.
+    if (rule7.scale.available) {
+      w.move(3);
+      await w.text(rule7.scale.note, { size: 8.5, colour: MUTED });
+    }
+
     if (!rule7.scale.available) {
       w.move(3);
       await w.text(rule7.scale.note, { size: 8.5, colour: STATUS_COLOUR.review });

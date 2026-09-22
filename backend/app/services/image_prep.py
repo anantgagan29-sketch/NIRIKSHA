@@ -17,6 +17,7 @@ same bytes on the label.
 
 import io
 import os
+from typing import Optional
 
 import cv2
 import numpy as np
@@ -132,6 +133,22 @@ def prepare_for_vision(image_path: str) -> str:
     except Exception as error:
         print("Image preparation skipped:", str(error))
         return image_path
+
+
+def dimensions(image_path: str) -> tuple[Optional[int], Optional[int]]:
+    """
+    The pixel size of an image, or (None, None).
+
+    Needed because every measurement the vision pass reports is relative to
+    the copy it was given. Once that copy may be a crop of the original, the
+    original's dimensions are the wrong ruler: a scale worked out across the
+    whole frame does not apply to a frame two thirds of the way in.
+    """
+    try:
+        with Image.open(image_path) as image:
+            return image.width, image.height
+    except Exception:
+        return None, None
 
 
 def discard_prepared(prepared_path: str, original_path: str) -> None:

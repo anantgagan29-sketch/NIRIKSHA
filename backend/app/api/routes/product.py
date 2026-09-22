@@ -16,7 +16,7 @@ from app.services.product_parser import (
     parse_product_image
 )
 
-from app.services import letter_height, placement
+from app.services import barcode_scale, letter_height, placement
 from app.core.field_selection import parse_selection
 from app.api.routes.compliance import small_package_quantity
 from app.services.readability_service import (
@@ -47,6 +47,7 @@ from app.services.scan_cache import (
 )
 
 from app.services.image_prep import (
+    dimensions,
     prepare_for_vision,
     discard_prepared,
     thumbnail_for_record
@@ -512,6 +513,25 @@ def scan_product(
     # the whole request with it and the user is left with nothing.
 
     prepared_path = prepare_for_vision(file_path)
+
+    # The barcode on the pack is a reference object of nearly known size, and
+    # it is the only physical scale most photographs carry. Measured here,
+    # from the same copy the model reads, so the pixel geometry and the text
+    # boxes share one coordinate frame. Cheap — a detector pass, no network —
+    # and optional: no symbol simply means Rule 7 stays where it was.
+    symbol_scale = barcode_scale.scale_for_image(prepared_path)
+
+    # Every box the vision pass reports is relative to this copy, so every
+    # scale has to be too. Before the crop existed these were the original
+    # file's dimensions and the distinction did not arise.
+    vision_width_px, vision_height_px = dimensions(prepared_path)
+
+    if symbol_scale:
+        print(
+            f"Rule 7: scale from the barcode — 95 modules span "
+            f"{symbol_scale['symbol_width_px']:.0f} px"
+        )
+
     clock.lap("prepare")
 
     started = time.perf_counter()
@@ -778,12 +798,17 @@ def scan_product(
             net_quantity=small_package_quantity(
                 (product_info or {}).get("net_quantity")
             ),
-            image_height_px=(image_quality or {}).get("resolution", {}).get("height"),
+            image_height_px=vision_height_px
+            or (image_quality or {}).get("resolution", {}).get("height"),
             mm_per_unit=letter_height.scale_from_package_width(
                 package_width_cm,
-                (image_quality or {}).get("resolution", {}).get("width"),
-                (image_quality or {}).get("resolution", {}).get("height"),
+                vision_width_px or (image_quality or {}).get("resolution", {}).get("width"),
+                vision_height_px or (image_quality or {}).get("resolution", {}).get("height"),
             ),
+            # Used only when nobody measured the pack. It bounds the scale
+            # rather than fixing it, so it can establish a shortfall and
+            # never a compliance.
+            barcode_scale=symbol_scale,
         ),
 
         # Rule 9 — where the declarations sit. One photograph is one panel of a

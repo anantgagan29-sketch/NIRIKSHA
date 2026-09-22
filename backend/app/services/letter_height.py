@@ -161,6 +161,16 @@ def numeral_requirement(
 # rule by less than its own uncertainty actually means.
 FAIL_MARGIN = 0.75
 
+# The margin for a height judged at the barcode's most generous bound.
+#
+# That bound has already assumed the largest symbol GS1 permits, so the
+# magnification uncertainty the manual path allows for is spent. What is
+# left is the pixel measurement itself — a module width read from a symbol
+# 150 px across is good to about a percent — and the block-versus-character
+# distinction, which only ever makes the characters shorter. Ten per cent
+# covers the former with room to spare.
+BARCODE_FAIL_MARGIN = 0.90
+
 
 # --------------------------------------------------------------------------
 # What the photograph can support
@@ -242,17 +252,33 @@ def assess(
     display_panel_area_cm2: Optional[float] = None,
     image_height_px: Optional[int] = None,
     mm_per_unit: Optional[float] = None,
+    barcode_scale: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     """
     A Rule 7 finding for each declaration the image located.
 
     `mm_per_unit` is the conversion from the vision pass's 0-1000 vertical
-    units to millimetres on the physical package. It is the whole question:
-    supplied, the heights can be compared against the requirement and the
-    finding is a conclusion; absent, every height finding is REVIEW. Nothing
-    here derives it from the photograph, because a photograph does not carry
-    it — it comes from a measured package dimension or a reference object in
-    frame, and today the application has neither.
+    units to millimetres on the physical package, from a dimension somebody
+    measured. Supplied, the heights are compared against the requirement in
+    both directions.
+
+    `barcode_scale` is the weaker thing: bounds derived from the barcode in
+    the frame (see barcode_scale.py). A retail symbol may be printed at any
+    magnification from 0.80 to 2.00, so it gives a range rather than a
+    number, and only one conclusion can be drawn from a range. Heights are
+    computed at its generous end, where a character measures as tall as it
+    possibly could:
+
+      * still below the minimum there — it is below the minimum at every
+        permitted magnification, and that is a FAIL;
+      * above it — the character may be too small at another magnification,
+        so this concludes nothing and stays REVIEW.
+
+    A measured dimension is preferred when both are present: it is a
+    measurement of this package rather than a bound over every pack GS1
+    allows.
+
+    With neither, every height finding is REVIEW.
     """
     requirement = numeral_requirement(net_quantity, display_panel_area_cm2)
 
@@ -355,8 +381,50 @@ def assess(
             findings.append(finding)
             continue
 
-        # No scale. This is the ordinary case, and the honest answer is a
-        # stated requirement and a request for physical verification.
+        # A bound from the barcode, where there was no measured dimension.
+        # Only a shortfall concludes anything; see the docstring above.
+        generous = (barcode_scale or {}).get("mm_per_unit_max")
+
+        if generous and height_units is not None and requirement["determined"]:
+            largest_mm = height_units * generous
+            minimum = requirement["minimum_height_mm"]
+
+            finding["character_height_mm"] = round(largest_mm, 2)
+            finding["scale_source"] = "barcode"
+
+            if largest_mm < minimum * BARCODE_FAIL_MARGIN:
+                finding.update(
+                    status="FAIL",
+                    evidence_confidence="MEDIUM",
+                    finding=(
+                        f"Measured against the barcode on the pack, this text is at most "
+                        f"{largest_mm:.1f} mm tall — and that is with the barcode assumed to be "
+                        f"printed at the largest magnification the GS1 specification permits, "
+                        f"which is the assumption most favourable to the pack. The applicable "
+                        f"minimum is {minimum:g} mm. At any smaller magnification the text is "
+                        f"smaller still, so the shortfall does not depend on which one was used. "
+                        f"The height is of the whole text block, so the characters within it are "
+                        f"no taller."
+                    ),
+                )
+            else:
+                finding.update(
+                    status="REVIEW",
+                    evidence_confidence="MEDIUM",
+                    finding=(
+                        f"Measured against the barcode, this text is at most {largest_mm:.1f} mm "
+                        f"tall against a {minimum:g} mm minimum, so it clears the minimum at the "
+                        f"largest magnification GS1 permits. It would not at a smaller one, and "
+                        f"the barcode does not say which was printed — so this neither passes nor "
+                        f"fails. Measure the printed characters to settle it."
+                    ),
+                )
+
+            findings.append(finding)
+            continue
+
+        # No scale at all. This is the ordinary case, and the honest answer
+        # is a stated requirement and a request for physical verification.
         finding.update(
             status="REVIEW",
             evidence_confidence="MEDIUM" if height_units is not None else "LOW",
@@ -373,18 +441,7 @@ def assess(
     return {
         "provision": RULE_7,
         "requirement": requirement,
-        "scale": {
-            "available": bool(mm_per_unit),
-            "source": "supplied package dimension" if mm_per_unit else None,
-            "note": (
-                "Millimetre heights were derived from a supplied package "
-                "dimension."
-                if mm_per_unit
-                else "No physical scale was available, so no height was converted to "
-                "millimetres. Rule 7 is a requirement about the printed package, "
-                "and a photograph alone cannot measure it."
-            ),
-        },
+        "scale": _scale_report(mm_per_unit, barcode_scale),
         "width_rule": (
             "Rule 7 also requires the width of a letter or numeral to be at least "
             "one third of its height, except for the numeral 1 and the letters "
@@ -392,6 +449,43 @@ def assess(
         ),
         "findings": findings,
         "summary": _summarise(findings),
+    }
+
+
+def _scale_report(
+    mm_per_unit: Optional[float],
+    barcode_scale: Optional[dict[str, Any]],
+) -> dict[str, Any]:
+    """Where the millimetres came from, and what they can settle."""
+    if mm_per_unit:
+        return {
+            "available": True,
+            "source": "supplied package dimension",
+            "note": "Millimetre heights were derived from a supplied package dimension.",
+        }
+
+    if barcode_scale and barcode_scale.get("mm_per_unit_max"):
+        return {
+            "available": True,
+            "source": "barcode",
+            "symbol_width_px": barcode_scale.get("symbol_width_px"),
+            "magnification_range": barcode_scale.get("magnification_range"),
+            "note": (
+                barcode_scale.get("note", "")
+                + " Only a shortfall can be concluded from this: text that clears the "
+                "minimum at the largest permitted magnification may still be short at a "
+                "smaller one, so it stays under review."
+            ),
+        }
+
+    return {
+        "available": False,
+        "source": None,
+        "note": (
+            "No physical scale was available, so no height was converted to "
+            "millimetres. Rule 7 is a requirement about the printed package, "
+            "and a photograph alone cannot measure it."
+        ),
     }
 
 

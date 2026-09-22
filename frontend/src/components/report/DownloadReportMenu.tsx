@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { ChevronDown, Download, FileImage, FileText, FileType, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
@@ -32,6 +32,10 @@ const FORMATS: {
   { id: "jpeg", label: "Image (JPG)", hint: "Smaller file", busy: "Generating image…", icon: FileImage },
 ];
 
+// Module-level so the dialog receives the same array each render and its
+// "reset on open" effect does not re-run on every parent render.
+const FORMAT_OPTIONS = FORMATS.map(({ id, label, hint }) => ({ id, label, hint }));
+
 export function DownloadReportMenu({
   product,
   variant = "secondary",
@@ -39,37 +43,12 @@ export function DownloadReportMenu({
   product: DemoProduct;
   variant?: "primary" | "secondary";
 }) {
-  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<Format | null>(null);
-  // The format chosen from the menu, waiting on a language. The document is
+  // Open while the language and format are being chosen. The document is
   // not made until the dialog answers; nothing about the screen's language
   // is consulted in between.
-  const [pending, setPending] = useState<Format | null>(null);
-  const container = useRef<HTMLDivElement | null>(null);
+  const [asking, setAsking] = useState(false);
   const toast = useToast();
-
-  // A menu that stays open after the pointer has moved on is a menu in the
-  // way. Escape closes it too, because the keyboard has to reach everything
-  // the mouse does.
-  useEffect(() => {
-    if (!open) return;
-
-    function onPointerDown(event: MouseEvent) {
-      if (!container.current?.contains(event.target as Node)) setOpen(false);
-    }
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
-    }
-
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
 
   async function download(format: Format, language: string) {
     // Guarded rather than merely disabled: a second click that lands before
@@ -99,8 +78,7 @@ export function DownloadReportMenu({
         await downloadImageReport(data, format);
       }
 
-      setOpen(false);
-      setPending(null);
+      setAsking(false);
       toast("success", `Report downloaded as ${format === "docx" ? "a Word document" : format.toUpperCase()}.`);
 
       // Recorded after the file is in the reader's hands, and never in the
@@ -121,16 +99,15 @@ export function DownloadReportMenu({
   }
 
   const current = FORMATS.find((format) => format.id === busy);
-  const chosen = FORMATS.find((format) => format.id === pending);
 
   return (
-    <div className="relative" ref={container}>
+    <>
       <Button
         variant={variant}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => setAsking(true)}
         disabled={busy !== null}
-        aria-haspopup="menu"
-        aria-expanded={open}
+        aria-haspopup="dialog"
+        aria-expanded={asking}
       >
         {busy ? (
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -141,42 +118,17 @@ export function DownloadReportMenu({
         {!busy && <ChevronDown className="h-3.5 w-3.5 opacity-70" aria-hidden="true" />}
       </Button>
 
+      {/* One dialog settles both questions — which language, which file —
+          so a download is always asked about, whatever language the screen
+          happens to be in. */}
       <ReportLanguageDialog
-        open={pending !== null}
+        open={asking}
         busy={busy !== null}
-        formatLabel={chosen?.label ?? ""}
-        onClose={() => setPending(null)}
-        onConfirm={(language) => {
-          if (pending) void download(pending, language);
-        }}
+        formatLabel="PDF"
+        formats={FORMAT_OPTIONS}
+        onClose={() => setAsking(false)}
+        onConfirm={(language, format) => void download(format as Format, language)}
       />
-
-      {open && (
-        <div
-          role="menu"
-          className="absolute right-0 z-30 mt-2 w-64 overflow-hidden rounded-xl border border-line-strong bg-surface shadow-lg"
-        >
-          {FORMATS.map((format) => (
-            <button
-              key={format.id}
-              role="menuitem"
-              type="button"
-              disabled={busy !== null}
-              onClick={() => {
-                setOpen(false);
-                setPending(format.id);
-              }}
-              className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-brand-50 disabled:pointer-events-none disabled:opacity-50"
-            >
-              <format.icon className="h-4 w-4 shrink-0 text-brand-700" aria-hidden="true" />
-              <span className="min-w-0">
-                <span className="block text-[13.5px] font-medium text-ink">{format.label}</span>
-                <span className="block text-xs text-muted">{format.hint}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    </>
   );
 }

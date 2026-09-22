@@ -25,30 +25,46 @@ import { cn } from "@/lib/cn";
  * While the document is being made, the progress line is written in the
  * language the document will be in — the first thing the reader sees of it.
  */
+export interface ReportFormatOption {
+  id: string;
+  label: string;
+  hint: string;
+}
+
 export function ReportLanguageDialog({
   open,
   onClose,
   onConfirm,
   busy,
   formatLabel,
+  formats,
 }: {
   open: boolean;
   onClose: () => void;
-  /** Called with the chosen language code; the caller makes the document. */
-  onConfirm: (language: string) => void;
+  /** Called with the chosen language code and format; the caller makes the document. */
+  onConfirm: (language: string, format: string) => void;
   /** True while the document is being generated; the dialog then waits. */
   busy: boolean;
-  /** What is about to be made — "PDF", "Word document" — for the button. */
+  /** What is about to be made — "PDF", "Print" — for the button when there is no format choice. */
   formatLabel: string;
+  /**
+   * Offered formats. When given, the dialog asks for the format as well as
+   * the language, so one dialog settles both; the first is the default.
+   */
+  formats?: ReportFormatOption[];
 }) {
   const { t, language: interfaceLanguage } = useLanguage();
   const [selected, setSelected] = useState<string>(() => rememberedReportLanguage());
+  const [format, setFormat] = useState<string>(formats?.[0]?.id ?? "pdf");
 
   // Re-read the remembered default each time the dialog opens, so a choice
   // made from another screen is the default here too.
   useEffect(() => {
-    if (open) setSelected(rememberedReportLanguage());
-  }, [open]);
+    if (open) {
+      setSelected(rememberedReportLanguage());
+      setFormat(formats?.[0]?.id ?? "pdf");
+    }
+  }, [open, formats]);
 
   const interfaceName = useMemo(() => reportLanguage(interfaceLanguage), [interfaceLanguage]);
   const chosen = reportLanguage(selected);
@@ -58,8 +74,10 @@ export function ReportLanguageDialog({
 
   function confirm() {
     rememberReportLanguage(selected);
-    onConfirm(selected);
+    onConfirm(selected, format);
   }
+
+  const chosenFormat = formats?.find((option) => option.id === format);
 
   return (
     <Modal open={open} onClose={busy ? () => undefined : onClose} title={t("reportDialog.title")}>
@@ -115,6 +133,37 @@ export function ReportLanguageDialog({
           })}
         </fieldset>
 
+        {formats && (
+          <div className="flex flex-col gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-faint">{t("common.download")}</p>
+            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t("common.download")}>
+              {formats.map((option) => {
+                const on = option.id === format;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    disabled={busy}
+                    onClick={() => setFormat(option.id)}
+                    title={option.hint}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-[12.5px] transition-colors",
+                      on
+                        ? "border-brand-600 bg-brand-50 font-semibold text-ink"
+                        : "border-line bg-canvas text-ink hover:border-line-strong",
+                      busy && "opacity-60",
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
           <p
             lang={selected}
@@ -131,7 +180,7 @@ export function ReportLanguageDialog({
               {busy ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               ) : null}
-              {t("reportDialog.generate")} · {formatLabel}
+              {t("reportDialog.generate")} · {chosenFormat?.label ?? formatLabel}
             </Button>
           </div>
         </div>

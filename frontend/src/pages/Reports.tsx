@@ -1,5 +1,6 @@
 import { DownloadReportMenu } from "@/components/report/DownloadReportMenu";
-import { Printer, Share2 } from "lucide-react";
+import { PrintReportButton } from "@/components/report/PrintReportButton";
+import { Share2 } from "lucide-react";
 import { PageHeader, AssessmentNotice } from "@/components/ui/PageHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { LetterHeightPanel } from "@/components/compliance/LetterHeightPanel";
@@ -46,10 +47,7 @@ export function Reports() {
         actions={
           <>
             <DownloadReportMenu product={product} />
-            <Button variant="secondary" onClick={() => window.print()}>
-              <Printer className="h-4 w-4" aria-hidden="true" />
-              {t("common.print")}
-            </Button>
+            <PrintReportButton product={product} />
             <Button
               onClick={async () => {
                 try {

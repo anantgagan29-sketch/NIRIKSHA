@@ -120,7 +120,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
             </div>
           </div>
           <p className="mt-2.5 text-[11px] leading-relaxed text-white/45">
-            Mon – Fri, 10 AM – 6 PM. Replies within one working day.
+            Email us anytime. Replies within one working day.
           </p>
         </div>
       </aside>

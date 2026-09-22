@@ -244,6 +244,26 @@ READABILITY_TIMEOUT_SECONDS: float = float(os.getenv("READABILITY_TIMEOUT_SECOND
 
 
 # --------------------------------------------------------------------------
+# Product directory
+# --------------------------------------------------------------------------
+
+# Whether a scanned barcode is looked up in Open Food Facts, the public
+# community database of packaged products. On by default: it needs no key and
+# gives a scanned code a likely name, brand and declared quantity. Off, the
+# barcode is still validated and recorded — the assessment never depended on
+# the directory, and does not now.
+PRODUCT_DIRECTORY_ENABLED: bool = os.getenv(
+    "PRODUCT_DIRECTORY_ENABLED", "true"
+).strip().lower() in ("1", "true", "yes")
+
+# A directory that has not answered by then is treated as absent. The scan
+# has a barcode either way; what it is waiting on is a courtesy.
+PRODUCT_DIRECTORY_TIMEOUT_SECONDS: float = float(
+    os.getenv("PRODUCT_DIRECTORY_TIMEOUT_SECONDS", "4")
+)
+
+
+# --------------------------------------------------------------------------
 # Image preparation
 # --------------------------------------------------------------------------
 

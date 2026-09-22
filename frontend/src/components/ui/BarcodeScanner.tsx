@@ -341,9 +341,53 @@ function DetectedPanel({ detected }: { detected: Detected }) {
           {t("barcode.lookupUnavailable")}
         </p>
       ) : lookup?.found ? (
+        /* What the directory holds, offered as a likely identity to check
+           against the pack — never as a finding. The source is named on the
+           card, because a community record is not an authority. */
         <div className="rounded-md border border-line bg-canvas px-4 py-3">
-          <p className="text-[13px] font-medium text-ink">{lookup.product_name}</p>
-          {lookup.source && <p className="mt-0.5 text-[12px] text-muted">Source: {lookup.source}</p>}
+          <div className="flex items-start gap-3">
+            {lookup.image_url && (
+              <img
+                src={lookup.image_url}
+                alt=""
+                className="h-14 w-14 shrink-0 rounded border border-line object-contain bg-surface"
+                loading="lazy"
+              />
+            )}
+            <div className="min-w-0">
+              <p className="text-[13.5px] font-medium text-ink">{lookup.product_name}</p>
+              {lookup.brand && <p className="mt-0.5 text-[12.5px] text-muted">{lookup.brand}</p>}
+              {lookup.quantity && (
+                <p className="mt-1 text-[12.5px] text-ink">
+                  <span className="text-muted">Declared quantity on record:</span> {lookup.quantity}
+                </p>
+              )}
+              {lookup.countries?.length ? (
+                <p className="mt-0.5 text-[12px] text-muted">Sold in: {lookup.countries.join(", ")}</p>
+              ) : null}
+            </div>
+          </div>
+
+          <p className="mt-2.5 border-t border-line pt-2.5 text-[11.5px] leading-relaxed text-muted">
+            {lookup.message}
+          </p>
+          {lookup.source && (
+            <p className="mt-1 text-[11.5px] text-muted">
+              Source:{" "}
+              {lookup.source_url ? (
+                <a
+                  href={lookup.source_url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-brand-700 underline underline-offset-2"
+                >
+                  {lookup.source}
+                </a>
+              ) : (
+                lookup.source
+              )}
+            </p>
+          )}
         </div>
       ) : (
         <p className="rounded-md border border-line bg-canvas px-4 py-3 text-[13px] text-muted">

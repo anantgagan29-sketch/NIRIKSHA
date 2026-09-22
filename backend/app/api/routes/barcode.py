@@ -1,11 +1,12 @@
 """
 Barcode lookup.
 
-There is no product database behind NIRIKSHA, and this endpoint does not
-pretend otherwise. Returning an invented product name for a scanned barcode
-would be worse than returning nothing: it would put a name on the screen that
-nobody had verified, next to a compliance assessment that people are meant to
-trust.
+NIRIKSHA holds no product database of its own, and this endpoint does not
+pretend otherwise. What it can do is ask Open Food Facts — a public,
+community-maintained directory — and pass on what that says, named as such.
+Returning an invented product name would be worse than returning nothing: it
+would put a name on the screen that nobody had verified, next to a compliance
+assessment that people are meant to trust.
 
 So it reports what can actually be established from the number itself:
 
@@ -13,14 +14,17 @@ So it reports what can actually be established from the number itself:
   * which numbering organisation issued the prefix, which is published
     reference data, not a guess about the product.
 
-If a product database is connected later, `found` becomes true and the name
-comes from that source. Until then the honest answer is that the code is
-valid, the prefix is Indian, and the product is unknown — and the inspection
-carries on from the packaging, which is where the answer actually lives.
+When the directory has a record, `found` is true and the name, brand and
+declared quantity come with their source. When it has none, or cannot be
+reached, the honest answer is that the code is valid, the prefix is Indian,
+and the product is unknown — and the inspection carries on from the
+packaging, which is where the answer actually lives.
 """
 
 from fastapi import APIRouter
 from pydantic import BaseModel
+
+from app.services import product_directory
 
 router = APIRouter()
 
@@ -181,21 +185,60 @@ def lookup(request: BarcodeRequest) -> dict:
         if not valid:
             reason = "The check digit does not match, so this code was misread or mistyped."
 
+    # A valid retail code is looked up in the public product directory. The
+    # record — when there is one — is offered as a likely identity to check
+    # against the pack, never as the assessment's input.
+    record = None
+    problem = None
+    if valid and numeric and len(code) in (8, 12, 13, 14):
+        record, problem = product_directory.identify(code)
+
+    if record:
+        return {
+            "barcode": code,
+            "valid": True,
+            "reason": None,
+            "issuing_region": issuing_region(code),
+            "found": True,
+            "product_name": record["product_name"],
+            "brand": record["brand"],
+            "quantity": record["quantity"],
+            "image_url": record["image_url"],
+            "countries": record["countries"],
+            "source": record["source"],
+            "source_url": record["source_url"],
+            "message": (
+                "Identified from a community-maintained database. Check the name "
+                "and quantity against the pack; the compliance assessment is made "
+                "from the packaging itself in the next step."
+            ),
+        }
+
+    if problem == "unreachable":
+        message = (
+            "The product directory could not be reached, so the barcode is "
+            "recorded but not resolved to a product. Compliance is assessed "
+            "from the packaging in the next step."
+        )
+    elif problem == "disabled":
+        message = (
+            "Product lookup is switched off on this server, so the barcode is "
+            "recorded but not resolved to a product. Compliance is assessed "
+            "from the packaging in the next step."
+        )
+    else:
+        message = (
+            "No product record was found for this barcode in the public "
+            "directory. Compliance is assessed from the packaging in the next step."
+        )
+
     return {
         "barcode": code,
         "valid": valid,
         "reason": reason,
         "issuing_region": issuing_region(code) if numeric else None,
-
-        # No product database is connected. Reporting `found` false is the
-        # honest answer; inventing a product name here would put unverified
-        # information beside a compliance assessment.
         "found": False,
         "product_name": None,
         "source": None,
-        "message": (
-            "This build holds no product database, so the barcode is recorded "
-            "but not resolved to a product. Compliance is assessed from the "
-            "packaging in the next step."
-        ),
+        "message": message,
     }

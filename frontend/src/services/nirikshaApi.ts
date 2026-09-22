@@ -986,7 +986,14 @@ export interface BarcodeLookup {
   issuing_region?: string | null;
   found: boolean;
   product_name?: string | null;
+  /** From the directory's record, where it has one. */
+  brand?: string | null;
+  /** The quantity the directory holds — a claim to check against the pack. */
+  quantity?: string | null;
+  image_url?: string | null;
+  countries?: string[] | null;
   source?: string | null;
+  source_url?: string | null;
   message?: string;
 }
 

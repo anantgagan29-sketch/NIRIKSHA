@@ -25,3 +25,9 @@ pyjwt
 # DATABASE_URL and the application falls back to the SQLite file, which is
 # what a local checkout runs on.
 psycopg[binary]
+
+# Certificate authorities for the product-directory lookup. Present anyway as
+# a dependency of the HTTP libraries, named here because this code imports it
+# directly: a Python without system roots rejects every HTTPS host otherwise,
+# which reads as the directory being unreachable.
+certifi

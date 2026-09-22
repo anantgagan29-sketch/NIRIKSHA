@@ -127,6 +127,8 @@ export const KOK: Partial<Record<keyof typeof EN, string>> = {
   "camera.capture": "कॅप्चर",
   "camera.retake": "परत काडात",
   "camera.usePhoto": "हो फोटो वापरात",
+  "camera.light": "लाइट",
+  "camera.lightOff": "लाइट बंद",
   "camera.switch": "कॅमेरा बदलात",
   "camera.uploadInstead": "तेच्या बदला प्रतिमा अपलोड करात",
   /* barcode */

@@ -65,10 +65,30 @@ function describe(cause: unknown): string {
  * the frame: a guide that overhangs the content area crops to the content's
  * edge rather than reading pixels that do not exist.
  */
+/**
+ * Constraints the browsers support but the DOM typings do not yet name.
+ *
+ * `torch`, `focusMode` and `whiteBalanceMode` are in the Media Capture
+ * extensions and are implemented on Android Chrome, where a label is
+ * actually photographed. They go inside `advanced`, which a browser that
+ * does not know them ignores rather than refusing the whole request.
+ */
+interface CameraExtensions {
+  torch?: boolean;
+  focusMode?: "continuous" | "single-shot" | "manual";
+  whiteBalanceMode?: "continuous" | "single-shot" | "manual";
+}
+
+type ExtendedTrackConstraints = MediaTrackConstraints & {
+  advanced?: CameraExtensions[];
+};
+
 export function guideToVideoPixels(
   video: HTMLVideoElement,
-  guide: Element,
+  guide: Element | null | undefined,
 ): { x: number; y: number; width: number; height: number } | null {
+  if (!guide) return null;
+
   const element = video.getBoundingClientRect();
   const box = guide.getBoundingClientRect();
 
@@ -103,6 +123,12 @@ export function useCameraStream({ facing = "environment" }: Options = {}) {
   const [error, setError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"environment" | "user">(facing);
   const [canSwitch, setCanSwitch] = useState(false);
+  // A lamp is only offered where the device has one, and only the back
+  // camera has one. Label photographs are taken indoors, in shops, in the
+  // shade of a shelf — the light is the difference between reading the
+  // batch number and recording that it was not detected.
+  const [canLight, setCanLight] = useState(false);
+  const [light, setLight] = useState(false);
 
   /** Releases every track. Safe to call repeatedly and when nothing is running. */
   const stop = useCallback(() => {
@@ -137,14 +163,27 @@ export function useCameraStream({ facing = "environment" }: Options = {}) {
 
       try {
         // Resolution is requested, not demanded — "ideal" lets a device that
-        // cannot manage 1920 give its best rather than refusing outright, and
-        // the frame still has to carry small print legibly for OCR.
+        // cannot manage it give its best rather than refusing outright, and
+        // the frame still has to carry small print legibly for OCR. 2560 is
+        // asked for because the capture is cropped to the guide box: a third
+        // of a 1920 frame is 640px of label, which is not enough for a
+        // licence number.
+        //
+        // Continuous autofocus is requested through `advanced`, which a
+        // browser that does not support it ignores rather than refusing the
+        // whole constraint. Without it a phone focuses once, on whatever was
+        // in front of it when the view opened, and a label moved closer
+        // stays soft.
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { ideal: mode },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-          },
+            width: { ideal: 2560 },
+            height: { ideal: 1440 },
+            advanced: [
+              { focusMode: "continuous" },
+              { whiteBalanceMode: "continuous" },
+            ],
+          } as ExtendedTrackConstraints,
           audio: false,
         });
 
@@ -158,6 +197,19 @@ export function useCameraStream({ facing = "environment" }: Options = {}) {
         }
 
         setState("live");
+
+        // What this camera can actually do, asked after the stream exists —
+        // capabilities are empty before permission is granted.
+        const track = stream.getVideoTracks()[0];
+        setLight(false);
+        try {
+          const capabilities = track?.getCapabilities?.() as
+            | { torch?: boolean; focusMode?: string[] }
+            | undefined;
+          setCanLight(Boolean(capabilities?.torch));
+        } catch {
+          setCanLight(false);
+        }
 
         // Offer a switch only where there is somewhere to switch to. Labels
         // are empty until permission is granted, which is why this runs after.
@@ -179,6 +231,24 @@ export function useCameraStream({ facing = "environment" }: Options = {}) {
   const switchCamera = useCallback(() => {
     void start(facingMode === "environment" ? "user" : "environment");
   }, [facingMode, start]);
+
+  /** Turns the camera lamp on or off, where the device has one. */
+  const toggleLight = useCallback(async () => {
+    const track = streamRef.current?.getVideoTracks()[0];
+    if (!track) return;
+
+    const next = !light;
+
+    try {
+      await track.applyConstraints({ advanced: [{ torch: next }] } as ExtendedTrackConstraints);
+      setLight(next);
+    } catch {
+      // A device that advertised a lamp and then refused it is not an error
+      // worth showing; the control simply stops being offered.
+      setCanLight(false);
+      setLight(false);
+    }
+  }, [light]);
 
   /**
    * Grabs the current frame as a file.
@@ -231,5 +301,18 @@ export function useCameraStream({ facing = "environment" }: Options = {}) {
   // The component going away must not leave the camera on.
   useEffect(() => stop, [stop]);
 
-  return { videoRef, state, error, facingMode, canSwitch, start, stop, switchCamera, capture };
+  return {
+    videoRef,
+    state,
+    error,
+    facingMode,
+    canSwitch,
+    canLight,
+    light,
+    start,
+    stop,
+    switchCamera,
+    toggleLight,
+    capture,
+  };
 }

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Keyboard, RefreshCw, ScanBarcode, SwitchCamera, UploadCloud } from "lucide-react";
+import { Flashlight, FlashlightOff, Keyboard, RefreshCw, ScanBarcode, SwitchCamera, UploadCloud } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 
 import { Modal } from "./Modal";
 import { Button } from "./Button";
 import { Field, Input } from "./Form";
-import { useCameraStream } from "@/hooks/useCameraStream";
+import { guideToVideoPixels, useCameraStream } from "@/hooks/useCameraStream";
 import { guessFormat, validateBarcode, type BarcodeFormat } from "@/lib/barcode";
 import { lookupBarcode, type BarcodeLookup } from "@/services/nirikshaApi";
 
@@ -62,7 +62,9 @@ export function BarcodeScanner({
   onContinue: (barcode: string, format: BarcodeFormat | null) => void;
   onUploadInstead?: () => void;
 }) {
-  const { videoRef, state, error, canSwitch, start, stop, switchCamera } = useCameraStream();
+  const { videoRef, state, error, canSwitch, canLight, light, start, stop, switchCamera, toggleLight } =
+    useCameraStream();
+  const guideRef = useRef<HTMLDivElement | null>(null);
 
   const [detected, setDetected] = useState<Detected | null>(null);
   const { t } = useLanguage();
@@ -131,26 +133,84 @@ export function BarcodeScanner({
 
     const reader = new BrowserMultiFormatReader(hints);
 
-    controlsRef.current = await reader.decodeFromVideoElement(video, (result) => {
-      if (!result || settledRef.current) return;
+    // Only the guide box is decoded, and only a reduced copy of it.
+    //
+    // ZXing's own loop hands it the whole frame: at 2560x1440 that is 3.7
+    // megapixels of mostly shelf, scanned several times a second, and on a
+    // mid-range phone it is enough work to drop the preview's frame rate
+    // and heat the device. A barcode needs resolution across the bars, not
+    // down them, and 900px across the guide box is more than an EAN-13
+    // needs. The result is a decode that costs a fraction of the work and
+    // stops reading codes from outside the box the viewfinder promised.
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) return;
 
-      const value = result.getText().trim();
-      const reported = result.getBarcodeFormat?.();
-      const format =
-        (typeof reported === "number" ? FORMAT_LABEL[reported] : undefined) ?? guessFormat(value);
+    const DECODE_WIDTH = 900;
+    let stopped = false;
+    let timer = 0;
 
-      const check = validateBarcode(value, format ?? undefined);
+    const tick = () => {
+      if (stopped || settledRef.current) return;
 
-      if (!check.valid) {
-        // Keep scanning rather than reporting a misread. The frame will come
-        // round again a moment later.
-        setHint(check.reason ?? "That code could not be read cleanly. Hold steady and try again.");
-        return;
+      const live = videoRef.current;
+
+      if (live?.videoWidth) {
+        const box =
+          guideToVideoPixels(live, guideRef.current) ??
+          { x: 0, y: 0, width: live.videoWidth, height: live.videoHeight };
+
+        const scale = Math.min(1, DECODE_WIDTH / box.width);
+        canvas.width = Math.max(1, Math.round(box.width * scale));
+        canvas.height = Math.max(1, Math.round(box.height * scale));
+
+        context.drawImage(
+          live,
+          box.x,
+          box.y,
+          box.width,
+          box.height,
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+        );
+
+        try {
+          const result = reader.decodeFromCanvas(canvas);
+          const value = result.getText().trim();
+          const reported = result.getBarcodeFormat?.();
+          const format =
+            (typeof reported === "number" ? FORMAT_LABEL[reported] : undefined) ?? guessFormat(value);
+          const check = validateBarcode(value, format ?? undefined);
+
+          if (check.valid) {
+            setHint(null);
+            void settle(value, format);
+            return;
+          }
+
+          // A misread is not reported as a code. The frame comes round
+          // again a moment later.
+          setHint(check.reason ?? "That code could not be read cleanly. Hold steady and try again.");
+        } catch {
+          // No code in this frame, which is the normal case while aiming.
+        }
       }
 
-      setHint(null);
-      void settle(value, format);
-    });
+      // Eight attempts a second: faster than a hand can re-aim, and a
+      // quarter of the work ZXing's own loop does.
+      timer = window.setTimeout(tick, 125);
+    };
+
+    controlsRef.current = {
+      stop: () => {
+        stopped = true;
+        window.clearTimeout(timer);
+      },
+    };
+
+    tick();
   }, [settle, videoRef]);
 
   const restart = useCallback(async () => {
@@ -239,7 +299,10 @@ export function BarcodeScanner({
 
             {state === "live" && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
-                <div className="relative h-[38%] w-[85%] rounded-lg border-2 border-white/70 shadow-[0_0_0_100vmax_rgba(9,12,16,0.35)]">
+                <div
+                  ref={guideRef}
+                  className="relative h-[38%] w-[85%] rounded-lg border-2 border-white/70 shadow-[0_0_0_100vmax_rgba(9,12,16,0.35)]"
+                >
                   {/* A moving line, so it is obvious the scanner is working
                       even before anything has been read. */}
                   <span className="nk-scanline absolute inset-x-2 h-0.5 rounded bg-brand-400/90" />
@@ -300,6 +363,23 @@ export function BarcodeScanner({
             </>
           ) : (
             <>
+              {/* A barcode under a shelf edge is the usual case, and the
+                  lamp is what gets the bars readable. */}
+              {canLight && (
+                <Button
+                  variant="secondary"
+                  onClick={() => void toggleLight()}
+                  disabled={state !== "live"}
+                  aria-pressed={light}
+                >
+                  {light ? (
+                    <FlashlightOff className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <Flashlight className="h-4 w-4" aria-hidden="true" />
+                  )}
+                  {light ? t("camera.lightOff") : t("camera.light")}
+                </Button>
+              )}
               {canSwitch && (
                 <Button variant="secondary" onClick={switchCamera} disabled={state !== "live"}>
                   <SwitchCamera className="h-4 w-4" aria-hidden="true" />

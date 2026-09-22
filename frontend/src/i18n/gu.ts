@@ -127,6 +127,8 @@ export const GU: Partial<Record<keyof typeof EN, string>> = {
   "camera.capture": "કેપ્ચર",
   "camera.retake": "ફરી લો",
   "camera.usePhoto": "આ ફોટો વાપરો",
+  "camera.light": "લાઇટ",
+  "camera.lightOff": "લાઇટ બંધ",
   "camera.switch": "કૅમેરા બદલો",
   "camera.uploadInstead": "તેના બદલે છબી અપલોડ કરો",
   /* barcode */

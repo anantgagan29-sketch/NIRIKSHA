@@ -127,6 +127,8 @@ export const NE: Partial<Record<keyof typeof EN, string>> = {
   "camera.capture": "क्याप्चर",
   "camera.retake": "फेरि लिनुहोस्",
   "camera.usePhoto": "यो फोटो प्रयोग गर्नुहोस्",
+  "camera.light": "लाइट",
+  "camera.lightOff": "लाइट बन्द",
   "camera.switch": "क्यामेरा बदल्नुहोस्",
   "camera.uploadInstead": "बरु छवि अपलोड गर्नुहोस्",
   /* barcode */

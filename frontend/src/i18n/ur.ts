@@ -127,6 +127,8 @@ export const UR: Partial<Record<keyof typeof EN, string>> = {
   "camera.capture": "کیپچر",
   "camera.retake": "دوبارہ لیں",
   "camera.usePhoto": "یہ تصویر استعمال کریں",
+  "camera.light": "روشنی",
+  "camera.lightOff": "روشنی بند",
   "camera.switch": "کیمرا بدلیں",
   "camera.uploadInstead": "اس کے بجائے تصویر اپ لوڈ کریں",
   /* barcode */

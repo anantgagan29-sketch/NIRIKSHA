@@ -127,6 +127,8 @@ export const TA: Partial<Record<keyof typeof EN, string>> = {
   "camera.capture": "படம்பிடி",
   "camera.retake": "மீண்டும் எடு",
   "camera.usePhoto": "இந்தப் படத்தைப் பயன்படுத்து",
+  "camera.light": "ஒளி",
+  "camera.lightOff": "ஒளி அணை",
   "camera.switch": "கேமராவை மாற்று",
   "camera.uploadInstead": "அதற்குப் பதிலாகப் படத்தைப் பதிவேற்று",
   /* barcode */

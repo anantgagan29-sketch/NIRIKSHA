@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, RefreshCw, SwitchCamera, UploadCloud } from "lucide-react";
+import { Camera, Flashlight, FlashlightOff, RefreshCw, SwitchCamera, UploadCloud } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 
 import { Modal } from "./Modal";
@@ -30,7 +30,7 @@ export function CameraCapture({
   /** Offered whenever the camera cannot be used, so the person is never stuck. */
   onUploadInstead?: () => void;
 }) {
-  const { videoRef, state, error, canSwitch, start, stop, switchCamera, capture } =
+  const { videoRef, state, error, canSwitch, canLight, light, start, stop, switchCamera, toggleLight, capture } =
     useCameraStream();
 
   const [shot, setShot] = useState<{ file: File; url: string } | null>(null);
@@ -158,6 +158,25 @@ export function CameraCapture({
                 <Camera className="h-4 w-4" aria-hidden="true" />
                 {t("camera.capture")}
               </Button>
+              {/* Offered only where the device has a lamp. A declaration
+                  panel photographed in a shop aisle or a shaded shelf is
+                  the usual case, and the light is what makes the batch
+                  number legible rather than absent. */}
+              {canLight && (
+                <Button
+                  variant="secondary"
+                  onClick={() => void toggleLight()}
+                  disabled={state !== "live"}
+                  aria-pressed={light}
+                >
+                  {light ? (
+                    <FlashlightOff className="h-4 w-4" aria-hidden="true" />
+                  ) : (
+                    <Flashlight className="h-4 w-4" aria-hidden="true" />
+                  )}
+                  {light ? t("camera.lightOff") : t("camera.light")}
+                </Button>
+              )}
               {canSwitch && (
                 <Button variant="secondary" onClick={switchCamera} disabled={state !== "live"}>
                   <SwitchCamera className="h-4 w-4" aria-hidden="true" />

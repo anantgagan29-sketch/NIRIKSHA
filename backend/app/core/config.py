@@ -279,6 +279,22 @@ PRODUCT_DIRECTORY_TIMEOUT_SECONDS: float = float(
 # 2048 keeps that small print resolvable. The upload is larger, and that is
 # the right trade: a fast wrong reading is worth nothing here.
 VISION_MAX_EDGE: int = int(os.getenv("VISION_MAX_EDGE", "2048"))
+
+# Whether the frame is cropped to the package before it is scaled.
+#
+# A photograph taken by hand puts the pack in a third of the frame. The
+# declarations that go missing are the smallest print on it, and at 2048px
+# across the whole frame they are a few pixels tall. Cropping first gives
+# them two to three times the resolution for the same number of bytes.
+VISION_CROP_ENABLED: bool = os.getenv(
+    "VISION_CROP_ENABLED", "true"
+).strip().lower() in ("1", "true", "yes")
+
+# The crop is used only when the detected region is worth cropping to. Above
+# the maximum there is nothing to gain; below the minimum the detection is
+# more likely a reflection than a package, and the frame is the safer answer.
+VISION_CROP_MIN_AREA: float = float(os.getenv("VISION_CROP_MIN_AREA", "0.05"))
+VISION_CROP_MAX_AREA: float = float(os.getenv("VISION_CROP_MAX_AREA", "0.85"))
 VISION_JPEG_QUALITY: int = int(os.getenv("VISION_JPEG_QUALITY", "85"))
 
 

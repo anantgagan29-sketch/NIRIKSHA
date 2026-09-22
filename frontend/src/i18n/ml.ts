@@ -127,6 +127,8 @@ export const ML: Partial<Record<keyof typeof EN, string>> = {
   "camera.capture": "ക്യാപ്ചർ",
   "camera.retake": "വീണ്ടും എടുക്കുക",
   "camera.usePhoto": "ഈ ഫോട്ടോ ഉപയോഗിക്കുക",
+  "camera.light": "വെളിച്ചം",
+  "camera.lightOff": "വെളിച്ചം ഓഫ്",
   "camera.switch": "ക്യാമറ മാറ്റുക",
   "camera.uploadInstead": "പകരം ചിത്രം അപ്‌ലോഡ് ചെയ്യുക",
   /* barcode */

@@ -127,6 +127,8 @@ export const KN: Partial<Record<keyof typeof EN, string>> = {
   "camera.capture": "ಸೆರೆಹಿಡಿಯಿರಿ",
   "camera.retake": "ಮತ್ತೆ ತೆಗೆಯಿರಿ",
   "camera.usePhoto": "ಈ ಫೋಟೋ ಬಳಸಿ",
+  "camera.light": "ಬೆಳಕು",
+  "camera.lightOff": "ಬೆಳಕು ಆಫ್",
   "camera.switch": "ಕ್ಯಾಮೆರಾ ಬದಲಾಯಿಸಿ",
   "camera.uploadInstead": "ಬದಲಿಗೆ ಚಿತ್ರ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
   /* barcode */

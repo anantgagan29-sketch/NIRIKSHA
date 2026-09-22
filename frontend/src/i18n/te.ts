@@ -127,6 +127,8 @@ export const TE: Partial<Record<keyof typeof EN, string>> = {
   "camera.capture": "క్యాప్చర్",
   "camera.retake": "మళ్ళీ తీయండి",
   "camera.usePhoto": "ఈ ఫోటో వాడండి",
+  "camera.light": "లైట్",
+  "camera.lightOff": "లైట్ ఆఫ్",
   "camera.switch": "కెమెరా మార్చండి",
   "camera.uploadInstead": "బదులుగా చిత్రం అప్‌లోడ్ చేయండి",
   /* barcode */

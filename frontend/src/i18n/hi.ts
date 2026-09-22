@@ -145,6 +145,8 @@ export const HI: Partial<Record<keyof typeof EN, string>> = {
   "camera.capture": "कैप्चर करें",
   "camera.retake": "दोबारा लें",
   "camera.usePhoto": "यह तस्वीर इस्तेमाल करें",
+  "camera.light": "लाइट",
+  "camera.lightOff": "लाइट बंद",
   "camera.switch": "कैमरा बदलें",
   "camera.uploadInstead": "इसके बजाय छवि अपलोड करें",
 

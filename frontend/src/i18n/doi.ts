@@ -127,6 +127,8 @@ export const DOI: Partial<Record<keyof typeof EN, string>> = {
   "camera.capture": "कैप्चर",
   "camera.retake": "दोबारा लैओ",
   "camera.usePhoto": "एह् फोटो बरतो",
+  "camera.light": "लाइट",
+  "camera.lightOff": "लाइट बंद",
   "camera.switch": "कैमरा बदलो",
   "camera.uploadInstead": "इसदे बजाए तस्वीर अपलोड करो",
   /* barcode */

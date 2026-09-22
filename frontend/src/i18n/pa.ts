@@ -127,6 +127,8 @@ export const PA: Partial<Record<keyof typeof EN, string>> = {
   "camera.capture": "ਕੈਪਚਰ",
   "camera.retake": "ਦੁਬਾਰਾ ਲਓ",
   "camera.usePhoto": "ਇਹ ਫੋਟੋ ਵਰਤੋ",
+  "camera.light": "ਲਾਈਟ",
+  "camera.lightOff": "ਲਾਈਟ ਬੰਦ",
   "camera.switch": "ਕੈਮਰਾ ਬਦਲੋ",
   "camera.uploadInstead": "ਇਸ ਦੀ ਬਜਾਏ ਤਸਵੀਰ ਅੱਪਲੋਡ ਕਰੋ",
   /* barcode */

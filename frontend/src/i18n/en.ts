@@ -138,6 +138,8 @@ export const EN = {
   "camera.capture": "Capture",
   "camera.retake": "Retake",
   "camera.usePhoto": "Use Photo",
+  "camera.light": "Light",
+  "camera.lightOff": "Light off",
   "camera.switch": "Switch camera",
   "camera.uploadInstead": "Upload Image instead",
 

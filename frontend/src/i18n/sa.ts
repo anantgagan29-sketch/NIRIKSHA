@@ -127,6 +127,8 @@ export const SA: Partial<Record<keyof typeof EN, string>> = {
   "camera.capture": "ग्रहणम्",
   "camera.retake": "पुनः गृह्णातु",
   "camera.usePhoto": "इदं चित्रं प्रयुज्यताम्",
+  "camera.light": "प्रकाशः",
+  "camera.lightOff": "प्रकाशः निवृत्तः",
   "camera.switch": "कैमरा परिवर्तयतु",
   "camera.uploadInstead": "चित्रम् आरोपयतु",
   /* barcode */

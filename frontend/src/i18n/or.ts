@@ -127,6 +127,8 @@ export const OR: Partial<Record<keyof typeof EN, string>> = {
   "camera.capture": "କ୍ୟାପଚର",
   "camera.retake": "ପୁନଃ ନିଅନ୍ତୁ",
   "camera.usePhoto": "ଏହି ଫଟୋ ବ୍ୟବହାର କରନ୍ତୁ",
+  "camera.light": "ଆଲୋକ",
+  "camera.lightOff": "ଆଲୋକ ବନ୍ଦ",
   "camera.switch": "କ୍ୟାମେରା ବଦଳାନ୍ତୁ",
   "camera.uploadInstead": "ତା ବଦଳରେ ଛବି ଅପଲୋଡ କରନ୍ତୁ",
   /* barcode */

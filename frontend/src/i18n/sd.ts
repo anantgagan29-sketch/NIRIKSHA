@@ -74,6 +74,7 @@ export const SD: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "फेल",
   "status.review": "समीक्षा ज़रूरी",
   "status.notApplicable": "लागू नाहे",
+  "status.retakeRequired": "वरी फोटो वठो",
   "status.detected": "मिल्यो",
   "status.pending": "बाक़ी",
   "status.processing": "प्रक्रिया में",

@@ -29,5 +29,6 @@ lang("ne", "नेपाली", "Nepali", "Devanagari script. Needs review by a
 "reportPage.scanId":"स्क्यान ID","reportPage.overallResult":"समग्र नतिजा","reportPage.scannedProduct":"स्क्यान गरिएको उत्पादन","reportPage.fieldChecks":"फिल्ड जाँचहरू","reportPage.provision":"प्रावधान","reportPage.recognisedText":"पहिचान गरिएको पाठ","reportPage.modelReturned":"मोडेलले के फर्कायो","reportPage.whatThisIs":"यो प्रतिवेदन के हो",
 "reportDialog.title":"प्रतिवेदनको भाषा छान्नुहोस्","reportDialog.hint":"आफ्नो प्रतिवेदनको भाषा छान्नुहोस्। यो यस स्क्रिनको भाषासँग मिल्नु पर्दैन।","reportDialog.generate":"प्रतिवेदन बनाउनुहोस्","reportDialog.current":"इन्टरफेस भाषा","history.reportLanguage":"प्रतिवेदन भाषा","history.allLanguages":"सबै भाषा","history.notGenerated":"बनेको छैन","report.generating":"तपाईंको {language} प्रतिवेदन तयार हुँदैछ…",
 "camera.light":"लाइट","camera.lightOff":"लाइट बन्द",
+"status.retakeRequired":"फेरि फोटो लिनुहोस्",
 "notice.assessment":"NIRIKSHA ले छविबाट स्वचालित अनुपालन मूल्याङ्कन गर्छ। यो निर्णय-सहायक उपकरण हो, वैधानिक निरीक्षणको विकल्प होइन, र यो सरकारी प्रमाणीकरण होइन।",
 })

@@ -74,6 +74,7 @@ export const KOK: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "अनुत्तीर्ण",
   "status.review": "समीक्षा जाय",
   "status.notApplicable": "लागू ना",
+  "status.retakeRequired": "परत फोटो काडात",
   "status.detected": "मेळ्ळें",
   "status.pending": "बाकी",
   "status.processing": "प्रक्रिया चलता",

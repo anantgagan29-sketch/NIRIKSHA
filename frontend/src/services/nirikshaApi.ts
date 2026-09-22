@@ -708,6 +708,10 @@ export async function listScans(): Promise<ScanRecord[]> {
       row.scan_status === "RETAKE_REQUIRED"
         ? "needs_review"
         : (RESULT_MAP[row.status ?? ""] ?? "needs_review"),
+    // A rejected photograph carries no assessment at all, which is a
+    // different thing from an assessment that needs review. The row says so
+    // rather than showing a verdict on a product nothing was read from.
+    rejected: row.scan_status === "RETAKE_REQUIRED",
     score: row.score ?? 0,
     date: row.created_at,
     relative: relativeTime(row.created_at),

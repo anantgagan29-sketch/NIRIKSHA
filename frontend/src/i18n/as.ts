@@ -74,6 +74,7 @@ export const AS: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "অনুত্তীৰ্ণ",
   "status.review": "পৰ্যালোচনা প্ৰয়োজন",
   "status.notApplicable": "প্ৰযোজ্য নহয়",
+  "status.retakeRequired": "পুনৰ ফটো লওক",
   "status.detected": "পোৱা গ'ল",
   "status.pending": "বাকী",
   "status.processing": "প্ৰক্ৰিয়াধীন",

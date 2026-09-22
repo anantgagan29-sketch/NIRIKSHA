@@ -29,5 +29,6 @@ lang("mr", "मराठी", "Marathi", "Devanagari script.")({
 "reportPage.scanId":"स्कॅन ID","reportPage.overallResult":"एकूण निकाल","reportPage.scannedProduct":"स्कॅन केलेले उत्पादन","reportPage.fieldChecks":"फील्ड तपासण्या","reportPage.provision":"तरतूद","reportPage.recognisedText":"ओळखलेला मजकूर","reportPage.modelReturned":"मॉडेलने काय परत दिले","reportPage.whatThisIs":"हा अहवाल काय आहे",
 "reportDialog.title":"अहवालाची भाषा निवडा","reportDialog.hint":"तुमच्या अहवालाची भाषा निवडा. ती या स्क्रीनच्या भाषेशी जुळणे आवश्यक नाही.","reportDialog.generate":"अहवाल तयार करा","reportDialog.current":"इंटरफेस भाषा","history.reportLanguage":"अहवाल भाषा","history.allLanguages":"सर्व भाषा","history.notGenerated":"तयार नाही","report.generating":"तुमचा {language} अहवाल तयार होत आहे…",
 "camera.light":"लाइट","camera.lightOff":"लाइट बंद",
+"status.retakeRequired":"पुन्हा फोटो घ्या",
 "notice.assessment":"NIRIKSHA प्रतिमेवरून स्वयंचलित अनुपालन मूल्यांकन करते. हे निर्णय-सहाय्यक साधन आहे, वैधानिक तपासणीचा पर्याय नाही, आणि हे सरकारी प्रमाणन नाही.",
 })

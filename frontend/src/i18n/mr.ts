@@ -74,6 +74,7 @@ export const MR: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "अनुत्तीर्ण",
   "status.review": "पुनरावलोकन आवश्यक",
   "status.notApplicable": "लागू नाही",
+  "status.retakeRequired": "पुन्हा फोटो घ्या",
   "status.detected": "आढळले",
   "status.pending": "प्रलंबित",
   "status.processing": "प्रक्रिया सुरू",

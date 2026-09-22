@@ -74,6 +74,7 @@ export const OR: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "ଅନୁତ୍ତୀର୍ଣ୍ଣ",
   "status.review": "ସମୀକ୍ଷା ଆବଶ୍ୟକ",
   "status.notApplicable": "ପ୍ରଯୁଜ୍ୟ ନୁହେଁ",
+  "status.retakeRequired": "ପୁଣି ଫଟୋ ନିଅନ୍ତୁ",
   "status.detected": "ମିଳିଲା",
   "status.pending": "ବିଚାରାଧୀନ",
   "status.processing": "ପ୍ରକ୍ରିୟାଧୀନ",

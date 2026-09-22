@@ -74,6 +74,7 @@ export const PA: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "ਫੇਲ",
   "status.review": "ਸਮੀਖਿਆ ਲੋੜੀਂਦੀ",
   "status.notApplicable": "ਲਾਗੂ ਨਹੀਂ",
+  "status.retakeRequired": "ਦੁਬਾਰਾ ਫੋਟੋ ਲਓ",
   "status.detected": "ਮਿਲਿਆ",
   "status.pending": "ਬਕਾਇਆ",
   "status.processing": "ਪ੍ਰਕਿਰਿਆ ਵਿੱਚ",

@@ -122,6 +122,12 @@ export interface ScanRecord {
   relative: string;
   /** The language this scan was last reported in; null when never reported. */
   reportLanguage?: string | null;
+  /**
+   * True when the photograph was rejected before anything was read, so this
+   * row has no assessment — as distinct from one whose assessment needs a
+   * person to look at it.
+   */
+  rejected?: boolean;
 }
 
 export type ComplaintStatus = "submitted" | "under_review" | "verified" | "action_taken" | "rejected";

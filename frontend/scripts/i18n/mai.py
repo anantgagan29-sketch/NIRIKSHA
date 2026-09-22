@@ -29,5 +29,6 @@ lang("mai", "मैथिली", "Maithili", "Devanagari script. Needs review b
 "reportPage.scanId":"स्कैन ID","reportPage.overallResult":"समग्र परिणाम","reportPage.scannedProduct":"स्कैन कएल उत्पाद","reportPage.fieldChecks":"फील्ड जाँच","reportPage.provision":"प्रावधान","reportPage.recognisedText":"चिन्हल पाठ","reportPage.modelReturned":"मॉडल की घुरौलक","reportPage.whatThisIs":"ई रिपोर्ट की अछि",
 "reportDialog.title":"रिपोर्टक भाषा चुनू","reportDialog.hint":"अपन रिपोर्टक भाषा चुनू। एकरा एहि स्क्रीनक भाषा सँ मेल खाएब जरूरी नहि।","reportDialog.generate":"रिपोर्ट बनाउ","reportDialog.current":"इंटरफेस भाषा","history.reportLanguage":"रिपोर्ट भाषा","history.allLanguages":"सभ भाषा","history.notGenerated":"नहि बनल","report.generating":"अहाँक {language} रिपोर्ट तैयार भऽ रहल अछि…",
 "camera.light":"लाइट","camera.lightOff":"लाइट बंद",
+"status.retakeRequired":"फेर फोटो लिअ",
 "notice.assessment":"NIRIKSHA छवि सँ स्वचालित अनुपालन मूल्यांकन करैत अछि। ई निर्णय-सहायक उपकरण अछि, वैधानिक निरीक्षणक विकल्प नहि, आ ई सरकारी प्रमाणीकरण नहि अछि।",
 })

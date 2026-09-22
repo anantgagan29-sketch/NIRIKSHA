@@ -86,6 +86,7 @@ export const HI: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "अनुत्तीर्ण",
   "status.review": "समीक्षा आवश्यक",
   "status.notApplicable": "लागू नहीं",
+  "status.retakeRequired": "फिर से फ़ोटो लें",
   "status.detected": "पाया गया",
   "status.pending": "प्रतीक्षारत",
   "status.processing": "प्रक्रिया जारी",

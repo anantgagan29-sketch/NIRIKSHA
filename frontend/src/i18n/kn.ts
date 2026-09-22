@@ -74,6 +74,7 @@ export const KN: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "ಅನುತ್ತೀರ್ಣ",
   "status.review": "ಪರಿಶೀಲನೆ ಅಗತ್ಯ",
   "status.notApplicable": "ಅನ್ವಯಿಸುವುದಿಲ್ಲ",
+  "status.retakeRequired": "ಮತ್ತೆ ಫೋಟೋ ತೆಗೆಯಿರಿ",
   "status.detected": "ಪತ್ತೆಯಾಗಿದೆ",
   "status.pending": "ಬಾಕಿ",
   "status.processing": "ಪ್ರಕ್ರಿಯೆಯಲ್ಲಿ",

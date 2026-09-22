@@ -74,6 +74,7 @@ export const UR: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "ناکام",
   "status.review": "جائزہ درکار",
   "status.notApplicable": "لاگو نہیں",
+  "status.retakeRequired": "دوبارہ تصویر لیں",
   "status.detected": "ملا",
   "status.pending": "زیرِ التوا",
   "status.processing": "زیرِ عمل",

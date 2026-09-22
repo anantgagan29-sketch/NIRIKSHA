@@ -74,6 +74,7 @@ export const TE: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "అనుత్తీర్ణం",
   "status.review": "సమీక్ష అవసరం",
   "status.notApplicable": "వర్తించదు",
+  "status.retakeRequired": "మళ్లీ ఫోటో తీయండి",
   "status.detected": "కనుగొనబడింది",
   "status.pending": "పెండింగ్",
   "status.processing": "ప్రాసెసింగ్",

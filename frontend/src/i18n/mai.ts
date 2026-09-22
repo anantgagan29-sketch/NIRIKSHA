@@ -74,6 +74,7 @@ export const MAI: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "अनुत्तीर्ण",
   "status.review": "समीक्षा आवश्यक",
   "status.notApplicable": "लागू नहि",
+  "status.retakeRequired": "फेर फोटो लिअ",
   "status.detected": "भेटल",
   "status.pending": "बाँकी",
   "status.processing": "प्रक्रिया मे",

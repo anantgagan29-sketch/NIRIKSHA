@@ -29,5 +29,6 @@ lang("bn", "বাংলা", "Bengali", "Bengali script (Bangla). Read right af
 "reportPage.scanId":"স্ক্যান ID","reportPage.overallResult":"সামগ্রিক ফলাফল","reportPage.scannedProduct":"স্ক্যান করা পণ্য","reportPage.fieldChecks":"ফিল্ড পরীক্ষা","reportPage.provision":"বিধান","reportPage.recognisedText":"শনাক্ত পাঠ্য","reportPage.modelReturned":"মডেল যা ফেরত দিয়েছে","reportPage.whatThisIs":"এই প্রতিবেদন কী",
 "reportDialog.title":"প্রতিবেদনের ভাষা বেছে নিন","reportDialog.hint":"আপনার প্রতিবেদনের ভাষা বেছে নিন। এটি এই স্ক্রিনের ভাষার সঙ্গে মিলতে হবে না।","reportDialog.generate":"প্রতিবেদন তৈরি করুন","reportDialog.current":"ইন্টারফেস ভাষা","history.reportLanguage":"প্রতিবেদন ভাষা","history.allLanguages":"সব ভাষা","history.notGenerated":"তৈরি হয়নি","report.generating":"আপনার {language} প্রতিবেদন তৈরি হচ্ছে…",
 "camera.light":"আলো","camera.lightOff":"আলো বন্ধ",
+"status.retakeRequired":"আবার ছবি তুলুন",
 "notice.assessment":"NIRIKSHA ছবি থেকে স্বয়ংক্রিয় সম্মতি মূল্যায়ন করে। এটি সিদ্ধান্ত-সহায়ক সরঞ্জাম, বিধিবদ্ধ পরিদর্শনের বিকল্প নয়, এবং এটি সরকারি প্রত্যয়ন নয়।",
 })

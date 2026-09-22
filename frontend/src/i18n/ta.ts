@@ -74,6 +74,7 @@ export const TA: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "தோல்வி",
   "status.review": "மதிப்பாய்வு தேவை",
   "status.notApplicable": "பொருந்தாது",
+  "status.retakeRequired": "மீண்டும் படம் எடுக்கவும்",
   "status.detected": "கண்டறியப்பட்டது",
   "status.pending": "நிலுவையில்",
   "status.processing": "செயலாக்கத்தில்",

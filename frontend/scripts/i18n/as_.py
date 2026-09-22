@@ -29,5 +29,6 @@ lang("as", "অসমীয়া", "Assamese", "Bengali-Assamese script. Needs 
 "reportPage.scanId":"স্কেন ID","reportPage.overallResult":"সামগ্ৰিক ফলাফল","reportPage.scannedProduct":"স্কেন কৰা সামগ্ৰী","reportPage.fieldChecks":"ফিল্ড পৰীক্ষা","reportPage.provision":"বিধান","reportPage.recognisedText":"চিনাক্ত পাঠ","reportPage.modelReturned":"মডেলে যি ঘূৰাই দিলে","reportPage.whatThisIs":"এই প্ৰতিবেদন কি",
 "reportDialog.title":"প্ৰতিবেদনৰ ভাষা বাছক","reportDialog.hint":"আপোনাৰ প্ৰতিবেদনৰ ভাষা বাছক। ই এই স্ক্ৰীনৰ ভাষাৰ সৈতে মিলিব নালাগে।","reportDialog.generate":"প্ৰতিবেদন প্ৰস্তুত কৰক","reportDialog.current":"ইন্টাৰফেচ ভাষা","history.reportLanguage":"প্ৰতিবেদন ভাষা","history.allLanguages":"সকলো ভাষা","history.notGenerated":"প্ৰস্তুত হোৱা নাই","report.generating":"আপোনাৰ {language} প্ৰতিবেদন প্ৰস্তুত হৈ আছে…",
 "camera.light":"পোহৰ","camera.lightOff":"পোহৰ বন্ধ",
+"status.retakeRequired":"পুনৰ ফটো লওক",
 "notice.assessment":"NIRIKSHA-ই ছবিৰ পৰা স্বয়ংক্ৰিয় সম্মতি মূল্যায়ন কৰে। ই সিদ্ধান্ত-সহায়ক সঁজুলি, বিধিবদ্ধ পৰিদৰ্শনৰ বিকল্প নহয়, আৰু ই চৰকাৰী প্ৰমাণীকৰণ নহয়।",
 })

@@ -29,5 +29,6 @@ lang("ml", "മലയാളം", "Malayalam", "Malayalam script.")({
 "reportPage.scanId":"സ്കാൻ ID","reportPage.overallResult":"മൊത്തം ഫലം","reportPage.scannedProduct":"സ്കാൻ ചെയ്ത ഉൽപ്പന്നം","reportPage.fieldChecks":"ഫീൽഡ് പരിശോധനകൾ","reportPage.provision":"വ്യവസ്ഥ","reportPage.recognisedText":"തിരിച്ചറിഞ്ഞ വാചകം","reportPage.modelReturned":"മോഡൽ തിരികെ നൽകിയത്","reportPage.whatThisIs":"ഈ റിപ്പോർട്ട് എന്താണ്",
 "reportDialog.title":"റിപ്പോർട്ട് ഭാഷ തിരഞ്ഞെടുക്കുക","reportDialog.hint":"നിങ്ങളുടെ റിപ്പോർട്ടിന്റെ ഭാഷ തിരഞ്ഞെടുക്കുക. ഇത് ഈ സ്ക്രീനിന്റെ ഭാഷയുമായി യോജിക്കണമെന്നില്ല.","reportDialog.generate":"റിപ്പോർട്ട് തയ്യാറാക്കുക","reportDialog.current":"ഇന്റർഫേസ് ഭാഷ","history.reportLanguage":"റിപ്പോർട്ട് ഭാഷ","history.allLanguages":"എല്ലാ ഭാഷകളും","history.notGenerated":"തയ്യാറാക്കിയിട്ടില്ല","report.generating":"നിങ്ങളുടെ {language} റിപ്പോർട്ട് തയ്യാറാക്കുന്നു…",
 "camera.light":"വെളിച്ചം","camera.lightOff":"വെളിച്ചം ഓഫ്",
+"status.retakeRequired":"വീണ്ടും ഫോട്ടോ എടുക്കുക",
 "notice.assessment":"NIRIKSHA ഒരു ചിത്രത്തിൽ നിന്ന് സ്വയംപ്രവർത്തിത അനുസരണ വിലയിരുത്തൽ നടത്തുന്നു. ഇത് തീരുമാന-സഹായ ഉപകരണമാണ്, നിയമപരമായ പരിശോധനയ്ക്ക് പകരമല്ല, ഇത് സർക്കാർ സാക്ഷ്യപ്പെടുത്തലുമല്ല.",
 })

@@ -29,5 +29,6 @@ lang("ks", "कॉशुर", "Kashmiri", "Devanagari script (the Perso-Arabic o
 "reportPage.scanId":"स्कैन ID","reportPage.overallResult":"मजमूई नतीजु","reportPage.scannedProduct":"स्कैन कर्मुत प्रोडक्ट","reportPage.fieldChecks":"फील्ड जांच","reportPage.provision":"दफ़ु","reportPage.recognisedText":"पन्छानमुत मतन","reportPage.modelReturned":"मॉडलन क्या वापस दित","reportPage.whatThisIs":"यि रिपोर्ट क्या छु",
 "reportDialog.title":"रिपोर्ट ज़बान चुनिव","reportDialog.hint":"पनुन रिपोर्ट ज़बान चुनिव। यि छु न ज़रूरी यॅथ स्क्रीनुक ज़बान सॉत्य रलुन।","reportDialog.generate":"रिपोर्ट त्यार करिव","reportDialog.current":"इंटरफेस ज़बान","history.reportLanguage":"रिपोर्ट ज़बान","history.allLanguages":"सॉरी ज़बान","history.notGenerated":"त्यार नु","report.generating":"तुहुन्ज़ {language} रिपोर्ट छि त्यार गछान…",
 "camera.light":"गाश","camera.lightOff":"गाश बंद",
+"status.retakeRequired":"दुबारु फोटो त्रायिव",
 "notice.assessment":"NIRIKSHA छु तस्वीरि पॅठ्य खुदकार अनुपालन जायज़ु करान। यि छु फैसलु-मददगार औज़ार, कानूनी मुआयनुक बदल नु, तु यि छु न सरकारी तसदीक।",
 })

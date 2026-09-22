@@ -29,5 +29,6 @@ lang("sa", "संस्कृतम्", "Sanskrit", "Devanagari script. Modern
 "reportPage.scanId":"स्कैन ID","reportPage.overallResult":"समग्रपरिणामः","reportPage.scannedProduct":"स्कैनितम् उत्पादम्","reportPage.fieldChecks":"क्षेत्रपरीक्षणानि","reportPage.provision":"प्रावधानम्","reportPage.recognisedText":"अभिज्ञातः पाठः","reportPage.modelReturned":"प्रतिरूपेण किं प्रत्यर्पितम्","reportPage.whatThisIs":"इदं प्रतिवेदनं किम्",
 "reportDialog.title":"प्रतिवेदनभाषां चिनोतु","reportDialog.hint":"स्वप्रतिवेदनस्य भाषां चिनोतु। सा अस्य पटलस्य भाषया सह न अवश्यं मेलति।","reportDialog.generate":"प्रतिवेदनं निर्मातु","reportDialog.current":"अन्तराफलकभाषा","history.reportLanguage":"प्रतिवेदनभाषा","history.allLanguages":"सर्वाः भाषाः","history.notGenerated":"न निर्मितम्","report.generating":"भवतः {language} प्रतिवेदनं सज्जीक्रियते…",
 "camera.light":"प्रकाशः","camera.lightOff":"प्रकाशः निवृत्तः",
+"status.retakeRequired":"पुनः चित्रं गृह्णातु",
 "notice.assessment":"NIRIKSHA चित्रात् स्वयंचालितम् अनुपालनमूल्याङ्कनं करोति। इदं निर्णयसहायक-उपकरणं, न तु वैधानिकपरीक्षायाः प्रतिस्थापनं, न च सर्वकारीयं प्रमाणीकरणम्।",
 })

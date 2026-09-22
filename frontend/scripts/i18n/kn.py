@@ -29,5 +29,6 @@ lang("kn", "ಕನ್ನಡ", "Kannada", "Kannada script.")({
 "reportPage.scanId":"ಸ್ಕ್ಯಾನ್ ID","reportPage.overallResult":"ಒಟ್ಟಾರೆ ಫಲಿತಾಂಶ","reportPage.scannedProduct":"ಸ್ಕ್ಯಾನ್ ಮಾಡಿದ ಉತ್ಪನ್ನ","reportPage.fieldChecks":"ಫೀಲ್ಡ್ ಪರಿಶೀಲನೆಗಳು","reportPage.provision":"ನಿಬಂಧನೆ","reportPage.recognisedText":"ಗುರುತಿಸಿದ ಪಠ್ಯ","reportPage.modelReturned":"ಮಾದರಿ ಏನು ಹಿಂತಿರುಗಿಸಿತು","reportPage.whatThisIs":"ಈ ವರದಿ ಏನು",
 "reportDialog.title":"ವರದಿ ಭಾಷೆಯನ್ನು ಆರಿಸಿ","reportDialog.hint":"ನಿಮ್ಮ ವರದಿಯ ಭಾಷೆಯನ್ನು ಆರಿಸಿ. ಇದು ಈ ಪರದೆಯ ಭಾಷೆಗೆ ಹೊಂದಿಕೆಯಾಗಬೇಕಿಲ್ಲ.","reportDialog.generate":"ವರದಿ ರಚಿಸಿ","reportDialog.current":"ಇಂಟರ್‌ಫೇಸ್ ಭಾಷೆ","history.reportLanguage":"ವರದಿ ಭಾಷೆ","history.allLanguages":"ಎಲ್ಲಾ ಭಾಷೆಗಳು","history.notGenerated":"ರಚಿಸಿಲ್ಲ","report.generating":"ನಿಮ್ಮ {language} ವರದಿ ರಚನೆಯಾಗುತ್ತಿದೆ…",
 "camera.light":"ಬೆಳಕು","camera.lightOff":"ಬೆಳಕು ಆಫ್",
+"status.retakeRequired":"ಮತ್ತೆ ಫೋಟೋ ತೆಗೆಯಿರಿ",
 "notice.assessment":"NIRIKSHA ಚಿತ್ರದಿಂದ ಸ್ವಯಂಚಾಲಿತ ಅನುಸರಣೆ ಮೌಲ್ಯಮಾಪನ ಮಾಡುತ್ತದೆ. ಇದು ನಿರ್ಧಾರ-ಬೆಂಬಲ ಸಾಧನ, ಶಾಸನಬದ್ಧ ತಪಾಸಣೆಗೆ ಬದಲಿ ಅಲ್ಲ, ಮತ್ತು ಇದು ಸರ್ಕಾರಿ ಪ್ರಮಾಣೀಕರಣವಲ್ಲ.",
 })

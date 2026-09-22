@@ -29,5 +29,6 @@ lang("kok", "कोंकणी", "Konkani", "Devanagari script, as used in Goa.
 "reportPage.scanId":"स्कॅन ID","reportPage.overallResult":"एकूण निकाल","reportPage.scannedProduct":"स्कॅन केल्लें उत्पादन","reportPage.fieldChecks":"फील्ड तपासण्यो","reportPage.provision":"तरतूद","reportPage.recognisedText":"वळखिल्लो मजकूर","reportPage.modelReturned":"मॉडेलान कितें परत दिलें","reportPage.whatThisIs":"हो अहवाल कितें आसा",
 "reportDialog.title":"अहवालाची भास वेंचात","reportDialog.hint":"तुमच्या अहवालाची भास वेंचात. ती ह्या स्क्रीनाच्या भाशेकडेन जुळपाची गरज ना.","reportDialog.generate":"अहवाल तयार करात","reportDialog.current":"इंटरफेस भास","history.reportLanguage":"अहवाल भास","history.allLanguages":"सगळ्यो भासो","history.notGenerated":"तयार ना","report.generating":"तुमचो {language} अहवाल तयार जाता…",
 "camera.light":"लाइट","camera.lightOff":"लाइट बंद",
+"status.retakeRequired":"परत फोटो काडात",
 "notice.assessment":"NIRIKSHA प्रतिमेतल्यान स्वयंचलीत अनुपालन मुल्यांकन करता। हें निर्णय-सहाय्यक साधन आसा, वैधानीक तपासणेचो पर्याय न्हय, आनी हें सरकारी प्रमाणीकरण न्हय।",
 })

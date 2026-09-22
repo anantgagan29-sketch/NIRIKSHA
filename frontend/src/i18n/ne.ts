@@ -74,6 +74,7 @@ export const NE: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "अनुत्तीर्ण",
   "status.review": "समीक्षा आवश्यक",
   "status.notApplicable": "लागू हुँदैन",
+  "status.retakeRequired": "फेरि फोटो लिनुहोस्",
   "status.detected": "पत्ता लाग्यो",
   "status.pending": "बाँकी",
   "status.processing": "प्रक्रियामा",

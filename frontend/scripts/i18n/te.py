@@ -29,5 +29,6 @@ lang("te", "తెలుగు", "Telugu", "Telugu script.")({
 "reportPage.scanId":"స్కాన్ ID","reportPage.overallResult":"మొత్తం ఫలితం","reportPage.scannedProduct":"స్కాన్ చేసిన ఉత్పత్తి","reportPage.fieldChecks":"ఫీల్డ్ తనిఖీలు","reportPage.provision":"నిబంధన","reportPage.recognisedText":"గుర్తించిన పాఠ్యం","reportPage.modelReturned":"మోడల్ ఏమి తిరిగి ఇచ్చింది","reportPage.whatThisIs":"ఈ నివేదిక ఏమిటి",
 "reportDialog.title":"నివేదిక భాషను ఎంచుకోండి","reportDialog.hint":"మీ నివేదిక భాషను ఎంచుకోండి. ఇది ఈ స్క్రీన్ భాషతో సరిపోలాల్సిన అవసరం లేదు.","reportDialog.generate":"నివేదిక రూపొందించు","reportDialog.current":"ఇంటర్‌ఫేస్ భాష","history.reportLanguage":"నివేదిక భాష","history.allLanguages":"అన్ని భాషలు","history.notGenerated":"రూపొందించలేదు","report.generating":"మీ {language} నివేదిక రూపొందుతోంది…",
 "camera.light":"లైట్","camera.lightOff":"లైట్ ఆఫ్",
+"status.retakeRequired":"మళ్లీ ఫోటో తీయండి",
 "notice.assessment":"NIRIKSHA ఒక చిత్రం నుండి స్వయంచాలక అనుసరణ అంచనాను నిర్వహిస్తుంది. ఇది నిర్ణయ-సహాయక సాధనం, చట్టబద్ధ తనిఖీకి ప్రత్యామ్నాయం కాదు, మరియు ఇది ప్రభుత్వ ధృవీకరణ కాదు.",
 })

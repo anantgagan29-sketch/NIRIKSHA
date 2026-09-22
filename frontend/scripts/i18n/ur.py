@@ -29,5 +29,6 @@ lang("ur", "اردو", "Urdu", "Perso-Arabic script, written right to left. The 
 "reportPage.scanId":"اسکین ID","reportPage.overallResult":"مجموعی نتیجہ","reportPage.scannedProduct":"اسکین شدہ پروڈکٹ","reportPage.fieldChecks":"فیلڈ جانچ","reportPage.provision":"دفعہ","reportPage.recognisedText":"پہچانا گیا متن","reportPage.modelReturned":"ماڈل نے کیا لوٹایا","reportPage.whatThisIs":"یہ رپورٹ کیا ہے",
 "reportDialog.title":"رپورٹ کی زبان منتخب کریں","reportDialog.hint":"اپنی رپورٹ کی زبان منتخب کریں۔ اس کا اس اسکرین کی زبان سے ملنا ضروری نہیں۔","reportDialog.generate":"رپورٹ تیار کریں","reportDialog.current":"انٹرفیس زبان","history.reportLanguage":"رپورٹ زبان","history.allLanguages":"تمام زبانیں","history.notGenerated":"تیار نہیں","report.generating":"آپ کی {language} رپورٹ تیار کی جا رہی ہے…",
 "camera.light":"روشنی","camera.lightOff":"روشنی بند",
+"status.retakeRequired":"دوبارہ تصویر لیں",
 "notice.assessment":"NIRIKSHA تصویر سے خودکار تعمیل تشخیص کرتا ہے۔ یہ فیصلہ سازی میں معاون آلہ ہے، قانونی معائنے کا متبادل نہیں، اور یہ سرکاری تصدیق نہیں ہے۔",
 })

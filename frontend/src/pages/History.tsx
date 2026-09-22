@@ -247,7 +247,12 @@ export function History() {
                         <p className="mt-0.5 text-[11.5px] text-muted">{scan.category}</p>
                       </td>
                       <td className="px-5 py-3.5">
-                        <StatusPill {...resultPill(scan.result)} size="sm" />
+                        {/* A rejected photograph has no verdict to show. */}
+                        {scan.rejected ? (
+                          <StatusPill tone="neutral" label={t("status.retakeRequired")} size="sm" />
+                        ) : (
+                          <StatusPill {...resultPill(scan.result)} size="sm" />
+                        )}
                       </td>
                       <td className="px-5 py-3.5 text-[12.5px] text-muted">{scan.relative}</td>
                       <td className="px-5 py-3.5 font-mono text-[12px] text-muted">{scan.scanId}</td>
@@ -270,15 +275,19 @@ export function History() {
                             View
                           </Link>
                           {/* The report is built from the stored scan, so it
-                              can be taken away without opening it first. */}
-                          <button
-                            type="button"
-                            disabled={building === scan.scanId}
-                            onClick={() => setPendingScan(scan.scanId)}
-                            className="text-[12.5px] font-medium text-brand-700 hover:underline disabled:opacity-50"
-                          >
-                            {building === scan.scanId ? "Preparing…" : "PDF"}
-                          </button>
+                              can be taken away without opening it first —
+                              except where there is no assessment to report,
+                              which a rejected photograph has none of. */}
+                          {!scan.rejected && (
+                            <button
+                              type="button"
+                              disabled={building === scan.scanId}
+                              onClick={() => setPendingScan(scan.scanId)}
+                              className="text-[12.5px] font-medium text-brand-700 hover:underline disabled:opacity-50"
+                            >
+                              {building === scan.scanId ? "Preparing…" : "PDF"}
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

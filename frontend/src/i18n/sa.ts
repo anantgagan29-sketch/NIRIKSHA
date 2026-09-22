@@ -74,6 +74,7 @@ export const SA: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "अनुत्तीर्णम्",
   "status.review": "समीक्षा अपेक्षिता",
   "status.notApplicable": "न प्रयोज्यम्",
+  "status.retakeRequired": "पुनः चित्रं गृह्णातु",
   "status.detected": "प्राप्तम्",
   "status.pending": "अवशिष्टम्",
   "status.processing": "प्रक्रियायाम्",

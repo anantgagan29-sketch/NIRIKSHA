@@ -29,5 +29,6 @@ lang("or", "ଓଡ଼ିଆ", "Odia", "Odia script. Needs review by a native spe
 "reportPage.scanId":"ସ୍କାନ୍ ID","reportPage.overallResult":"ସାମଗ୍ରିକ ଫଳାଫଳ","reportPage.scannedProduct":"ସ୍କାନ୍ କରାଯାଇଥିବା ଉତ୍ପାଦ","reportPage.fieldChecks":"ଫିଲ୍ଡ ଯାଞ୍ଚ","reportPage.provision":"ବ୍ୟବସ୍ଥା","reportPage.recognisedText":"ଚିହ୍ନଟ ପାଠ୍ୟ","reportPage.modelReturned":"ମଡେଲ୍ କଣ ଫେରାଇଲା","reportPage.whatThisIs":"ଏହି ରିପୋର୍ଟ କଣ",
 "reportDialog.title":"ରିପୋର୍ଟ ଭାଷା ବାଛନ୍ତୁ","reportDialog.hint":"ଆପଣଙ୍କ ରିପୋର୍ଟର ଭାଷା ବାଛନ୍ତୁ। ଏହା ଏହି ସ୍କ୍ରିନର ଭାଷା ସହ ମେଳ ଖାଇବା ଆବଶ୍ୟକ ନୁହେଁ।","reportDialog.generate":"ରିପୋର୍ଟ ପ୍ରସ୍ତୁତ କରନ୍ତୁ","reportDialog.current":"ଇଣ୍ଟରଫେସ୍ ଭାଷା","history.reportLanguage":"ରିପୋର୍ଟ ଭାଷା","history.allLanguages":"ସମସ୍ତ ଭାଷା","history.notGenerated":"ପ୍ରସ୍ତୁତ ହୋଇନାହିଁ","report.generating":"ଆପଣଙ୍କ {language} ରିପୋର୍ଟ ପ୍ରସ୍ତୁତ ହେଉଛି…",
 "camera.light":"ଆଲୋକ","camera.lightOff":"ଆଲୋକ ବନ୍ଦ",
+"status.retakeRequired":"ପୁଣି ଫଟୋ ନିଅନ୍ତୁ",
 "notice.assessment":"NIRIKSHA ଛବିରୁ ସ୍ୱୟଂଚାଳିତ ଅନୁପାଳନ ମୂଲ୍ୟାଙ୍କନ କରେ। ଏହା ନିଷ୍ପତ୍ତି-ସହାୟକ ଉପକରଣ, ବୈଧାନିକ ପରିଦର୍ଶନର ବିକଳ୍ପ ନୁହେଁ, ଏବଂ ଏହା ସରକାରୀ ପ୍ରମାଣପତ୍ର ନୁହେଁ।",
 })

@@ -29,5 +29,6 @@ lang("ta", "தமிழ்", "Tamil", "Tamil script.")({
 "reportPage.scanId":"ஸ்கேன் ID","reportPage.overallResult":"ஒட்டுமொத்த முடிவு","reportPage.scannedProduct":"ஸ்கேன் செய்த தயாரிப்பு","reportPage.fieldChecks":"புல சோதனைகள்","reportPage.provision":"விதி","reportPage.recognisedText":"அடையாளம் கண்ட உரை","reportPage.modelReturned":"மாதிரி திருப்பியது","reportPage.whatThisIs":"இந்த அறிக்கை என்ன",
 "reportDialog.title":"அறிக்கை மொழியைத் தேர்ந்தெடுக்கவும்","reportDialog.hint":"உங்கள் அறிக்கையின் மொழியைத் தேர்ந்தெடுக்கவும். இது இந்தத் திரையின் மொழியுடன் பொருந்த வேண்டியதில்லை.","reportDialog.generate":"அறிக்கை உருவாக்கு","reportDialog.current":"இடைமுக மொழி","history.reportLanguage":"அறிக்கை மொழி","history.allLanguages":"எல்லா மொழிகளும்","history.notGenerated":"உருவாக்கப்படவில்லை","report.generating":"உங்கள் {language} அறிக்கை உருவாக்கப்படுகிறது…",
 "camera.light":"ஒளி","camera.lightOff":"ஒளி அணை",
+"status.retakeRequired":"மீண்டும் படம் எடுக்கவும்",
 "notice.assessment":"NIRIKSHA ஒரு படத்திலிருந்து தானியங்கி இணக்க மதிப்பீட்டைச் செய்கிறது. இது முடிவெடுக்க உதவும் கருவி, சட்டப்பூர்வ ஆய்வுக்கு மாற்று அல்ல, மேலும் இது அரசுச் சான்றிதழ் அல்ல.",
 })

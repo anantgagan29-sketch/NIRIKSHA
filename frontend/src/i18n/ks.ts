@@ -74,6 +74,7 @@ export const KS: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "फेल",
   "status.review": "समीक्षा ज़रूरी",
   "status.notApplicable": "लागू नु",
+  "status.retakeRequired": "दुबारु फोटो त्रायिव",
   "status.detected": "लब्नु आव",
   "status.pending": "बाकी",
   "status.processing": "प्रोसेस मंज़",

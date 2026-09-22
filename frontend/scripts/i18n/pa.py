@@ -29,5 +29,6 @@ lang("pa", "ਪੰਜਾਬੀ", "Punjabi", "Gurmukhi script.")({
 "reportPage.scanId":"ਸਕੈਨ ID","reportPage.overallResult":"ਸਮੁੱਚਾ ਨਤੀਜਾ","reportPage.scannedProduct":"ਸਕੈਨ ਕੀਤਾ ਉਤਪਾਦ","reportPage.fieldChecks":"ਫੀਲਡ ਜਾਂਚਾਂ","reportPage.provision":"ਵਿਵਸਥਾ","reportPage.recognisedText":"ਪਛਾਣੀ ਲਿਖਤ","reportPage.modelReturned":"ਮਾਡਲ ਨੇ ਕੀ ਵਾਪਸ ਕੀਤਾ","reportPage.whatThisIs":"ਇਹ ਰਿਪੋਰਟ ਕੀ ਹੈ",
 "reportDialog.title":"ਰਿਪੋਰਟ ਦੀ ਭਾਸ਼ਾ ਚੁਣੋ","reportDialog.hint":"ਆਪਣੀ ਰਿਪੋਰਟ ਦੀ ਭਾਸ਼ਾ ਚੁਣੋ। ਇਸ ਦਾ ਇਸ ਸਕ੍ਰੀਨ ਦੀ ਭਾਸ਼ਾ ਨਾਲ ਮੇਲ ਖਾਣਾ ਜ਼ਰੂਰੀ ਨਹੀਂ।","reportDialog.generate":"ਰਿਪੋਰਟ ਬਣਾਓ","reportDialog.current":"ਇੰਟਰਫੇਸ ਭਾਸ਼ਾ","history.reportLanguage":"ਰਿਪੋਰਟ ਭਾਸ਼ਾ","history.allLanguages":"ਸਾਰੀਆਂ ਭਾਸ਼ਾਵਾਂ","history.notGenerated":"ਨਹੀਂ ਬਣੀ","report.generating":"ਤੁਹਾਡੀ {language} ਰਿਪੋਰਟ ਤਿਆਰ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ…",
 "camera.light":"ਲਾਈਟ","camera.lightOff":"ਲਾਈਟ ਬੰਦ",
+"status.retakeRequired":"ਦੁਬਾਰਾ ਫੋਟੋ ਲਓ",
 "notice.assessment":"NIRIKSHA ਤਸਵੀਰ ਤੋਂ ਸਵੈਚਾਲਿਤ ਪਾਲਣਾ ਮੁਲਾਂਕਣ ਕਰਦਾ ਹੈ। ਇਹ ਫੈਸਲਾ-ਸਹਾਇਕ ਸਾਧਨ ਹੈ, ਕਾਨੂੰਨੀ ਜਾਂਚ ਦਾ ਬਦਲ ਨਹੀਂ, ਅਤੇ ਇਹ ਸਰਕਾਰੀ ਪ੍ਰਮਾਣੀਕਰਨ ਨਹੀਂ ਹੈ।",
 })

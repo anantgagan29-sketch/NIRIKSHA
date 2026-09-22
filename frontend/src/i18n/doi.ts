@@ -74,6 +74,7 @@ export const DOI: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "फेल",
   "status.review": "समीक्षा जरूरी",
   "status.notApplicable": "लागू नेईं",
+  "status.retakeRequired": "दोबारा फोटो लैओ",
   "status.detected": "मिलेआ",
   "status.pending": "बाकी",
   "status.processing": "प्रक्रिया च",

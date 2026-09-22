@@ -29,5 +29,6 @@ lang("sd", "सिन्धी", "Sindhi", "Devanagari script, as used by the Si
 "reportPage.scanId":"स्कैन ID","reportPage.overallResult":"मजमूई नतीजो","reportPage.scannedProduct":"स्कैन कयल प्रोडक्ट","reportPage.fieldChecks":"फ़ील्ड जांचूं","reportPage.provision":"शक़","reportPage.recognisedText":"सुञातल मतन","reportPage.modelReturned":"मॉडल छा वापस ॾिनो","reportPage.whatThisIs":"ही रिपोर्ट छा आहे",
 "reportDialog.title":"रिपोर्ट जी ॿोली चुंडियो","reportDialog.hint":"पंहिंजी रिपोर्ट जी ॿोली चुंडियो। हिन जो हिन स्क्रीन जी ॿोलीअ सां मिलण ज़रूरी नाहे।","reportDialog.generate":"रिपोर्ट तयार कयो","reportDialog.current":"इंटरफेस ॿोली","history.reportLanguage":"रिपोर्ट ॿोली","history.allLanguages":"सभु ॿोलियूं","history.notGenerated":"तयार नाहे","report.generating":"तव्हांजी {language} रिपोर्ट तयार थी रही आहे…",
 "camera.light":"रोशनी","camera.lightOff":"रोशनी बंद",
+"status.retakeRequired":"वरी फोटो वठो",
 "notice.assessment":"NIRIKSHA तस्वीर मां स्वचालित अनुपालन मूल्यांकन करे थो। हीउ फ़ैसलो-मददगार औज़ार आहे, क़ानूनी निरीक्षण जो बदल नाहे, ऐं हीउ सरकारी तसदीक़ नाहे।",
 })

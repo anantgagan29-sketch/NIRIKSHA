@@ -29,5 +29,6 @@ lang("gu", "ગુજરાતી", "Gujarati", "Gujarati script.")({
 "reportPage.scanId":"સ્કેન ID","reportPage.overallResult":"એકંદર પરિણામ","reportPage.scannedProduct":"સ્કેન કરેલું ઉત્પાદન","reportPage.fieldChecks":"ફીલ્ડ તપાસ","reportPage.provision":"જોગવાઈ","reportPage.recognisedText":"ઓળખાયેલ લખાણ","reportPage.modelReturned":"મોડેલે શું પાછું આપ્યું","reportPage.whatThisIs":"આ અહેવાલ શું છે",
 "reportDialog.title":"અહેવાલની ભાષા પસંદ કરો","reportDialog.hint":"તમારા અહેવાલની ભાષા પસંદ કરો. તે આ સ્ક્રીનની ભાષા સાથે મેળ ખાવી જરૂરી નથી.","reportDialog.generate":"અહેવાલ બનાવો","reportDialog.current":"ઇન્ટરફેસ ભાષા","history.reportLanguage":"અહેવાલ ભાષા","history.allLanguages":"બધી ભાષાઓ","history.notGenerated":"બનાવેલ નથી","report.generating":"તમારો {language} અહેવાલ તૈયાર થઈ રહ્યો છે…",
 "camera.light":"લાઇટ","camera.lightOff":"લાઇટ બંધ",
+"status.retakeRequired":"ફરીથી ફોટો લો",
 "notice.assessment":"NIRIKSHA છબી પરથી સ્વયંસંચાલિત અનુપાલન મૂલ્યાંકન કરે છે. આ નિર્ણય-સહાયક સાધન છે, વૈધાનિક તપાસનો વિકલ્પ નથી, અને આ સરકારી પ્રમાણપત્ર નથી.",
 })

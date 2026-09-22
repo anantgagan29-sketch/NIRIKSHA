@@ -74,6 +74,7 @@ export const ML: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "പരാജയപ്പെട്ടു",
   "status.review": "അവലോകനം ആവശ്യം",
   "status.notApplicable": "ബാധകമല്ല",
+  "status.retakeRequired": "വീണ്ടും ഫോട്ടോ എടുക്കുക",
   "status.detected": "കണ്ടെത്തി",
   "status.pending": "തീർപ്പാക്കാത്തത്",
   "status.processing": "പ്രോസസ്സ് ചെയ്യുന്നു",

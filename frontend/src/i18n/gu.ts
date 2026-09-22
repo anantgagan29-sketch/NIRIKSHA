@@ -74,6 +74,7 @@ export const GU: Partial<Record<keyof typeof EN, string>> = {
   "status.fail": "અનુત્તીર્ણ",
   "status.review": "સમીક્ષા જરૂરી",
   "status.notApplicable": "લાગુ નથી",
+  "status.retakeRequired": "ફરીથી ફોટો લો",
   "status.detected": "મળ્યું",
   "status.pending": "બાકી",
   "status.processing": "પ્રક્રિયામાં",

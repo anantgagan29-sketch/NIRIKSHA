@@ -79,6 +79,7 @@ export const EN = {
   "status.fail": "Failed",
   "status.review": "Needs review",
   "status.notApplicable": "Not applicable",
+  "status.retakeRequired": "Retake required",
   "status.detected": "Detected",
   "status.pending": "Pending",
   "status.processing": "Processing",

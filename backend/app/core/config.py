@@ -231,7 +231,13 @@ GEMINI_RETRY_DELAY: float = float(os.getenv("GEMINI_RETRY_DELAY", "0.8"))
 # healthy model answers in roughly 20-30s. The deadline sits above that but
 # well below the point where a demonstration stalls: passing it hands the
 # inspection to the on-device path, which finishes rather than failing.
-GEMINI_TIMEOUT_SECONDS: float = float(os.getenv("GEMINI_TIMEOUT_SECONDS", "45"))
+# Raised back to 60 after watching a scan fail at the 45s mark and the
+# abandoned call answer a second later: with every model returning 503, the
+# answer was arriving just past the budget and being thrown away. The budget
+# only applies when things are going badly — a healthy scan is three to six
+# seconds and never reaches it — so the extra fifteen seconds cost a good
+# scan nothing and turn a near miss into a result.
+GEMINI_TIMEOUT_SECONDS: float = float(os.getenv("GEMINI_TIMEOUT_SECONDS", "60"))
 
 # Deadline for the readability pass specifically. It only adds per-declaration
 # confidence and bounding boxes, so it is allowed to be dropped rather than

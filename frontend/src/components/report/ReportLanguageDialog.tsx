@@ -80,8 +80,17 @@ export function ReportLanguageDialog({
   const chosenFormat = formats?.find((option) => option.id === format);
 
   return (
-    <Modal open={open} onClose={busy ? () => undefined : onClose} title={t("reportDialog.title")}>
-      <div className="flex flex-col gap-5 p-5">
+    <Modal
+      open={open}
+      onClose={busy ? () => undefined : onClose}
+      title={t("reportDialog.title")}
+      className="max-h-[calc(100vh-2rem)] sm:max-h-[min(44rem,calc(100vh-3rem))]"
+    >
+      {/* The language list scrolls; the format row and the buttons stay
+          put beneath it. With twenty languages the button was the last
+          thing on a long page, and a laptop screen did not show it. */}
+      <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-5">
         <div className="flex items-start gap-3">
           <Globe className="mt-0.5 h-4.5 w-4.5 shrink-0 text-brand-700" aria-hidden="true" />
           <div className="min-w-0">
@@ -133,8 +142,11 @@ export function ReportLanguageDialog({
           })}
         </fieldset>
 
+      </div>
+
+      <div className="shrink-0 border-t border-line bg-surface px-5 py-4">
         {formats && (
-          <div className="flex flex-col gap-2">
+          <div className="mb-4 flex flex-col gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-faint">{t("common.download")}</p>
             <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t("common.download")}>
               {formats.map((option) => {
@@ -164,7 +176,7 @@ export function ReportLanguageDialog({
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <p
             lang={selected}
             className="min-h-[1.25rem] text-[12.5px] text-muted"
@@ -184,6 +196,7 @@ export function ReportLanguageDialog({
             </Button>
           </div>
         </div>
+      </div>
       </div>
     </Modal>
   );

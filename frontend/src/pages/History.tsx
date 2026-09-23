@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -25,8 +25,11 @@ const RANGES = { all: "All time", week: "Last 7 days", month: "Last 30 days" } a
 
 export function History() {
   const { t } = useLanguage();
-  const scans = useAsync(listScans, []);
-  const stats = useAsync(getScanStats, []);
+  // Cached for this page load, so coming back to the history draws the rows
+  // it already had and refreshes them behind the list, instead of showing a
+  // spinner every time the screen is opened.
+  const scans = useAsync(listScans, [], { cacheKey: "history.scans" });
+  const stats = useAsync(getScanStats, [], { cacheKey: "history.stats" });
 
   const toast = useToast();
   const [building, setBuilding] = useState<string | null>(null);
@@ -140,7 +143,13 @@ export function History() {
           title={t("history.scans")}
           action={
             <span className="text-[11.5px] text-muted">
-              {scans.loading ? "Loading…" : `${rows.length} shown`}
+              {/* A refresh behind a list already on screen says so quietly;
+                  it must not look like the rows are unreliable. */}
+              {scans.loading
+                ? "Loading…"
+                : scans.refreshing
+                  ? `${rows.length} shown · updating…`
+                  : `${rows.length} shown`}
             </span>
           }
         />
@@ -209,7 +218,7 @@ export function History() {
 
         <CardBody className="p-0">
           {scans.loading ? (
-            <LoadingState label="Loading your scans…" />
+            <HistoryLoading />
           ) : scans.error ? (
             <ErrorState message={scans.error} onRetry={scans.reload} />
           ) : (scans.data?.length ?? 0) === 0 ? (
@@ -309,6 +318,35 @@ export function History() {
           if (pendingScan) void downloadFor(pendingScan, language);
         }}
       />
+    </div>
+  );
+}
+
+/**
+ * The wait, with an explanation once it stops being brief.
+ *
+ * The API runs on an instance that is stopped after a quiet quarter of an
+ * hour and started again by the next request, which takes the better part of
+ * a minute. A spinner alone for that long reads as broken, so after a few
+ * seconds it says what is actually happening.
+ */
+function HistoryLoading() {
+  const [slow, setSlow] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSlow(true), 4000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center gap-2 py-4">
+      <LoadingState label="Loading your scans…" />
+      {slow && (
+        <p className="max-w-sm px-6 pb-6 text-center text-[12px] leading-relaxed text-muted">
+          The server sleeps after a quiet spell and is starting up. This first request can take
+          up to a minute; the next ones are immediate.
+        </p>
+      )}
     </div>
   );
 }

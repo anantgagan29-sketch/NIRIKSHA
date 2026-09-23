@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { HAS_SUPABASE, supabase } from "@/services/supabase";
+import { clearAsyncCache } from "@/hooks/useAsync";
 
 /**
  * Account handling.
@@ -363,6 +364,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOut = useCallback(() => {
+    // One account's rows must never be on screen for the next.
+    clearAsyncCache();
     if (supabase) {
       // The listener clears the user; doing it here too means the interface
       // does not sit signed-in while the request is in flight.
